@@ -1,27 +1,38 @@
-// models/Food.js
-
 import { Schema, model } from "mongoose";
 
-const foodSchema = new Schema(
+const donationSchema = new Schema(
   {
+    restaurant_id: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     foodName: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 150,
     },
 
-    quantity: {
+    description: {
+      type: String,
+      trim: true,
+    },
+
+    foodType: {
+      type: String,
+    },
+
+    totalQuantity: {
       type: Number,
       required: true,
       min: 1,
     },
 
-    description: {
-      type: String,
+    remainingQuantity: {
+      type: Number,
       required: true,
-      trim: true,
-      maxlength: 500,
+      min: 0,
     },
 
     expiryTime: {
@@ -40,34 +51,22 @@ const foodSchema = new Schema(
     },
 
     imageUrl: {
-      type: String, // store cloud URL (Cloudinary / S3)
+      type: String,
     },
 
     status: {
       type: String,
-      enum: ["available", "requested", "approved", "collected", "expired"],
+      enum: ["available", "closed", "expired"],
       default: "available",
     },
-
-    restaurant: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    requestedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-foodSchema.index({ expiryTime: 1 });
-foodSchema.index({ status: 1 });
+donationSchema.index({ expiryTime: 1 });
+donationSchema.index({ status: 1 });
 
-// Prevent invalid pickup window
-foodSchema.pre("save", function (next) {
+donationSchema.pre("save", function (next) {
   if (this.pickupWindowEnd <= this.pickupWindowStart) {
     return next(new Error("Pickup end time must be after start time"));
   }
@@ -76,7 +75,13 @@ foodSchema.pre("save", function (next) {
     return next(new Error("Expiry time must be in the future"));
   }
 
+  if (this.pickupWindowEnd > this.expiryTime) {
+    return next(
+      new Error("Pickup window must end before expiry time")
+    );
+  }
+
   next();
 });
 
-export default model("Food", foodSchema);
+export default model("Donation", donationSchema);

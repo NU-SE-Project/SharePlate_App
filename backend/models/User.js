@@ -1,5 +1,3 @@
-// models/User.js
-
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema(
@@ -8,8 +6,6 @@ const userSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      minlength: 3,
-      maxlength: 100,
     },
 
     email: {
@@ -18,27 +14,23 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
 
     password: {
       type: String,
       required: true,
-      minlength: 6,
-      select: false, // do not return password in queries
+      select: false,
     },
 
     address: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 300,
     },
 
     contactNumber: {
       type: String,
       required: true,
-      match: [/^[0-9]{10,15}$/, "Invalid contact number"],
     },
 
     role: {
@@ -47,12 +39,26 @@ const userSchema = new Schema(
       required: true,
     },
 
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
+    },
+
     isActive: {
       type: Boolean,
       default: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
+
+userSchema.index({ location: "2dsphere" });
 
 export default model("User", userSchema);
