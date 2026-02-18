@@ -2,11 +2,7 @@ import { Schema, model } from "mongoose";
 
 const userSchema = new Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    name: { type: String, required: true, trim: true },
 
     email: {
       type: String,
@@ -22,16 +18,9 @@ const userSchema = new Schema(
       select: false,
     },
 
-    address: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    address: { type: String, required: true, trim: true },
 
-    contactNumber: {
-      type: String,
-      required: true,
-    },
+    contactNumber: { type: String, required: true, trim: true },
 
     role: {
       type: String,
@@ -51,12 +40,9 @@ const userSchema = new Schema(
       },
     },
 
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+    isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.index({ location: "2dsphere" });
