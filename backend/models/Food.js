@@ -67,21 +67,33 @@ donationSchema.index({ expiryTime: 1 });
 donationSchema.index({ status: 1 });
 
 donationSchema.pre("save", function (next) {
-  if (this.pickupWindowEnd <= this.pickupWindowStart) {
-    return next(new Error("Pickup end time must be after start time"));
+  // if (this.pickupWindowEnd <= this.pickupWindowStart) {
+  //   return next(new Error("Pickup end time must be after start time"));
+  // }
+
+  // if (this.expiryTime <= new Date()) {
+  //   return next(new Error("Expiry time must be in the future"));
+  // }
+
+  // if (this.pickupWindowEnd > this.expiryTime) {
+  //   return next(
+  //     new Error("Pickup window must end before expiry time")
+  //   );
+  // }
+
+  // next();
+
+   if (this.pickupWindowEnd <= this.pickupWindowStart) {
+    throw new Error("Pickup end time must be after start time");
   }
 
   if (this.expiryTime <= new Date()) {
-    return next(new Error("Expiry time must be in the future"));
+    throw new Error("Expiry time must be in the future");
   }
 
   if (this.pickupWindowEnd > this.expiryTime) {
-    return next(
-      new Error("Pickup window must end before expiry time")
-    );
+    throw new Error("Pickup window must end before expiry time");
   }
-
-  next();
 });
 
 export default model("Donation", donationSchema);
