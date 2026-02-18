@@ -1,25 +1,29 @@
-// models/Request.js
-
 import { Schema, model } from "mongoose";
 
 const requestSchema = new Schema(
   {
-    food: {
+    food_id: {
       type: Schema.Types.ObjectId,
-      ref: "Food",
+      ref: "Donation",
       required: true,
     },
 
-    restaurant: {
+    restaurant_id: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    foodBank: {
+    foodBank_id: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+
+    requestedQuantity: {
+      type: Number,
+      required: true,
+      min: 1,
     },
 
     status: {
@@ -33,24 +37,16 @@ const requestSchema = new Schema(
       default: Date.now,
     },
 
-    approvedAt: {
-      type: Date,
-    },
-
-    collectedAt: {
-      type: Date,
-    },
+    approvedAt: Date,
+    rejectedAt: Date,
+    collectedAt: Date,
 
     notes: {
       type: String,
       trim: true,
-      maxlength: 500,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-
-// Prevent duplicate active requests
-requestSchema.index({ food: 1, foodBank: 1 }, { unique: true });
 
 export default model("Request", requestSchema);
