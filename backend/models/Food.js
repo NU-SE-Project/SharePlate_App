@@ -60,7 +60,7 @@ const donationSchema = new Schema(
       default: "available",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 donationSchema.index({ expiryTime: 1 });
@@ -76,9 +76,7 @@ donationSchema.pre("save", function (next) {
   }
 
   if (this.pickupWindowEnd > this.expiryTime) {
-    return next(
-      new Error("Pickup window must end before expiry time")
-    );
+    return next(new Error("Pickup window must end before expiry time"));
   }
 
   next();
