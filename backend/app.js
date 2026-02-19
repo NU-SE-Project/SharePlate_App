@@ -7,8 +7,8 @@ import rateLimit from "express-rate-limit"; // Basic rate limiting
 
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 
-import authRoutes from "./routes/auth.routes.js";
-import userRoutes from "./routes/user.routes.js";
+// import authRoutes from "./routes/authRoutes.js";
+// import userRoutes from "./routes/userRoutes.js";
 
 import foodRoutes from "./routes/foodRoutes.js";
 
@@ -23,7 +23,8 @@ app.use(morgan("dev"));
 const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
-  message: { message: "Too many requests, try again later." },
+  message: { message: "Too many requests, try again later." }
+  });
 app.use("/foodsdonate", foodRoutes);
 
 // Routes
@@ -34,8 +35,8 @@ app.get("/", (req, res) => {
 // Routes
 app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
 
-app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/users", userRoutes);
+// app.use("/api/auth", authLimiter, authRoutes);
+// app.use("/api/users", userRoutes);
 
 // Global error handler
 app.use(notFound);

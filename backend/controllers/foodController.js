@@ -98,4 +98,45 @@ export const getSingleDonation = async (req, res) => {
   }
 };
 
+// UPDATE
+export const updateDonation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid donation ID" });
+    }
+
+    if (updates.totalQuantity && updates.totalQuantity <= 0) {
+      return res.status(400).json({ message: "Total quantity must be greater than 0" });
+    }
+
+    const donation = await Donation.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+    if (!donation) return res.status(404).json({ message: "Donation not found" });
+
+    res.status(200).json(donation);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// DELETE
+export const deleteDonation = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid donation ID" });
+    }
+
+    const donation = await Donation.findByIdAndDelete(id);
+    if (!donation) return res.status(404).json({ message: "Donation not found" });
+
+    res.status(200).json({ message: "Donation deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
