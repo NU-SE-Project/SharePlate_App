@@ -10,6 +10,8 @@ import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
+import foodRoutes from "./routes/foodRoutes.js";
+
 const app = express();
 
 app.use(json({ limit: "1mb" }));
@@ -22,6 +24,11 @@ const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
   message: { message: "Too many requests, try again later." },
+app.use("/foodsdonate", foodRoutes);
+
+// Routes
+app.get("/", (req, res) => {
+  res.send("API running");
 });
 
 // Routes
