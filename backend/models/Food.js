@@ -60,7 +60,7 @@ const donationSchema = new Schema(
       default: "available",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 donationSchema.index({ expiryTime: 1 });

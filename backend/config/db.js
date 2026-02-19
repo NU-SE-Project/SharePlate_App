@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 const connectDB = async () => {
+  // strictQuery avoids unrecognized query fields silently passing
+  mongoose.set("strictQuery", true);
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
