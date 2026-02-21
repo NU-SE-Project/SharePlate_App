@@ -46,3 +46,78 @@ export async function createPickupOTP(req, res, next) {
     next(error);
   }
 }
+
+/* ===============================
+    Verify OTP
+=================================*/
+
+export async function verifyPickupOTP(req, res, next) {
+  try {
+    const { pickupId, otp } = req.body;
+
+    if (!pickupId || !otp) {
+      return res.status(400).json({ message: "Pickup ID and OTP required" });
+    }
+
+    const pickup = await Pickup.findById(pickupId);
+
+    if (!pickup) {
+      return res.status(404).json({ message: "Pickup not found" });
+    }
+
+    if (pickup.verified) {
+      return res.status(400).json({ message: "Already verified" });
+    }
+
+    const now = new Date();
+
+    // Check expiry
+    if (pickup.otpExpiresAt < now) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // Check lock
+    if (pickup.otpLockedUntil && pickup.otpLockedUntil > now) {
+      return res.status(400).json({
+        message: `Locked. Try again after ${pickup.otpLockedUntil}`,
+      });
+    }
+
+    // Auto unlock if 5 mins passed
+    if (pickup.otpLockedUntil && pickup.otpLockedUntil <= now) {
+      pickup.otpAttempts = 0;
+      pickup.otpLockedUntil = null;
+    }
+
+    const hashedInput = hashOTP(otp);
+
+    if (hashedInput !== pickup.otpHash) {
+      pickup.otpAttempts += 1;
+
+      if (pickup.otpAttempts >= 3) {
+        pickup.otpLockedUntil = new Date(Date.now() + 5 * 60 * 1000);
+      }
+
+      await pickup.save();
+
+      return res.status(400).json({
+        message: "Invalid OTP",
+        attemptsLeft:
+          3 - pickup.otpAttempts > 0 ? 3 - pickup.otpAttempts : 0,
+      });
+    }
+
+    // Correct OTP
+    pickup.verified = true;
+    pickup.verifiedAt = new Date();
+    pickup.status = "verified";
+
+    await pickup.save();
+
+    return res.status(200).json({
+      message: "Pickup verified successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
