@@ -11,7 +11,7 @@ import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 // import userRoutes from "./routes/userRoutes.js";
 
 import foodRoutes from "./routes/foodRoutes.js";
-
+import pickupRoutes from "./routes/pickupRoutes.js";
 const app = express();
 
 app.use(json({ limit: "1mb" }));
@@ -27,6 +27,9 @@ const authLimiter = rateLimit({
   });
 app.use("/foodsdonate", foodRoutes);
 
+// pickup routes
+app.use("/pickup", pickupRoutes);
+
 // Routes
 app.get("/", (req, res) => {
   res.send("API running");
@@ -41,5 +44,7 @@ app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
 // Global error handler
 app.use(notFound);
 app.use(errorHandler);
+
+
 
 export default app;
