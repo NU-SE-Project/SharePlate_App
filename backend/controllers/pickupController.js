@@ -158,3 +158,20 @@ export async function resendPickupOTP(req, res, next) {
   }
 }
 
+/* ===============================
+    Get Pickup By ID
+=================================*/
+
+export async function getPickupById(req, res, next) {
+  try {
+    const pickup = await Pickup.findById(req.params.id);
+
+    if (!pickup) {
+      return res.status(404).json({ message: "Pickup not found" });
+    }
+
+    res.status(200).json(pickup);
+  } catch (error) {
+    next(error);
+  }
+}

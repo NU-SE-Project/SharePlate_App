@@ -3,6 +3,7 @@ import {
   createPickupOTP,
   verifyPickupOTP,
   resendPickupOTP,
+  getPickupById,
 } from "../controllers/pickupController.js";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.post("/verify", verifyPickupOTP);
 
 // Resend OTP
 router.post("/resend", resendPickupOTP);
+
+// Get Pickup details
+router.get("/:id", getPickupById);
 
 export default router;
