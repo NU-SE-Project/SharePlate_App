@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod"; // For request validation
 import { validate } from "../middlewares/validateMiddleware.js";
 import { requireAuth } from "../middlewares/authMiddleware.js";
-import { register, login } from "../controllers/authController.js";
+import { register, login, refresh } from "../controllers/authController.js";
 import {
   nameSchema,
   emailSchema,
@@ -78,4 +78,7 @@ export const loginSchema = z.object({
 
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
+// ✅ Refresh token endpoint (cookie-based)
+router.post("/refresh", refresh);
+
 export default router;
