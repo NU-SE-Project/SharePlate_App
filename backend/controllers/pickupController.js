@@ -121,3 +121,40 @@ export async function verifyPickupOTP(req, res, next) {
     next(error);
   }
 }
+
+/* ===============================
+    Resend OTP
+=================================*/
+
+export async function resendPickupOTP(req, res, next) {
+  try {
+    const { pickupId } = req.body;
+
+    const pickup = await Pickup.findById(pickupId);
+
+    if (!pickup) {
+      return res.status(404).json({ message: "Pickup not found" });
+    }
+
+    if (pickup.verified) {
+      return res.status(400).json({ message: "Already verified" });
+    }
+
+    const newOtp = generateOTP();
+
+    pickup.otpHash = hashOTP(newOtp);
+    pickup.otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    pickup.otpAttempts = 0;
+    pickup.otpLockedUntil = null;
+
+    await pickup.save();
+
+    return res.status(200).json({
+      message: "New OTP generated",
+      otp: newOtp, // remove later in production
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
