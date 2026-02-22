@@ -21,6 +21,7 @@ app.use(cookieParser());
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
+app.use(express.json());
 
 // If you deploy behind proxy (Render/Railway), cookies with secure may need this
 app.set("trust proxy", 1);
