@@ -12,6 +12,8 @@ import authRoutes from "./routes/authRoutes.js";
 
 import foodRoutes from "./routes/foodRoutes.js";
 import pickupRoutes from "./routes/pickupRoutes.js";
+import requestRoutes from "./routes/requestRoutes.js";
+
 const app = express();
 
 app.use(json({ limit: "1mb" }));
@@ -41,6 +43,8 @@ app.use("/foodsdonate", foodRoutes);
 
 // pickup routes
 app.use("/pickup", pickupRoutes);
+
+app.use("/request", requestRoutes);
 
 // Routes
 app.get("/", (req, res) => {
