@@ -11,7 +11,7 @@ import authRoutes from "./routes/authRoutes.js";
 // import userRoutes from "./routes/userRoutes.js";
 
 import foodRoutes from "./routes/foodRoutes.js";
-
+import pickupRoutes from "./routes/pickupRoutes.js";
 const app = express();
 
 app.use(json({ limit: "1mb" }));
@@ -36,6 +36,15 @@ const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
   message: { message: "Too many requests, try again later." },
+  });
+app.use("/foodsdonate", foodRoutes);
+
+// pickup routes
+app.use("/pickup", pickupRoutes);
+
+// Routes
+app.get("/", (req, res) => {
+  res.send("API running");
 });
 
 // Routes
@@ -47,5 +56,7 @@ app.use("/api/auth", authLimiter, authRoutes);
 // Global error handler
 app.use(notFound);
 app.use(errorHandler);
+
+
 
 export default app;
