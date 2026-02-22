@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 import User from "../models/User.js";
+import RefreshToken from "../models/RefreshToken.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -27,7 +29,14 @@ function hashToken(token) {
 
 // Convert refresh expiry into a Date.
 function refreshExpiryDateFromNow() {
-  const days = process.env.JWT_REFRESH_EXPIRES_IN;
+  const raw = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+  const match = /^\s*(\d+)\s*d\s*$/i.exec(raw);
+  const days = match ? Number(match[1]) : Number(raw);
+
+  if (!Number.isFinite(days) || days <= 0) {
+    return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  }
+
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 }
 

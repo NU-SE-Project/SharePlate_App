@@ -21,7 +21,6 @@ const refreshTokenSchema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
     },
 
     // If you want explicit revoke instead of delete

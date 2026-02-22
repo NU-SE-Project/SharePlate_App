@@ -42,6 +42,15 @@ const userSchema = new Schema(
       },
     },
 
+    // Optional org verification (useful for shelters/restaurants)
+    verificationStatus: {
+      type: String,
+      enum: ["unverified", "pending", "verified", "rejected"],
+      default: "unverified",
+      index: true,
+    },
+    verifiedAt: { type: Date, default: null },
+
     // Admin can disable accounts without deleting
     isActive: { type: Boolean, default: true },
   },
