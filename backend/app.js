@@ -36,11 +36,6 @@ const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
   message: { message: "Too many requests, try again later." },
-app.use("/foodsdonate", foodRoutes);
-
-// Routes
-app.get("/", (req, res) => {
-  res.send("API running");
 });
 
 // Routes
