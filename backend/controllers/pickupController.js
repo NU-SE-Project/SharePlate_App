@@ -69,10 +69,23 @@ export async function verifyPickupOTP(req, res, next) {
       return res.status(400).json({ message: "Already verified" });
     }
 
+    if (!pickup.otpHash) {
+      return res.status(400).json({ message: "No active OTP. Please resend." });
+    }
+
     const now = new Date();
 
     // Check expiry
-    if (pickup.otpExpiresAt < now) {
+    if (pickup.otpExpiresAt && pickup.otpExpiresAt < now) {
+
+      //  Clear expired OTP
+      // pickup.otpHash = null; now not want, job is delete expire otps
+      // pickup.otpExpiresAt = null;
+      // pickup.otpAttempts = 0;
+      // pickup.otpLockedUntil = null;
+
+      // await pickup.save();
+
       return res.status(400).json({ message: "OTP expired" });
     }
 
@@ -111,6 +124,12 @@ export async function verifyPickupOTP(req, res, next) {
     pickup.verified = true;
     pickup.verifiedAt = new Date();
     pickup.status = "verified";
+
+    // Clear OTP data after success
+    pickup.otpHash = null;
+    // pickup.otpExpiresAt = null;
+    // pickup.otpAttempts = 0;
+    // pickup.otpLockedUntil = null;
 
     await pickup.save();
 
