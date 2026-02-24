@@ -7,12 +7,11 @@ import rateLimit from "express-rate-limit"; // Basic rate limiting
 import cookieParser from "cookie-parser"; // For parsing cookies
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 
-import authRoutes from "./routes/authRoutes.js";
-// import userRoutes from "./routes/userRoutes.js";
-
-import foodRoutes from "./routes/foodRoutes.js";
-import pickupRoutes from "./routes/pickupRoutes.js";
-import requestRoutes from "./routes/requestRoutes.js";
+import authRoutes from "./modules/auth/authRoutes.js";
+import userRoutes from "./modules/user/userRoutes.js";
+import foodRoutes from "./modules/food/foodRoutes.js";
+import pickupRoutes from "./modules/pickup/pickupRoutes.js";
+import requestRoutes from "./modules/request/requestRoutes.js";
 
 const app = express();
 
@@ -40,8 +39,6 @@ const authLimiter = rateLimit({
   message: { message: "Too many requests, try again later." },
 });
 
-app.use("/request", requestRoutes);
-
 // Routes
 app.get("/", (req, res) => {
   res.send("API running");
@@ -51,10 +48,10 @@ app.get("/", (req, res) => {
 app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
 
 app.use("/api/auth", authLimiter, authRoutes);
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/foodsdonate", foodRoutes);
-// pickup routes
 app.use("/pickup", pickupRoutes);
+app.use("/request", requestRoutes);
 
 // Global error handler
 app.use(notFound);

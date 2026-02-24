@@ -4,7 +4,7 @@ const pickupSchema = new mongoose.Schema(
   {
     request_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Request", 
+      ref: "Request",
       required: true,
     },
 
@@ -55,7 +55,7 @@ const pickupSchema = new mongoose.Schema(
       default: "generated",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Pickup", pickupSchema);

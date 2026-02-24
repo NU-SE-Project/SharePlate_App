@@ -46,7 +46,7 @@ const requestSchema = new Schema(
       trim: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default model("Request", requestSchema);

@@ -83,7 +83,7 @@ donationSchema.pre("save", function (next) {
 
   // next();
 
-   if (this.pickupWindowEnd <= this.pickupWindowStart) {
+  if (this.pickupWindowEnd <= this.pickupWindowStart) {
     throw new Error("Pickup end time must be after start time");
   }
 

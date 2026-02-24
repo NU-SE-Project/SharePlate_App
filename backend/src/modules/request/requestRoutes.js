@@ -1,6 +1,9 @@
 import express from "express";
-import { requestFood } from "../controllers/shopRequest/requestController.js";
-import { approveRequest, rejectRequest } from "../controllers/shopRequest/approvalController.js";
+import { requestFood } from "./controllers/requestController.js";
+import {
+  approveRequest,
+  rejectRequest,
+} from "./controllers/approvalController.js";
 
 const router = express.Router();
 

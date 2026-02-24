@@ -1,4 +1,4 @@
-import Donation from "../models/Food.js";
+import Donation from "./Food.js";
 import mongoose from "mongoose";
 
 // CREATE
@@ -17,8 +17,17 @@ export const createDonation = async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!restaurant_id || !foodName || !totalQuantity || !expiryTime || !pickupWindowStart || !pickupWindowEnd) {
-      return res.status(400).json({ message: "All required fields must be provided" });
+    if (
+      !restaurant_id ||
+      !foodName ||
+      !totalQuantity ||
+      !expiryTime ||
+      !pickupWindowStart ||
+      !pickupWindowEnd
+    ) {
+      return res
+        .status(400)
+        .json({ message: "All required fields must be provided" });
     }
 
     if (!mongoose.Types.ObjectId.isValid(restaurant_id)) {
@@ -26,7 +35,9 @@ export const createDonation = async (req, res) => {
     }
 
     if (totalQuantity <= 0) {
-      return res.status(400).json({ message: "Total quantity must be greater than 0" });
+      return res
+        .status(400)
+        .json({ message: "Total quantity must be greater than 0" });
     }
 
     const expiry = new Date(expiryTime);
@@ -34,15 +45,21 @@ export const createDonation = async (req, res) => {
     const end = new Date(pickupWindowEnd);
 
     if (end <= start) {
-      return res.status(400).json({ message: "Pickup end time must be after start time" });
+      return res
+        .status(400)
+        .json({ message: "Pickup end time must be after start time" });
     }
 
     if (expiry <= new Date()) {
-      return res.status(400).json({ message: "Expiry time must be in the future" });
+      return res
+        .status(400)
+        .json({ message: "Expiry time must be in the future" });
     }
 
     if (end > expiry) {
-      return res.status(400).json({ message: "Pickup window must end before expiry time" });
+      return res
+        .status(400)
+        .json({ message: "Pickup window must end before expiry time" });
     }
 
     const donation = await Donation.create({
@@ -90,7 +107,8 @@ export const getSingleDonation = async (req, res) => {
     }
 
     const donation = await Donation.findById(id);
-    if (!donation) return res.status(404).json({ message: "Donation not found" });
+    if (!donation)
+      return res.status(404).json({ message: "Donation not found" });
 
     res.status(200).json(donation);
   } catch (error) {
@@ -109,11 +127,17 @@ export const updateDonation = async (req, res) => {
     }
 
     if (updates.totalQuantity && updates.totalQuantity <= 0) {
-      return res.status(400).json({ message: "Total quantity must be greater than 0" });
+      return res
+        .status(400)
+        .json({ message: "Total quantity must be greater than 0" });
     }
 
-    const donation = await Donation.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
-    if (!donation) return res.status(404).json({ message: "Donation not found" });
+    const donation = await Donation.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+    if (!donation)
+      return res.status(404).json({ message: "Donation not found" });
 
     res.status(200).json(donation);
   } catch (error) {
@@ -131,12 +155,11 @@ export const deleteDonation = async (req, res) => {
     }
 
     const donation = await Donation.findByIdAndDelete(id);
-    if (!donation) return res.status(404).json({ message: "Donation not found" });
+    if (!donation)
+      return res.status(404).json({ message: "Donation not found" });
 
     res.status(200).json({ message: "Donation deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-

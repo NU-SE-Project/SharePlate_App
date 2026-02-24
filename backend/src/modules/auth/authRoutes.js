@@ -1,8 +1,14 @@
 import { Router } from "express";
 import { z } from "zod"; // For request validation
-import { validate } from "../middlewares/validateMiddleware.js";
-import { requireAuth } from "../middlewares/authMiddleware.js";
-import { register, login, refresh } from "../controllers/authController.js";
+import { validate } from "../../middlewares/validateMiddleware.js";
+import { requireAuth } from "../../middlewares/authMiddleware.js";
+import {
+  register,
+  login,
+  refresh,
+  logout,
+  logoutAll,
+} from "./authController.js";
 import {
   nameSchema,
   emailSchema,
@@ -11,7 +17,7 @@ import {
   contactNumberSchema,
   roleSchema,
   geoSchema,
-} from "../utils/validations.js";
+} from "../../utils/validations.js";
 
 const router = Router();
 
@@ -78,7 +84,12 @@ export const loginSchema = z.object({
 
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
-// ✅ Refresh token endpoint (cookie-based)
+// Refresh token endpoint (cookie-based)
 router.post("/refresh", refresh);
+// Uses refresh cookie (no auth header needed)
+router.post("/logout", logout);
+
+// Optional: logout all devices (requires access token)
+router.post("/logout-all", requireAuth, logoutAll);
 
 export default router;
