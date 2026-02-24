@@ -9,15 +9,15 @@ import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 
 import authRoutes from "./modules/auth/authRoutes.js";
 import userRoutes from "./modules/user/userRoutes.js";
-import foodRoutes from "./modules/food/foodRoutes.js";
+import foodRoutes from "./modules/donation/shop/donationRoutes.js";
 import pickupRoutes from "./modules/pickup/pickupRoutes.js";
-import requestRoutes from "./modules/request/requestRoutes.js";
+import requestRoutes from "./modules/donation/foodbank/requestRoutes.js";
 
 const app = express();
 
 app.use(json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(helmet());
+app.use(helmet()); 
 app.use(morgan("dev"));
 app.use(express.json());
 

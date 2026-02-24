@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Food from "../../food/Food.js";
+import Food from "../../shop/Donation.js";
 import Request from "../Request.js";
 
 // Request food controller

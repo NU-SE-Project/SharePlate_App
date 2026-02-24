@@ -1,4 +1,4 @@
-import Donation from "./Food.js";
+import Donation from "./Donation.js";
 import mongoose from "mongoose";
 
 // CREATE

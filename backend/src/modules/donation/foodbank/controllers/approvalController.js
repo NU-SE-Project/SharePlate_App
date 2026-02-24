@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Request from "../Request.js";
-import Food from "../../food/Food.js";
+import Food from "../../shop/Donation.js";
 
 // Approve a request
 export const approveRequest = async (req, res, next) => {
