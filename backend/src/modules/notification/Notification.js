@@ -11,7 +11,7 @@ const notificationSchema = new Schema(
     type: {
       type: String,
       enum: ["request", "approval", "rejection", "collection"],
-      required: true,
+      // if not want remove
     },
 
     message: {

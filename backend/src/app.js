@@ -12,6 +12,7 @@ import userRoutes from "./modules/user/userRoutes.js";
 import foodRoutes from "./modules/donation/shop/donationRoutes.js";
 import pickupRoutes from "./modules/pickup/pickupRoutes.js";
 import requestRoutes from "./modules/donation/foodbank/requestRoutes.js";
+import notificationRoutes from "./modules/notification/notificationRoutes.js";
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/foodsdonate", foodRoutes);
 app.use("/api/pickup", pickupRoutes);
 app.use("/api/request", requestRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Global error handler
 app.use(notFound);
