@@ -48,10 +48,10 @@ app.get("/", (req, res) => {
 app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
 
 app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/foodsdonate", foodRoutes);
-app.use("/pickup", pickupRoutes);
-app.use("/request", requestRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/foodsdonate", foodRoutes);
+app.use("/api/pickup", pickupRoutes);
+app.use("/api/request", requestRoutes);
 
 // Global error handler
 app.use(notFound);
