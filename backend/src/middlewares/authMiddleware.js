@@ -13,7 +13,7 @@ export function requireAuth(req, res, next) {
   const token = header.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
     // Attach to request so next middlewares/controllers can use it
     // decoded should contain { userId, role }

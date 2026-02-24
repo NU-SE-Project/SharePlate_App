@@ -1,8 +1,7 @@
 import cron from "node-cron";
-import Pickup from "../models/Pickup.js";
+import Pickup from "../modules/pickup/Pickup.js";
 
 export function startOtpCleanupJob() {
-
   // ⏰ Runs once every day at 00:05 (midnight)
   cron.schedule("5 0 * * *", async () => {
     try {
@@ -14,7 +13,7 @@ export function startOtpCleanupJob() {
         {
           otpExpiresAt: { $lt: now },
           verified: false,
-          otpHash: { $ne: null }
+          otpHash: { $ne: null },
         },
         {
           $set: {
@@ -22,15 +21,13 @@ export function startOtpCleanupJob() {
             // otpExpiresAt: null,
             // otpAttempts: 0,
             // otpLockedUntil: null
-          }
-        }
+          },
+        },
       );
 
       console.log(`✅ Expired OTPs cleared: ${result.modifiedCount}`);
-
     } catch (error) {
       console.error("❌ OTP Cleanup Job Error:", error.message);
     }
   });
-
 }

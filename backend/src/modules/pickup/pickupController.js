@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import Pickup from "../models/Pickup.js";
+import Pickup from "./Pickup.js";
 
 /* ===============================
    Helper Functions
@@ -40,7 +40,7 @@ export async function createPickupOTP(req, res, next) {
     return res.status(201).json({
       message: "OTP generated successfully",
       pickupId: pickup._id,
-      otp, 
+      otp,
     });
   } catch (error) {
     next(error);
@@ -77,7 +77,6 @@ export async function verifyPickupOTP(req, res, next) {
 
     // Check expiry
     if (pickup.otpExpiresAt && pickup.otpExpiresAt < now) {
-
       //  Clear expired OTP
       // pickup.otpHash = null; now not want, job is delete expire otps
       // pickup.otpExpiresAt = null;
@@ -115,8 +114,7 @@ export async function verifyPickupOTP(req, res, next) {
 
       return res.status(400).json({
         message: "Invalid OTP",
-        attemptsLeft:
-          3 - pickup.otpAttempts > 0 ? 3 - pickup.otpAttempts : 0,
+        attemptsLeft: 3 - pickup.otpAttempts > 0 ? 3 - pickup.otpAttempts : 0,
       });
     }
 

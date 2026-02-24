@@ -4,7 +4,7 @@ import {
   refreshSession,
   logoutByRefreshToken,
   logoutAllSessions,
-} from "../services/authService.js";
+} from "./authService.js";
 
 // Cookie helpers
 function setRefreshCookie(res, token) {
@@ -74,6 +74,30 @@ export async function refresh(req, res, next) {
     res
       .status(200)
       .json({ accessToken: result.accessToken, user: result.user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Logout this device/session (uses refresh cookie)
+export async function logout(req, res, next) {
+  try {
+    const token = req.cookies.refreshToken;
+    await logoutByRefreshToken(token);
+
+    clearRefreshCookie(res);
+    res.status(200).json({ message: "Logged out" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Optional: logout all sessions (requires access token)
+export async function logoutAll(req, res, next) {
+  try {
+    await logoutAllSessions(req.user.userId);
+    clearRefreshCookie(res);
+    res.status(200).json({ message: "Logged out from all devices" });
   } catch (err) {
     next(err);
   }
