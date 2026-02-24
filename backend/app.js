@@ -16,7 +16,6 @@ const app = express();
 
 app.use(json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 
@@ -36,11 +35,7 @@ const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
   message: { message: "Too many requests, try again later." },
-  });
-app.use("/foodsdonate", foodRoutes);
-
-// pickup routes
-app.use("/pickup", pickupRoutes);
+});
 
 // Routes
 app.get("/", (req, res) => {
@@ -52,11 +47,12 @@ app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
 
 app.use("/api/auth", authLimiter, authRoutes);
 // app.use("/api/users", userRoutes);
+app.use("/foodsdonate", foodRoutes);
+// pickup routes
+app.use("/pickup", pickupRoutes);
 
 // Global error handler
 app.use(notFound);
 app.use(errorHandler);
-
-
 
 export default app;
