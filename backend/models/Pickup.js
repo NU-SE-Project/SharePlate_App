@@ -23,7 +23,6 @@ const pickupSchema = new mongoose.Schema(
     // OTP Fields
     otpHash: {
       type: String,
-      required: true,
     },
 
     otpExpiresAt: {

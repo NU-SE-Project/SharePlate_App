@@ -69,10 +69,23 @@ export async function verifyPickupOTP(req, res, next) {
       return res.status(400).json({ message: "Already verified" });
     }
 
+    if (!pickup.otpHash) {
+      return res.status(400).json({ message: "No active OTP. Please resend." });
+    }
+
     const now = new Date();
 
     // Check expiry
-    if (pickup.otpExpiresAt < now) {
+    if (pickup.otpExpiresAt && pickup.otpExpiresAt < now) {
+
+      //  Clear expired OTP
+      // pickup.otpHash = null; now not want, job is delete expire otps
+      // pickup.otpExpiresAt = null;
+      // pickup.otpAttempts = 0;
+      // pickup.otpLockedUntil = null;
+
+      // await pickup.save();
+
       return res.status(400).json({ message: "OTP expired" });
     }
 
@@ -112,11 +125,71 @@ export async function verifyPickupOTP(req, res, next) {
     pickup.verifiedAt = new Date();
     pickup.status = "verified";
 
+    // Clear OTP data after success
+    pickup.otpHash = null;
+    // pickup.otpExpiresAt = null;
+    // pickup.otpAttempts = 0;
+    // pickup.otpLockedUntil = null;
+
     await pickup.save();
 
     return res.status(200).json({
       message: "Pickup verified successfully",
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/* ===============================
+    Resend OTP
+=================================*/
+
+export async function resendPickupOTP(req, res, next) {
+  try {
+    const { pickupId } = req.body;
+
+    const pickup = await Pickup.findById(pickupId);
+
+    if (!pickup) {
+      return res.status(404).json({ message: "Pickup not found" });
+    }
+
+    if (pickup.verified) {
+      return res.status(400).json({ message: "Already verified" });
+    }
+
+    const newOtp = generateOTP();
+
+    pickup.otpHash = hashOTP(newOtp);
+    pickup.otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    pickup.otpAttempts = 0;
+    pickup.otpLockedUntil = null;
+
+    await pickup.save();
+
+    return res.status(200).json({
+      message: "New OTP generated",
+      otp: newOtp, // remove later in production
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/* ===============================
+    Get Pickup By ID
+=================================*/
+
+export async function getPickupById(req, res, next) {
+  try {
+    const pickup = await Pickup.findById(req.params.id);
+
+    if (!pickup) {
+      return res.status(404).json({ message: "Pickup not found" });
+    }
+
+    res.status(200).json(pickup);
   } catch (error) {
     next(error);
   }

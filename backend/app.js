@@ -12,12 +12,15 @@ import authRoutes from "./routes/authRoutes.js";
 
 import foodRoutes from "./routes/foodRoutes.js";
 import pickupRoutes from "./routes/pickupRoutes.js";
+import requestRoutes from "./routes/requestRoutes.js";
+
 const app = express();
 
 app.use(json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(helmet());
 app.use(morgan("dev"));
+app.use(express.json());
 
 // If you deploy behind proxy (Render/Railway), cookies with secure may need this
 app.set("trust proxy", 1);
@@ -36,6 +39,8 @@ const authLimiter = rateLimit({
   max: 20,
   message: { message: "Too many requests, try again later." },
 });
+
+app.use("/request", requestRoutes);
 
 // Routes
 app.get("/", (req, res) => {
