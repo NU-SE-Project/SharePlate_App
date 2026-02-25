@@ -15,7 +15,7 @@ import requestRoutes from "./modules/donation/foodbank/requestRoutes.js";
 import notificationRoutes from "./modules/notification/notificationRoutes.js";
 import foodrequestRoutes from "./modules/request/foodbank/foodrequestRoutes.js"
 import acceptsfoodrequestRoutes from './modules/request/shop/acceptsfoodrequestRoutes.js'
-
+import distancetestRoutes from './modules/testing/distancetestRoute.js';
 
 const app = express();
 
@@ -59,6 +59,7 @@ app.use("/api/request", requestRoutes);
 app.use("/api/foodbank-request", foodrequestRoutes);
 app.use("/api/accepts/foodbank-request", acceptsfoodrequestRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/nearby", distancetestRoutes);
 
 // Global error handler
 app.use(notFound);
