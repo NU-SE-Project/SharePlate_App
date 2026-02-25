@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Food from "../../shop/Donation.js";
 import Request from "../Request.js";
+import User from "../../../user/User.js";
+import { sendSms } from "../../../../services/notifyService.js";
 
 // Request food controller
 export const requestFood = async (req, res, next) => {
@@ -58,9 +60,28 @@ export const requestFood = async (req, res, next) => {
     }
     await food.save();
 
-    return res
-      .status(201)
-      .json({ message: "Request created successfully", request });
+    // Try to notify the restaurant via SMS if contactNumber exists.
+    // Use provided `restaurant_id` from body, otherwise fall back to the donation's owner.
+    try {
+      const restaurantId =
+        restaurant_id && mongoose.Types.ObjectId.isValid(restaurant_id)
+          ? restaurant_id
+          : food.restaurant_id;
+
+      const restaurant = await User.findById(restaurantId).select(
+        "contactNumber name",
+      );
+
+      if (restaurant && restaurant.contactNumber) {
+        const msg = `Hello ${restaurant.name || "Restaurant"}, you have a new food request for ${food.foodName || "an item"}. Quantity: ${qty}.`;
+        await sendSms(restaurant.contactNumber, msg);
+      }
+    } catch (notifyErr) {
+      // Log notification error but don't fail the request creation
+      console.error("Failed to send SMS notification:", notifyErr);
+    }
+
+    return res.status(201).json({ message: "Request created successfully", request });
   } catch (error) {
     return next(error);
   }
