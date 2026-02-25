@@ -58,7 +58,6 @@ app.use("/api/pickup", pickupRoutes);
 app.use("/api/request", requestRoutes);
 app.use("/api/foodbank-request", foodrequestRoutes);
 app.use("/api/accepts/foodbank-request", acceptsfoodrequestRoutes);
-
 app.use("/api/notifications", notificationRoutes);
 
 // Global error handler
