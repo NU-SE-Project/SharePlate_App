@@ -17,7 +17,10 @@ async function start() {
   // start socket
   const server = http.createServer(app);
   const io = initSocket(server);
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT} [Started at: ${new Date().toISOString()}]`);
+    console.log(`📍 DISTANCE_KM: ${process.env.DISTANCE_KM}`);
+  });
 }
 
 start().catch((err) => {
