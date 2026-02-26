@@ -1,15 +1,16 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
+
 import User from "../user/User.js";
 import RefreshToken from "./RefreshToken.js";
-import dotenv from "dotenv";
+import { sendEmailVerification } from "./emailVerificationService.js";
 
-dotenv.config();
+const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
 
-const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10); // Default to 10 if not set, but should be set in production for security
-
-// ---- Token signing helpers ----
+/* -----------------------------
+   Token helpers
+----------------------------- */
 function signAccessToken(payload) {
   return jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {
     expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
@@ -22,29 +23,29 @@ function signRefreshToken(payload) {
   });
 }
 
-// Hash before storing in DB
 function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-// Convert refresh expiry into a Date.
+/**
+ * Supports "7d" format. Falls back to 7 days.
+ */
 function refreshExpiryDateFromNow() {
-  const raw = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
-  const match = /^\s*(\d+)\s*d\s*$/i.exec(raw);
-  const days = match ? Number(match[1]) : Number(raw);
+  const raw = String(process.env.JWT_REFRESH_EXPIRES_IN || "7d").trim();
+  const match = raw.match(/^(\d+)\s*d$/i);
+  const days = match ? Number(match[1]) : 7;
+  const safeDays = Number.isFinite(days) && days > 0 ? days : 7;
 
-  if (!Number.isFinite(days) || days <= 0) {
-    return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  }
-
-  return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  return new Date(Date.now() + safeDays * 24 * 60 * 60 * 1000);
 }
 
-// Optional: cleanup helper if reuse suspected
 async function revokeAllSessionsForUser(userId) {
   await RefreshToken.deleteMany({ user: userId });
 }
 
+/* -----------------------------
+   REGISTER (ONLY registration)
+----------------------------- */
 export async function registerUser(data) {
   const { name, email, password, address, contactNumber, role, location } =
     data;
@@ -52,24 +53,31 @@ export async function registerUser(data) {
   const existing = await User.findOne({ email });
   if (existing) {
     const err = new Error("Email already registered");
-    err.statusCode = 409; // Conflict
+    err.statusCode = 409;
     throw err;
   }
 
-  // Hash password before saving
-  const hashed = await bcrypt.hash(password, SALT_ROUNDS);
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
   const user = await User.create({
     name,
     email,
-    password: hashed,
+    password: hashedPassword,
     address,
     contactNumber,
     role,
     location,
+    // emailVerified is handled separately by emailVerification module
   });
 
-  // Return safe response (no password)
+  // ✅ Send email verification (non-blocking)
+  sendEmailVerification(user._id).catch((e) => {
+    console.error(
+      "Email verification setup failed during registration:",
+      e?.message || e,
+    );
+  });
+
   return {
     id: user._id,
     name: user.name,
@@ -79,13 +87,20 @@ export async function registerUser(data) {
     contactNumber: user.contactNumber,
     location: user.location,
     isActive: user.isActive,
+    emailVerified: user.emailVerified,
     createdAt: user.createdAt,
   };
 }
 
-export async function loginUser(email, password) {
-  // Need password so select +password
-  const user = await User.findOne({ email }).select("+password");
+/* -----------------------------
+   LOGIN
+----------------------------- */
+export async function loginUser(email, password, meta = {}) {
+  const user = await User.findOne({ email }).select(
+    "+password +failedLoginAttempts +accountLockedUntil",
+  );
+
+  // Security: avoid revealing whether email exists
   if (!user) {
     const err = new Error("Invalid email or password");
     err.statusCode = 401;
@@ -98,43 +113,92 @@ export async function loginUser(email, password) {
     throw err;
   }
 
+  // Optional: enforce verification before login (recommended if you implement email verification)
+  // if (!user.emailVerified) {
+  //   const err = new Error("Please verify your email before logging in");
+  //   err.statusCode = 403;
+  //   throw err;
+  // }
+
+  // Lock check
+  if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
+    const minutesLeft = Math.ceil(
+      (user.accountLockedUntil.getTime() - Date.now()) / 1000 / 60,
+    );
+    const err = new Error(
+      `Account locked due to multiple failed login attempts. Try again in ${minutesLeft} minutes.`,
+    );
+    err.statusCode = 423;
+    throw err;
+  }
+
+  // reset lock if time passed
+  if (user.accountLockedUntil && user.accountLockedUntil <= new Date()) {
+    user.failedLoginAttempts = 0;
+    user.accountLockedUntil = null;
+  }
+
   const ok = await bcrypt.compare(password, user.password);
+
   if (!ok) {
+    user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+
+    if (user.failedLoginAttempts >= 5) {
+      user.accountLockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+      await user.save();
+
+      const err = new Error(
+        "Account locked due to multiple failed login attempts. Try again in 15 minutes.",
+      );
+      err.statusCode = 423;
+      throw err;
+    }
+
+    await user.save();
+
     const err = new Error("Invalid email or password");
     err.statusCode = 401;
     throw err;
   }
 
-  // JWT payload contains user id + role for RBAC
+  // success: reset attempts
+  user.failedLoginAttempts = 0;
+  user.accountLockedUntil = null;
+
+  // optional audit fields (only if in schema)
+  user.lastLoginAt = new Date();
+  user.lastLoginIp = meta.ip || null;
+  await user.save();
+
   const payload = { userId: user._id.toString(), role: user.role };
 
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
 
-  // Save refresh token session (hash only)
-  const tokenHash = hashToken(refreshToken);
-
   await RefreshToken.create({
     user: user._id,
-    tokenHash,
+    tokenHash: hashToken(refreshToken),
     expiresAt: refreshExpiryDateFromNow(),
+    createdByIp: meta.ip || null,
+    userAgent: meta.userAgent || null,
   });
 
   return {
     accessToken,
-    refreshToken, // controller will store as httpOnly cookie
+    refreshToken,
     user: {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
+      emailVerified: user.emailVerified,
     },
   };
 }
 
-// -----------------------------
-// Refresh: verify refresh JWT + match DB session + rotate
-// -----------------------------
+/* -----------------------------
+   REFRESH SESSION (rotation)
+----------------------------- */
 export async function refreshSession(refreshTokenFromCookie) {
   if (!refreshTokenFromCookie) {
     const err = new Error("Refresh token missing");
@@ -142,7 +206,6 @@ export async function refreshSession(refreshTokenFromCookie) {
     throw err;
   }
 
-  // 1) Verify JWT signature/expiry
   let decoded;
   try {
     decoded = jwt.verify(
@@ -157,14 +220,12 @@ export async function refreshSession(refreshTokenFromCookie) {
 
   const { userId } = decoded;
 
-  // 2) Find matching session by hash
   const incomingHash = hashToken(refreshTokenFromCookie);
+  const session = await RefreshToken.findOne({
+    tokenHash: incomingHash,
+  }).select("+tokenHash");
 
-  // We stored tokenHash as select:false, so explicitly select it if needed
-  const session = await RefreshToken.findOne({ tokenHash: incomingHash });
   if (!session) {
-    // This indicates token reuse or token was already rotated/deleted
-    // Strong security response: revoke all sessions for that user.
     await revokeAllSessionsForUser(userId);
 
     const err = new Error(
@@ -174,10 +235,8 @@ export async function refreshSession(refreshTokenFromCookie) {
     throw err;
   }
 
-  // 3) Ensure user still exists and active
   const user = await User.findById(userId);
   if (!user || !user.isActive) {
-    // delete this session too
     await RefreshToken.deleteOne({ _id: session._id });
 
     const err = new Error("Unauthorized");
@@ -185,11 +244,10 @@ export async function refreshSession(refreshTokenFromCookie) {
     throw err;
   }
 
-  // 4) Rotate tokens: delete old session, create new session, return new tokens
+  // rotate
   await RefreshToken.deleteOne({ _id: session._id });
 
   const newPayload = { userId: user._id.toString(), role: user.role };
-
   const newAccessToken = signAccessToken(newPayload);
   const newRefreshToken = signRefreshToken(newPayload);
 
@@ -197,7 +255,6 @@ export async function refreshSession(refreshTokenFromCookie) {
     user: user._id,
     tokenHash: hashToken(newRefreshToken),
     expiresAt: refreshExpiryDateFromNow(),
-    // Could update lastUsedAt on the old session before deleting if you keep it
   });
 
   return {
@@ -207,27 +264,21 @@ export async function refreshSession(refreshTokenFromCookie) {
   };
 }
 
-// -----------------------------
-// Logout (single device): delete the session matching refresh cookie
-// -----------------------------
+/* -----------------------------
+   LOGOUT (single device)
+----------------------------- */
 export async function logoutByRefreshToken(refreshTokenFromCookie) {
   if (!refreshTokenFromCookie) return true;
 
-  try {
-    jwt.verify(refreshTokenFromCookie, process.env.JWT_REFRESH_SECRET);
-  } catch {
-    // even if invalid, just ignore and clear cookie on controller side
-    return true;
-  }
-
   const incomingHash = hashToken(refreshTokenFromCookie);
   await RefreshToken.deleteOne({ tokenHash: incomingHash });
+
   return true;
 }
 
-// -----------------------------
-// Logout all sessions (optional endpoint)
-// -----------------------------
+/* -----------------------------
+   LOGOUT ALL
+----------------------------- */
 export async function logoutAllSessions(userId) {
   await RefreshToken.deleteMany({ user: userId });
   return true;
