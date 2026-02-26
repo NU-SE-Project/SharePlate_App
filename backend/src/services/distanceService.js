@@ -41,10 +41,8 @@ export const getNearbyUsers = async ({ latitude, longitude, role }) => {
   return users;
 };
 
-return users;
-};
-
 /**
+
  * Calculate estimating time and distance using an external map routing API (e.g., OSRM)
  * @param {Array} origin - [longitude, latitude]
  * @param {Array} destination - [longitude, latitude]
