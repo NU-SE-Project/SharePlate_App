@@ -80,10 +80,8 @@ const userSchema = new Schema(
 
 userSchema.index({ location: "2dsphere" });
 
-userSchema.index(
-  { email: 1 },
-  { unique: true, collation: { locale: "en", strength: 2 } }
-);
+// Unique index already defined via the email field's `unique: true`.
+// If you need case-insensitive uniqueness, add a collation at the collection level.
 
 // userSchema.index({ isActive: 1, role: 1, verificationStatus: 1, createdAt: -1 });
 
