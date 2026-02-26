@@ -9,7 +9,7 @@ const refreshTokenSchema = new Schema(
       index: true,
     },
 
-    // Store ONLY a hash of the refresh token (never store plain token)
+    // Store ONLY a hash of the refresh token
     tokenHash: {
       type: String,
       required: true,
@@ -21,16 +21,20 @@ const refreshTokenSchema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
+      index: true,
     },
 
-    // If you want explicit revoke instead of delete
+    // Optional metadata (matches your authService)
+    createdByIp: { type: String, default: null },
+    userAgent: { type: String, default: null },
+
+    // Optional revoke tracking (if you decide to revoke instead of delete)
     revokedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
 
-// Auto-cleanup expired documents (Mongo TTL index)
-// Mongo will delete after expiresAt time passes.
+// TTL index to auto-delete expired refresh sessions
 refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default model("RefreshToken", refreshTokenSchema);

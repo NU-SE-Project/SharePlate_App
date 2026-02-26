@@ -1,4 +1,9 @@
-import { getMyProfile, updateMyProfile } from "./userService.js";
+import {
+  getMyProfile,
+  updateMyProfile,
+  listUsers,
+  adminUpdateUser,
+} from "./userService.js";
 
 export async function me(req, res, next) {
   try {
@@ -13,6 +18,23 @@ export async function updateMe(req, res, next) {
   try {
     const user = await updateMyProfile(req.user.userId, req.validated.body);
     res.status(200).json({ message: "Profile updated", user });
+  } catch (err) {
+    next(err);
+  }
+}
+export async function adminList(req, res, next) {
+  try {
+    const result = await listUsers(req.query);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function adminPatch(req, res, next) {
+  try {
+    const user = await adminUpdateUser(req.params.id, req.validated.body);
+    res.status(200).json({ message: "User updated", user });
   } catch (err) {
     next(err);
   }

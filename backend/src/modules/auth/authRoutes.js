@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { z } from "zod"; // For request validation
+import { z } from "zod";
 import { validate } from "../../middlewares/validateMiddleware.js";
 import { requireAuth } from "../../middlewares/authMiddleware.js";
+
 import {
   register,
   login,
@@ -9,6 +10,18 @@ import {
   logout,
   logoutAll,
 } from "./authController.js";
+import {
+  forgotPassword,
+  resetPasswordHandler,
+  changePasswordHandler,
+  validateResetTokenHandler,
+} from "./passwordController.js";
+import {
+  sendVerification,
+  verifyEmailHandler,
+  resendVerification,
+} from "./emailVerificationController.js";
+
 import {
   nameSchema,
   emailSchema,
@@ -21,9 +34,11 @@ import {
 
 const router = Router();
 
-// ----------------------------
-// Register body schema
-// ----------------------------
+/* ----------------------------
+   Validation Schemas
+---------------------------- */
+
+// Register schema (strict)
 const registerBodySchema = z
   .object({
     name: nameSchema,
@@ -34,62 +49,105 @@ const registerBodySchema = z
     role: roleSchema,
     location: geoSchema,
   })
+  .strict()
   .superRefine((data, ctx) => {
-    // Example: restaurants must have "address" with some detail (not just 'Sri Lanka')
+    // If address is too generic, reject for org roles
+    const addr = String(data.address || "")
+      .trim()
+      .toLowerCase();
     if (
-      data.role === "restaurant || foodbank" &&
-      data.address.toLowerCase() === "sri lanka"
+      (data.role === "restaurant" || data.role === "foodbank") &&
+      (addr === "sri lanka" || addr.length < 6)
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["address"],
-        message:
-          "Please provide a more specific address (street/city) for restaurants",
+        message: "Please provide a more specific address (street/city).",
       });
     }
   });
 
-// ----------------------------
-// Login body schema
-// ----------------------------
-const LoginBodySchema = z
+const loginBodySchema = z
   .object({
     email: emailSchema,
-    password: passwordSchema,
+    password: z.string().min(1, "Password is required"),
   })
-  .superRefine((data, ctx) => {
-    // No extra fields allowed
-    const allowedKeys = ["email", "password"];
-    const extraKeys = Object.keys(data).filter(
-      (key) => !allowedKeys.includes(key),
-    );
-    if (extraKeys.length > 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: extraKeys,
-        message: `Extra fields not allowed: ${extraKeys.join(", ")}`,
-      });
-    }
-  });
+  .strict();
 
-// ----------------------------
-// Final schema (matches your validate middleware shape)
-// ----------------------------
-export const registerSchema = z.object({
-  body: registerBodySchema,
-});
-export const loginSchema = z.object({
-  body: LoginBodySchema,
-});
+const requestSchema = (bodySchema) =>
+  z
+    .object({
+      body: bodySchema,
+      params: z.any().optional(),
+      query: z.any().optional(),
+    })
+    .strict();
 
+const registerSchema = requestSchema(registerBodySchema);
+const loginSchema = requestSchema(loginBodySchema);
+
+const forgotPasswordSchema = requestSchema(
+  z.object({ email: emailSchema }).strict(),
+);
+
+const resetPasswordSchema = requestSchema(
+  z
+    .object({
+      token: z.string().min(1, "Token is required"),
+      password: passwordSchema,
+    })
+    .strict(),
+);
+
+const changePasswordSchema = requestSchema(
+  z
+    .object({
+      currentPassword: z.string().min(1, "Current password is required"),
+      newPassword: passwordSchema,
+    })
+    .strict(),
+);
+
+const resendVerificationSchema = requestSchema(
+  z.object({ email: emailSchema }).strict(),
+);
+
+/* ----------------------------
+   Auth Routes
+---------------------------- */
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
-// Refresh token endpoint (cookie-based)
-router.post("/refresh", refresh);
-// Uses refresh cookie (no auth header needed)
-router.post("/logout", logout);
 
-// Optional: logout all devices (requires access token)
+router.post("/refresh", refresh);
+router.post("/logout", logout);
 router.post("/logout-all", requireAuth, logoutAll);
+
+/* ----------------------------
+   Email Verification Routes
+---------------------------- */
+router.post("/send-verification", requireAuth, sendVerification);
+router.get("/verify-email", verifyEmailHandler);
+router.post(
+  "/resend-verification",
+  validate(resendVerificationSchema),
+  resendVerification,
+);
+
+/* ----------------------------
+   Password Routes
+---------------------------- */
+router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post(
+  "/reset-password",
+  validate(resetPasswordSchema),
+  resetPasswordHandler,
+);
+router.get("/validate-reset-token", validateResetTokenHandler);
+router.post(
+  "/change-password",
+  requireAuth,
+  validate(changePasswordSchema),
+  changePasswordHandler,
+);
 
 export default router;

@@ -17,7 +17,7 @@ const app = express();
 
 app.use(json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(helmet()); 
+app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 
