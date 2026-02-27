@@ -1,53 +1,47 @@
-import FoodRequest from "../foodbank/FoodRequest.js";
-import Acceptance from "../shop/Acceptance.js";
+import {
+  createFoodRequestService,
+  getRequestsByFoodbankService,
+  updateFoodRequestService,
+  deleteFoodRequestService,
+} from "./foodRequestService.js";
 
-export const createFoodRequest = async (req, res) => {
+export async function createFoodRequest(req, res, next) {
   try {
-    const { foodbank_id , foodName, foodType, requestedQuantity } = req.body;
-
-    if (!requestedQuantity || requestedQuantity <= 0) {
-      return res.status(400).json({ error: "Quantity must be greater than 0" });
-    }
-
-    const request = await FoodRequest.create({
-      foodbank_id: foodbank_id,
-      foodName,
-      foodType,
-      requestedQuantity,
-      remainingQuantity: requestedQuantity,
-    });
-
-    res.status(201).json(request);
+    const { foodbank_id, foodName, foodType, requestedQuantity } = req.body;
+    const request = await createFoodRequestService({ foodbank_id, foodName, foodType, requestedQuantity });
+    return res.status(201).json(request);
   } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
+    return next(err);
+  } 
+}
 
-export const getRequestDetails = async (req, res) => {
+export async function getRequestsByFoodbank(req, res, next) {
+  try {
+    const { foodbankId } = req.params;
+    const requests = await getRequestsByFoodbankService(foodbankId);
+    return res.json(requests);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function updateFoodRequest(req, res, next) {
   try {
     const { id } = req.params;
-
-    const request = await FoodRequest
-      .findById(id)
-      .populate("foodbank_id", "name");
-
-    if (!request) {
-      return res.status(404).json({ error: "Request not found" });
-    }
-
-    const acceptances = await Acceptance
-      .find({ request_id: id })
-      .populate("restaurant_id", "name address");
-
-    res.json({
-      request,
-      acceptedBy: acceptances.map(a => ({
-        restaurant: a.restaurant_id.name,
-        address: a.restaurant_id.address,
-        quantity: a.acceptedQuantity,
-      })),
-    });
+    const updates = req.body;
+    const request = await updateFoodRequestService(id, updates);
+    return res.json(request);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return next(err);
   }
-};
+}
+
+export async function deleteFoodRequest(req, res, next) {
+  try {
+    const { id } = req.params;
+    const request = await deleteFoodRequestService(id);
+    return res.json({ message: "Request deleted", request });
+  } catch (err) {
+    return next(err);
+  }
+}

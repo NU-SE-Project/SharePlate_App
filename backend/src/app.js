@@ -51,18 +51,33 @@ app.get("/api", (req, res) => {
 // Routes
 app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
 
+// Auth and user routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/user", userRoutes);
+
+// resturant food donation routes
 app.use("/api/foodsdonate", foodRoutes);
+
+
 app.use("/api/pickup", pickupRoutes);
+
+// Foodbank request food posted by restaurants
 app.use("/api/request", requestRoutes);
+
+// Foodbank request food to resturants
 app.use("/api/foodbank-request", foodrequestRoutes);
+
+// resturants accepts the request posted by foodbank
 app.use("/api/accepts/foodbank-request", acceptsfoodrequestRoutes);
+
+// Notifications
 app.use("/api/notifications", notificationRoutes);
+
+// Testing route for distance calculation using maps and horizontal distance calculation
 app.use("/api/nearby", distancetestRoutes);
 
 // Global error handler
-app.use(notFound);
+app.use(notFound);  
 app.use(errorHandler);
 
 export default app;
