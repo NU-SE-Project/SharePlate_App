@@ -50,14 +50,16 @@ export const getNearbyUsers = async ({ latitude, longitude, role }) => {
  */
 export const getRouteDetails = async (origin, destination) => {
   try {
-    const MAP_URL = process.env.MAP_URL || "http://router.project-osrm.org/driving";
+    // OSRM public API expects the base path '/route/v1/driving'
+    const MAP_URL = process.env.MAP_URL || "http://router.project-osrm.org/route/v1/driving";
     const coords = `${origin[0]},${origin[1]};${destination[0]},${destination[1]}`;
     const url = `${MAP_URL}/${coords}?overview=false`;
 
 
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error("Failed to fetch route details from map service");
+      const text = await response.text().catch(() => "");
+      throw new Error(`Map service error ${response.status}: ${text || response.statusText}`);
     }
 
     const data = await response.json();
