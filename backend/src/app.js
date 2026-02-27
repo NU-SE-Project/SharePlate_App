@@ -16,6 +16,7 @@ import notificationRoutes from "./modules/notification/notificationRoutes.js";
 import foodrequestRoutes from "./modules/request/foodbank/foodrequestRoutes.js"
 import acceptsfoodrequestRoutes from './modules/request/shop/acceptsfoodrequestRoutes.js'
 import distancetestRoutes from './modules/testing/distancetestRoute.js';
+import historyRoutes from "./modules/donatehistory/donatehistoryRoute.js";
 
 const app = express();
 
@@ -75,6 +76,9 @@ app.use("/api/notifications", notificationRoutes);
 
 // Testing route for distance calculation using maps and horizontal distance calculation
 app.use("/api/nearby", distancetestRoutes);
+
+
+app.use("/api/history", historyRoutes);
 
 // Global error handler
 app.use(notFound);  
