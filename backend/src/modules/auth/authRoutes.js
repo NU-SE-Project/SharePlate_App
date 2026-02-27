@@ -70,7 +70,14 @@ const registerBodySchema = z
 const loginBodySchema = z
   .object({
     email: emailSchema,
-    password: z.string().min(1, "Password is required"),
+    password: z
+      .string({
+        error: (issue) =>
+          issue.input === undefined
+            ? "Password is required"
+            : "Password must be a text value",
+      })
+      .min(1, "Password is required"),
   })
   .strict();
 
@@ -93,7 +100,14 @@ const forgotPasswordSchema = requestSchema(
 const resetPasswordSchema = requestSchema(
   z
     .object({
-      token: z.string().min(1, "Token is required"),
+      token: z
+        .string({
+          error: (issue) =>
+            issue.input === undefined
+              ? "Token is required"
+              : "Token must be a text value",
+        })
+        .min(1, "Token is required"),
       password: passwordSchema,
     })
     .strict(),
@@ -102,7 +116,14 @@ const resetPasswordSchema = requestSchema(
 const changePasswordSchema = requestSchema(
   z
     .object({
-      currentPassword: z.string().min(1, "Current password is required"),
+      currentPassword: z
+        .string({
+          error: (issue) =>
+            issue.input === undefined
+              ? "Current password is required"
+              : "Current password must be a text value",
+        })
+        .min(1, "Current password is required"),
       newPassword: passwordSchema,
     })
     .strict(),

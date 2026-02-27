@@ -3,6 +3,8 @@ import {
   updateMyProfile,
   listUsers,
   adminUpdateUser,
+  adminSoftDeleteUser,
+  // adminHardDeleteUser,
 } from "./userService.js";
 
 export async function me(req, res, next) {
@@ -39,3 +41,29 @@ export async function adminPatch(req, res, next) {
     next(err);
   }
 }
+
+/**
+ * Admin: Soft delete user (mark as inactive)
+ * ✅ Safer approach - preserves data and audit trail
+ */
+export async function adminSoftDelete(req, res, next) {
+  try {
+    const result = await adminSoftDeleteUser(req.params.id);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Admin: Hard delete user (permanent deletion with cascading)
+ * ⚠️ Use only when necessary (e.g., GDPR, duplicate accounts)
+ */
+/* export async function adminHardDelete(req, res, next) {
+  try {
+    const result = await adminHardDeleteUser(req.params.id);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+} */
