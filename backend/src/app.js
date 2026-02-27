@@ -62,7 +62,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/nearby", distancetestRoutes);
 
 // Global error handler
-app.use(notFound);
+app.use(notFound); 
 app.use(errorHandler);
 
 export default app;
