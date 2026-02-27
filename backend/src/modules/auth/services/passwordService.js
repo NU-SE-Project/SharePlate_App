@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
-import User from "../user/User.js";
-import RefreshToken from "./RefreshToken.js";
+import User from "../../user/User.js";
+import RefreshToken from "../RefreshToken.js";
 import {
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
-} from "../../utils/emailService.js";
+} from "../../../utils/emailService.js";
 
 const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
 

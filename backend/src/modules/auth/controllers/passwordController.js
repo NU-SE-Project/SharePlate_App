@@ -3,7 +3,7 @@ import {
   resetPassword,
   changePassword,
   validateResetToken,
-} from "./passwordService.js";
+} from "../services/passwordService.js";
 
 export async function forgotPassword(req, res, next) {
   try {

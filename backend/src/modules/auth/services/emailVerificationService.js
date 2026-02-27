@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
-import User from "../user/User.js";
-import { sendVerificationEmail } from "../../utils/emailService.js";
+import User from "../../user/User.js";
+import { sendVerificationEmail } from "../../../utils/emailService.js";
 
 function generateVerificationToken() {
   return crypto.randomBytes(32).toString("hex");

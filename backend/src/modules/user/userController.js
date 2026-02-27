@@ -5,7 +5,7 @@ import {
   adminUpdateUser,
   adminSoftDeleteUser,
   // adminHardDeleteUser,
-} from "./userService.js";
+} from "./services/userService.js";
 
 export async function me(req, res, next) {
   try {

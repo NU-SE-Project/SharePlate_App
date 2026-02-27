@@ -9,18 +9,18 @@ import {
   refresh,
   logout,
   logoutAll,
-} from "./authController.js";
+} from "./controllers/authController.js";
 import {
   forgotPassword,
   resetPasswordHandler,
   changePasswordHandler,
   validateResetTokenHandler,
-} from "./passwordController.js";
+} from "./controllers/passwordController.js";
 import {
   sendVerification,
   verifyEmailHandler,
   resendVerification,
-} from "./emailVerificationController.js";
+} from "./controllers/emailVerificationController.js";
 
 import {
   nameSchema,

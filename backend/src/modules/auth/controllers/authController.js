@@ -4,7 +4,7 @@ import {
   refreshSession,
   logoutByRefreshToken,
   logoutAllSessions,
-} from "./authService.js";
+} from "../services/authService.js";
 
 /**
  * Cookie options:
