@@ -15,4 +15,4 @@ router.get("/foodbank/:foodbankId", requireAuth, allowRoles("foodbank"), getRequ
 router.put("/:id", requireAuth, allowRoles("foodbank"), updateFoodRequest);
 router.delete("/:id", requireAuth, allowRoles("foodbank"), deleteFoodRequest);
  
-export default router; 
+export default router;
