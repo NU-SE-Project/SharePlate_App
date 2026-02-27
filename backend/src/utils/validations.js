@@ -2,8 +2,10 @@ import { z } from "zod";
 
 export const nameSchema = z
   .string({
-    required_error: "Name is required",
-    invalid_type_error: "Name must be a text value",
+    error: (issue) =>
+      issue.input === undefined
+        ? "Name is required"
+        : "Name must be a text value",
   })
   .trim()
   .min(2, "Name must be at least 2 characters")
@@ -15,8 +17,10 @@ export const nameSchema = z
 
 export const emailSchema = z
   .string({
-    required_error: "Email is required",
-    invalid_type_error: "Email must be a text value",
+    error: (issue) =>
+      issue.input === undefined
+        ? "Email is required"
+        : "Email must be a text value",
   })
   .trim()
   .toLowerCase()
@@ -24,8 +28,10 @@ export const emailSchema = z
 
 export const passwordSchema = z
   .string({
-    required_error: "Password is required",
-    invalid_type_error: "Password must be a text value",
+    error: (issue) =>
+      issue.input === undefined
+        ? "Password is required"
+        : "Password must be a text value",
   })
   .min(8, "Password must be at least 8 characters")
   .max(72, "Password must be at most 72 characters")
@@ -36,8 +42,10 @@ export const passwordSchema = z
 
 export const addressSchema = z
   .string({
-    required_error: "Address is required",
-    invalid_type_error: "Address must be a text value",
+    error: (issue) =>
+      issue.input === undefined
+        ? "Address is required"
+        : "Address must be a text value",
   })
   .trim()
   .min(3, "Address must be at least 3 characters")
@@ -49,8 +57,10 @@ export const addressSchema = z
 
 export const contactNumberSchema = z
   .string({
-    required_error: "Contact number is required",
-    invalid_type_error: "Contact number must be a text value",
+    error: (issue) =>
+      issue.input === undefined
+        ? "Contact number is required"
+        : "Contact number must be a text value",
   })
   .trim()
   .regex(
@@ -58,24 +68,42 @@ export const contactNumberSchema = z
     "Contact number must be in the format +947XXXXXXXX (e.g., +94771234567)",
   );
 
-export const roleSchema = z.enum(["restaurant", "foodbank", "admin"], {
-  errorMap: () => ({
+export const roleSchema = z
+  .string({
+    error: (issue) =>
+      issue.input === undefined
+        ? "Role is required"
+        : "Role must be a text value",
+  })
+  .refine((val) => ["restaurant", "foodbank", "admin"].includes(val), {
     message: "Role must be one of: restaurant, foodbank, admin",
-  }),
-});
+  });
 
 export const geoSchema = z
-  .object({
-    type: z.literal("Point").optional().default("Point"),
-    coordinates: z
-      .array(
-        z.number({
-          required_error: "Coordinates must contain numbers",
-          invalid_type_error: "Coordinates must contain numbers",
-        }),
-      )
-      .length(2, "Coordinates must be [longitude, latitude]"),
-  })
+  .object(
+    {
+      type: z.literal("Point").optional().default("Point"),
+      coordinates: z
+        .array(
+          z.number({
+            error: "Coordinates must contain numbers",
+          }),
+          {
+            error: (issue) =>
+              issue.input === undefined
+                ? "Coordinates are required"
+                : "Coordinates must contain numbers",
+          },
+        )
+        .length(2, "Coordinates must be [longitude, latitude]"),
+    },
+    {
+      error: (issue) =>
+        issue.input === undefined
+          ? "Location is required"
+          : "Location must be a valid object",
+    },
+  )
   .superRefine((val, ctx) => {
     // If coordinates exist, validate range
     const [lng, lat] = val.coordinates || [];

@@ -2,7 +2,7 @@ import {
   sendEmailVerification,
   verifyEmail,
   resendVerificationEmail,
-} from "./emailVerificationService.js";
+} from "../services/emailVerificationService.js";
 
 export async function sendVerification(req, res, next) {
   try {

@@ -16,6 +16,7 @@ import notificationRoutes from "./modules/notification/notificationRoutes.js";
 import foodrequestRoutes from "./modules/request/foodbank/foodrequestRoutes.js"
 import acceptsfoodrequestRoutes from './modules/request/shop/acceptsfoodrequestRoutes.js'
 import distancetestRoutes from './modules/testing/distancetestRoute.js';
+import complainRoutes from "./modules/complain/complainRoutes.js";
 
 const app = express();
 
@@ -44,7 +45,7 @@ const authLimiter = rateLimit({
 });
 
 // Routes
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("API running");
 });
 
@@ -76,8 +77,11 @@ app.use("/api/notifications", notificationRoutes);
 // Testing route for distance calculation using maps and horizontal distance calculation
 app.use("/api/nearby", distancetestRoutes);
 
+// Complaint system routes
+app.use("/api/complaints", complainRoutes);
+
 // Global error handler
-app.use(notFound);  
+app.use(notFound);
 app.use(errorHandler);
 
 export default app;
