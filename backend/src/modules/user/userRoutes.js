@@ -3,7 +3,14 @@ import { z } from "zod";
 import { requireAuth } from "../../middlewares/authMiddleware.js";
 import { allowRoles } from "../../middlewares/roleMiddleware.js";
 import { validate } from "../../middlewares/validateMiddleware.js";
-import { me, updateMe, adminList, adminPatch } from "./userController.js";
+import {
+  me,
+  updateMe,
+  adminList,
+  adminPatch,
+  adminSoftDelete,
+  // adminHardDelete,
+} from "./userController.js";
 import {
   nameSchema,
   emailSchema,
@@ -42,7 +49,7 @@ const adminPatchSchema = z.object({
  * ✅ Protected routes (any logged-in user)
  */
 router.get("/me", requireAuth, me);
-router.put("/me", requireAuth, validate(updateMeSchema), updateMe);
+router.patch("/me", requireAuth, validate(updateMeSchema), updateMe);
 router.get("/", requireAuth, allowRoles("admin"), adminList);
 router.patch(
   "/:id",
@@ -51,5 +58,12 @@ router.patch(
   validate(adminPatchSchema),
   adminPatch,
 );
+
+/**
+ * 🛑 Delete routes (ADMIN ONLY)
+ * DELETE /users/:id - Soft delete (recommended: deactivates account)
+ * DELETE /users/:id?force=true - Hard delete (permanent: use with caution)
+ */
+router.delete("/:id", requireAuth, allowRoles("admin"), adminSoftDelete);
 
 export default router;
