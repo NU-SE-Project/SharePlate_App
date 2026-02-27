@@ -1,6 +1,6 @@
 import RefreshToken from "../RefreshToken.js";
 import User from "../../user/User.js";
-import tokenService from "./TokenService.js";
+import tokenService from "./tokenService.js";
 
 /**
  * SessionService - Manages user sessions and refresh tokens

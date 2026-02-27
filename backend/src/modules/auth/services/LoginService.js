@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../../user/User.js";
-import tokenService from "./TokenService.js";
-import sessionService from "./SessionService.js";
+import tokenService from "./tokenService.js";
+import sessionService from "./sessionService.js";
 
 /**
  * LoginService - Handles user authentication and login security

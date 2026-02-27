@@ -2,9 +2,9 @@
  * Auth Service - Refactored to follow SOLID principles
  * This service now delegates to specialized services
  */
-import registrationService from "./RegisterService.js";
-import loginService from "./LoginService.js";
-import sessionService from "./SessionService.js";
+import registrationService from "./registerService.js";
+import loginService from "./loginService.js";
+import sessionService from "./sessionService.js";
 
 /* -----------------------------
    REGISTER

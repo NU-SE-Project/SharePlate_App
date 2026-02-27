@@ -1,4 +1,4 @@
-import User from "../User.js";
+import User from "../../User.js";
 
 /**
  * UserQueryService - Handles user listing and search operations

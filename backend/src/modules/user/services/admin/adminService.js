@@ -1,5 +1,5 @@
-import User from "../User.js";
-import sessionService from "../../auth/services/SessionService.js";
+import User from "../../User.js";
+import sessionService from "../../../auth/services/sessionService.js";
 
 /**
  * UserAdminService - Handles administrative user operations

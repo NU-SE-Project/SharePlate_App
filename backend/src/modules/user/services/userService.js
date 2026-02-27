@@ -2,9 +2,9 @@
  * User Service - Refactored to follow SOLID principles
  * This service now delegates to specialized services
  */
-import profileService from "./ProfileService.js";
-import userQueryService from "./UserQueryService.js";
-import userAdminService from "./UserAdminService.js";
+import profileService from "./profileService.js";
+import userQueryService from "./admin/listUserService.js";
+import userAdminService from "./admin/adminService.js";
 
 /* -----------------------------
    Profile Operations
