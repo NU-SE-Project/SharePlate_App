@@ -1,7 +1,9 @@
 import Donation from "./Donation.js";
 import mongoose from "mongoose";
+import { getIO } from "../../../socket.js";
+import path from 'path';
 
-export async function createDonationService(data) {
+export async function createDonationService(data, file) {
   const { 
     restaurant_id,
     foodName,
@@ -61,6 +63,12 @@ export async function createDonationService(data) {
     throw err;
   }
 
+  // If a file was uploaded, use its path as imageUrl
+  let finalImageUrl = imageUrl;
+  if (file && file.filename) {
+    finalImageUrl = `/uploads/${file.filename}`;
+  }
+
   const donation = await Donation.create({
     restaurant_id,
     foodName,
@@ -71,8 +79,23 @@ export async function createDonationService(data) {
     expiryTime: expiry,
     pickupWindowStart: start,
     pickupWindowEnd: end,
-    imageUrl,
+    imageUrl: finalImageUrl,
   });
+
+  // Emit real-time event so food banks see new donations immediately
+  try {
+    const io = getIO();
+    if (io) {
+      io.emit("donation_created", {
+        food_id: donation._id,
+        restaurant_id: donation.restaurant_id,
+        foodName: donation.foodName,
+        remainingQuantity: donation.remainingQuantity,
+      });
+    }
+  } catch (emitErr) {
+    console.error("Socket emit failed for donation creation:", emitErr);
+  }
 
   return donation;
 }
@@ -125,7 +148,14 @@ export async function updateDonationService(id, updates) {
     throw err;
   }
 
-  const donation = await Donation.findByIdAndUpdate(id, updates, {
+  // handle image file update passed as updates._file (if provided by controller)
+  let finalUpdates = { ...updates };
+  if (updates && updates._file && updates._file.filename) {
+    finalUpdates.imageUrl = `/uploads/${updates._file.filename}`;
+    delete finalUpdates._file;
+  }
+
+  const donation = await Donation.findByIdAndUpdate(id, finalUpdates, {
     new: true,
     runValidators: true,
   });

@@ -3,6 +3,7 @@ import Food from "../shop/Donation.js";
 import Request from "./Request.js";
 import User from "../../user/User.js";
 import { sendSms } from "../../../services/notifyService.js";
+import { getIO } from "../../../socket.js";
 
 
 // Get all requests of a particular food bank
@@ -14,6 +15,21 @@ export async function getRequestsByFoodbank({ foodBank_id }) {
     }
     const foodbankRequests = await Request.find({ foodBank_id });
     return foodbankRequests;
+}
+
+
+// Get all requests targeting a particular restaurant (requests made to restaurant donations)
+export async function getRequestsByRestaurant({ restaurant_id }) {
+    if (!restaurant_id || !mongoose.Types.ObjectId.isValid(restaurant_id)) {
+        const err = new Error("Invalid or missing restaurant_id");
+        err.statusCode = 400;
+        throw err;
+    }
+    // Populate food and foodbank information for clarity
+    const requests = await Request.find({ restaurant_id })
+      .populate('food_id')
+      .populate('foodBank_id', 'name address');
+    return requests;
 }
 
 
@@ -76,7 +92,34 @@ export async function createRequest({ food_id, restaurant_id, foodBank_id, reque
     food.status = "closed";
   }
   await food.save();
-    
+    // Emit real-time events: notify restaurant and update donation state
+    try {
+      const io = getIO();
+      // Try to include friendly names for client display
+      const foodbank = await User.findById(foodBank_id).select('name');
+      const foodbankName = foodbank?.name || null;
+      const itemName = food.foodName || null;
+      if (io && request.restaurant_id) {
+        io.to(request.restaurant_id.toString()).emit("new_food_request", {
+          requestId: request._id,
+          food_id,
+          requestedQuantity: qty,
+          foodName: food.foodName,
+          foodBank_id,
+          foodbankName,
+          itemName,
+        });
+      }
+      // Broadcast donation update so UIs can refresh
+      if (io) {
+        io.emit("donation_updated", {
+          food_id,
+          remainingQuantity: food.remainingQuantity,
+        });
+      }
+    } catch (emitErr) {
+      console.error("Socket emit failed for request creation:", emitErr);
+    }
   // Try to notify the restaurant via SMS if contactNumber exists.
   try {
     await sendRequestNotification(request);

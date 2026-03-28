@@ -1,5 +1,6 @@
 import FoodRequest from "../foodbank/FoodRequest.js";
 import Acceptance from "./Acceptance.js";
+import { getIO } from "../../../socket.js";
 
 export async function acceptFoodRequestService({ requestId, restaurantId, quantity }) {
   const session = await FoodRequest.startSession();
@@ -55,6 +56,26 @@ export async function acceptFoodRequestService({ requestId, restaurantId, quanti
 
     await session.commitTransaction();
     session.endSession();
+
+    // Emit real-time events to inform the foodbank and update donation states
+    try {
+      const io = getIO();
+      if (io && request && request.foodbank_id) {
+        io.to(request.foodbank_id.toString()).emit("request_accepted", {
+          requestId,
+          acceptedQuantity: qty,
+          status: request.status,
+        });
+      }
+      if (io) {
+        io.emit("donation_updated", {
+          requestId,
+          remainingQuantity: request.remainingQuantity,
+        });
+      }
+    } catch (emitErr) {
+      console.error("Socket emit failed for acceptance:", emitErr);
+    }
 
     return {
       message: "Accepted successfully",

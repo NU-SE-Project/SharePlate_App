@@ -4,12 +4,19 @@ import { Server } from "socket.io";
 let io;
 
 export const initSocket = (server) => {
-  io = new Server(server, {
-    cors: {
-      origin: "http://localhost:3000", // frontend URL
-      methods: ["GET", "POST"],
-    },
-  });
+  const allowedOrigin = process.env.SOCKET_ORIGIN || process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+  const corsOptions = {
+    origin: allowedOrigin,
+    methods: ["GET", "POST"],
+    credentials: true,
+  };
+
+  // In development allow any origin if explicitly set to '*'
+  if (allowedOrigin === '*') {
+    corsOptions.origin = true;
+  }
+
+  io = new Server(server, { cors: corsOptions });
 
   io.on("connection", (socket) => {
     console.log("🔌 User connected:", socket.id);

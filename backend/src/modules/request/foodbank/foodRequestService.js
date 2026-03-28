@@ -35,8 +35,36 @@ export async function getRequestsByFoodbankService(foodbankId) {
     throw err;
   }
 
-  const requests = await FoodRequest.find({ foodbank_id: foodbankId }).sort({ createdAt: -1 });
-  return {message:"Requests retrieved successfully", requests};
+  const requests = await FoodRequest.find({ foodbank_id: foodbankId }).sort({ createdAt: -1 }).lean();
+  
+  // For each request, find its acceptances and populate restaurant info
+  const requestsWithAcceptances = await Promise.all(requests.map(async (req) => {
+    const acceptances = await Acceptance.find({ request_id: req._id })
+      .populate("restaurant_id", "name email address phone")
+      .lean();
+    return { ...req, acceptances };
+  }));
+
+  return { message: "Requests retrieved successfully", requests: requestsWithAcceptances };
+}
+
+export async function getAllOpenRequestsService() {
+  // Return all requests (including fulfilled/closed) so frontend can display accepted/fulfilled entries
+  const requests = await FoodRequest.find({})
+    .populate("foodbank_id", "name email address")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Attach acceptances for each request to provide breakdown per restaurant
+  const requestsWithAcceptances = await Promise.all(requests.map(async (req) => {
+    const acceptances = await Acceptance.find({ request_id: req._id })
+      .populate('restaurant_id', 'name address')
+      .lean();
+    const acceptedTotal = acceptances.reduce((s, a) => s + (Number(a.acceptedQuantity) || 0), 0);
+    return { ...req, acceptances, acceptedTotal };
+  }));
+
+  return { message: "Requests retrieved successfully", requests: requestsWithAcceptances };
 }
 
 export async function updateFoodRequestService(id, { foodName, foodType, requestedQuantity, status }) {
