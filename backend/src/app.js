@@ -22,7 +22,8 @@ const app = express();
 
 app.use(json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(helmet());
+
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan("dev"));
 app.use(express.json());
 
@@ -36,6 +37,10 @@ app.use(
     credentials: true, // ✅ allow cookies
   }),
 );
+
+// Serve uploaded files after CORS so responses include CORS headers
+import path from 'path';
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Rate limit auth endpoints (basic protection)
 const authLimiter = rateLimit({

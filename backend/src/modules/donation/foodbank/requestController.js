@@ -1,6 +1,7 @@
 import {
   createRequest,
   getRequestsByFoodbank,
+  getRequestsByRestaurant,
   approveRequest as approveRequestService,
   rejectRequest as rejectRequestService,
 } from "./requestService.js";
@@ -43,6 +44,16 @@ export async function rejectRequest(req, res, next) {
     const { request_id } = req.params;
     const request = await rejectRequestService(request_id);
     return res.status(200).json({ message: "Request rejected", request });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getRequestsForRestaurant(req, res, next) {
+  try {
+    const { restaurant_id } = req.params;
+    const requests = await getRequestsByRestaurant({ restaurant_id });
+    return res.status(200).json({ requests });
   } catch (error) {
     return next(error);
   }

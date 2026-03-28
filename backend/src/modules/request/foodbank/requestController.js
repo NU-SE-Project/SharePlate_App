@@ -3,6 +3,7 @@ import {
   getRequestsByFoodbankService,
   updateFoodRequestService,
   deleteFoodRequestService,
+  getAllOpenRequestsService,
 } from "./foodRequestService.js";
 
 export async function createFoodRequest(req, res, next) {
@@ -19,6 +20,15 @@ export async function getRequestsByFoodbank(req, res, next) {
   try {
     const { foodbankId } = req.params;
     const requests = await getRequestsByFoodbankService(foodbankId);
+    return res.json(requests);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function getAllOpenRequests(req, res, next) {
+  try {
+    const requests = await getAllOpenRequestsService();
     return res.json(requests);
   } catch (err) {
     return next(err);
