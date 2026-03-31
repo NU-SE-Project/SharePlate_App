@@ -17,6 +17,8 @@ import DonateFoodPage from "./features/restaurants/donateFood/pages/DonateFoodPa
 import ManageDonationsPage from "./features/restaurants/donateFood/pages/ManageDonationsPage";
 import AvailableRequestsPage from "./features/restaurants/donateFood/pages/AvailableRequestsPage";
 import RestaurantProfilePage from "./features/restaurants/profile/pages/RestaurantProfilePage";
+import RestaurantDashboard from './features/restaurants/common/pages/Restaurantdashboard'
+import SingleDonationRequestsPage from "./features/restaurants/donateFood/pages/SingleDonationRequestsPage";
 
 // Foodbank Features
 import DonatedFoodPage from "./features/foodbank/donatedFood/pages/DonatedFoodPage";
@@ -41,7 +43,7 @@ function App() {
           <Route path="/auth/signup" element={<SignupPage />} />
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Restaurant Routes - Protected and Nested */}
+          {/* Restaurant Routes - Protected and Nested
           <Route path="/restaurant" element={<RequireAuth roles={["restaurant"]}><RestaurantLayout /></RequireAuth>}>
              <Route index element={<Navigate to="/restaurant/dashboard" />} />
              <Route 
@@ -70,6 +72,27 @@ function App() {
              <Route path="manage" element={<ManageDonationsPage />} />
              <Route path="requests" element={<AvailableRequestsPage />} />
              <Route path="profile" element={<RestaurantProfilePage />} />
+          </Route> */}
+
+
+          <Route 
+              path="/restaurant" 
+              element={
+                <RequireAuth roles={["restaurant"]}>
+                  <RestaurantLayout />
+                </RequireAuth>
+              }
+            >
+              {/* Default redirect */}
+              <Route index element={<Navigate to="dashboard" />} />
+
+              {/* Pages */}
+              <Route path="dashboard" element={<RestaurantDashboard />} />
+              <Route path="donate" element={<DonateFoodPage />} />
+              <Route path="manage" element={<ManageDonationsPage />} />
+              <Route path="requests" element={<AvailableRequestsPage />} />
+               <Route path="donation-requests/:donationId" element={<SingleDonationRequestsPage />} />
+              <Route path="profile" element={<RestaurantProfilePage />} />
           </Route>
 
           {/* Foodbank Routes - Protected and Nested */}

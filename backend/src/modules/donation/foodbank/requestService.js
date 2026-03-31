@@ -85,13 +85,6 @@ export async function createRequest({ food_id, restaurant_id, foodBank_id, reque
   });
   await request.save();
 
-  // Update food remaining quantity and close if depleted
-  food.remainingQuantity -= qty;
-  if (food.remainingQuantity <= 0) {
-    food.remainingQuantity = 0;
-    food.status = "closed";
-  }
-  await food.save();
     // Emit real-time events: notify restaurant and update donation state
     try {
       const io = getIO();
@@ -180,9 +173,47 @@ export async function approveRequest(request_id) {
     throw err;
   }
 
+  const food = await Food.findById(request.food_id);
+  if (!food) {
+    const err = new Error("Food item not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (food.remainingQuantity < request.requestedQuantity) {
+    const err = new Error("Not enough remaining quantity to approve this request");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  food.remainingQuantity -= request.requestedQuantity;
+  if (food.remainingQuantity <= 0) {
+    food.remainingQuantity = 0;
+    food.status = "closed";
+  }
+  await food.save();
+
   request.status = "approved";
   request.approvedAt = new Date();
   await request.save();
+
+  try {
+    const io = getIO();
+    if (io) {
+      io.emit("request_accepted", {
+        requestId: request._id,
+        food_id: request.food_id,
+        status: "approved"
+      });
+      io.emit("donation_updated", {
+        food_id: request.food_id,
+        remainingQuantity: food.remainingQuantity,
+        status: food.status
+      });
+    }
+  } catch (emitErr) {
+    console.error("Socket emit failed for request approval:", emitErr);
+  }
 
   return request;
 }
@@ -212,26 +243,38 @@ export async function rejectRequest(request_id) {
     throw err;
   }
 
-  // restore the food quantity reserved when request was created
-  const food = await Food.findById(request.food_id);
-  if (food) {
-    const addQty = Number(request.requestedQuantity) || 0;
-    food.remainingQuantity = (Number(food.remainingQuantity) || 0) + addQty;
-    if (typeof food.totalQuantity === "number") {
-      food.remainingQuantity = Math.min(
-        food.remainingQuantity,
-        food.totalQuantity,
-      );
-    }
-    if (food.remainingQuantity > 0) {
-      food.status = "available";
-    }
-    await food.save();
-  }
-
   request.status = "rejected";
   request.rejectedAt = new Date();
   await request.save();
 
+  try {
+    const io = getIO();
+    if (io) {
+      io.emit("request_rejected", {
+        requestId: request._id,
+        food_id: request.food_id,
+        status: "rejected"
+      });
+    }
+  } catch (emitErr) {
+    console.error("Socket emit failed for request rejection:", emitErr);
+  }
+
   return request;
+}
+
+
+// Get all requests for a specific donation
+export async function getRequestsByDonation({ donationId }) {
+  if (!donationId || !mongoose.Types.ObjectId.isValid(donationId)) {
+    const err = new Error("Invalid or missing donationId");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const requests = await Request.find({ food_id: donationId })
+    .populate('foodBank_id', 'name address')
+    .populate('food_id');
+
+  return requests;
 }

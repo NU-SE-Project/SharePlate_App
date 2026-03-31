@@ -2,6 +2,7 @@ import {
   createRequest,
   getRequestsByFoodbank,
   getRequestsByRestaurant,
+   getRequestsByDonation as getRequestsByDonationService,  // ✅ add this
   approveRequest as approveRequestService,
   rejectRequest as rejectRequestService,
 } from "./requestService.js";
@@ -53,6 +54,16 @@ export async function getRequestsForRestaurant(req, res, next) {
   try {
     const { restaurant_id } = req.params;
     const requests = await getRequestsByRestaurant({ restaurant_id });
+    return res.status(200).json({ requests });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getRequestsByDonation(req, res, next) {
+  try {
+    const { donationId } = req.params;
+    const requests = await getRequestsByDonationService({ donationId });
     return res.status(200).json({ requests });
   } catch (error) {
     return next(error);

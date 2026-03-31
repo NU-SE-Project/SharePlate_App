@@ -3,10 +3,12 @@ import { Edit2, Trash2, Calendar, ShoppingBag, Eye, Loader2, AlertCircle, Clock 
 import Button from "../../../../components/common/Button";
 import { getMyDonations, deleteDonation } from "../services/restaurantService";
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
   const [donations, setDonations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchDonations = async () => {
     if (!restaurantId || restaurantId === '000000000000000000000000') {
@@ -132,7 +134,7 @@ const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
               </div>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">
+            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between mb-4">
                <div className="flex items-center gap-2 text-slate-400 text-xs">
                   <Clock size={14} />
                   <span>Pickup Ends: {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -141,6 +143,13 @@ const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
                  {donation.status}
                </span>
             </div>
+
+            <button 
+             onClick={() => navigate(`/restaurant/donation-requests/${donation._id}`)}
+              className="w-full mt-auto py-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Eye size={18} /> View Request Details
+            </button>
           </div>
         </div>
       ))}

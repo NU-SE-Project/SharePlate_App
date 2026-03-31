@@ -3,7 +3,7 @@ import DirectDonationForm from '../components/DirectDonationForm';
 import DonationList from '../components/DonationList';
 import Modal from '../../../../components/common/Modal';
 import Button from '../../../../components/common/Button';
-import { ShoppingBag, ChevronLeft, Plus, Heart } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, Plus, Heart, Inbox } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 
@@ -49,13 +49,22 @@ const DonateFoodPage = () => {
           </div>
         </div>
         
-        <Button 
-          onClick={handleAddClick}
-          className="rounded-2xl py-4 px-8 flex items-center gap-2 shadow-xl shadow-emerald-200 hover:-translate-y-1 transition-transform"
-        >
-          <Plus size={20} />
-          <span>Add New Donation</span>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link 
+            to="/restaurant/donation-requests"
+            className="rounded-2xl py-4 px-6 flex items-center justify-center gap-2 font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors border border-emerald-100 shadow-sm"
+          >
+            <Inbox size={20} />
+            <span>View Donation Requests</span>
+          </Link>
+          <Button 
+            onClick={handleAddClick}
+            className="rounded-2xl py-4 px-8 flex justify-center items-center gap-2 shadow-xl shadow-emerald-200 hover:-translate-y-1 transition-transform"
+          >
+            <Plus size={20} />
+            <span>Add New Donation</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Content: The List */}
@@ -90,10 +99,10 @@ const DonateFoodPage = () => {
         </div>
       </div>
 
-      <div className="mt-10">
+      {/* <div className="mt-10">
         <h2 className="text-2xl font-bold mb-4">Your Current Donations</h2>
         <DonationList restaurantId={restaurantId} refreshTrigger={refreshKey} onEdit={handleEditClick} />
-      </div>
+      </div> */}
 
       {/* Add/Edit Modal */}
       <Modal 

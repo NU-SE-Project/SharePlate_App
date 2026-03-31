@@ -51,3 +51,21 @@ export const approveDonationRequest = async (requestId, quantity) => {
   const response = await api.put(`/request/approve/${requestId}`, { quantity });
   return response.data;
 };
+
+export const rejectDonationRequest = async (requestId) => {
+  const response = await api.put(`/request/reject/${requestId}`);
+  return response.data;
+};
+
+
+// ✅ Fetches the specific donation
+export const getSingleDonation = async (donationId) => {
+  const response = await api.get(`/foodsdonate/${donationId}`);
+  return response.data;
+};
+
+// ✅ Fetches only requests for the specific donation
+export const getRequestsForDonation = async (donationId) => {
+  const response = await api.get(`/request/donation/${donationId}`);
+  return response.data;
+};
