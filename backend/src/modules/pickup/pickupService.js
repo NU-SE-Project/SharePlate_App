@@ -137,6 +137,12 @@ export async function resendPickupOTPService({ pickupId }) {
   pickup.status = "generated";
   await pickup.save();
 
+  // Reset related Acceptance status to pending
+  await Acceptance.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "pending" }
+  );
+
   return { message: "New OTP generated", otp: newOtp };
 }
 

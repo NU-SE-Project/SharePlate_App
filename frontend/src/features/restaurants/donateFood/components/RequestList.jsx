@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Loader2, MapPin, Calendar, CheckSquare, ChevronRight, CheckCircle, Smartphone } from 'lucide-react';
 import Button from "../../../../components/common/Button";
-import { getAllOpenRequests, verifyPickupOTP } from "../services/restaurantService";
+import { getAllOpenRequests, verifyPickupOTP, resendPickupOTP } from "../services/restaurantService";
 import toast from 'react-hot-toast';
 import AcceptRequestModal from './AcceptRequestModal';
 import { useSocket } from '../../../../context/SocketContext';
@@ -17,6 +17,7 @@ const RequestList = () => {
   const [verifyingAcceptance, setVerifyingAcceptance] = useState(null);
   const [otpValue, setOtpValue] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -54,6 +55,19 @@ const RequestList = () => {
       socket.off('request_rejected', handler);
     };
   }, [socket]);
+
+  const handleResendOTP = async () => {
+    setIsResending(true);
+    try {
+      await resendPickupOTP(verifyingAcceptance.pickup_id._id || verifyingAcceptance.pickup_id);
+      toast.success("New OTP generated! Please contact the food bank.");
+      setOtpValue("");
+    } catch (error) {
+      toast.error("Failed to resend OTP. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleVerifyOTP = async () => {
     if (!otpValue || otpValue.length < 6) {
@@ -220,14 +234,28 @@ const RequestList = () => {
                  </div>
                  
                  <div className="w-full space-y-4">
-                    <input 
-                      type="text" 
-                      maxLength="6"
-                      value={otpValue}
-                      onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Enter 6-digit OTP"
-                      className="w-full text-center text-3xl font-black tracking-[0.5rem] py-5 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:ring-0 transition-all outline-none placeholder:text-slate-200 placeholder:tracking-normal placeholder:text-lg"
-                    />
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="text" 
+                        maxLength="6"
+                        value={otpValue}
+                        onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                        placeholder="Enter 6-digit OTP"
+                        className="w-full text-center text-3xl font-black tracking-[0.5rem] py-5 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:ring-0 transition-all outline-none placeholder:text-slate-200 placeholder:tracking-normal placeholder:text-lg"
+                      />
+                      <button 
+                        onClick={handleResendOTP}
+                        disabled={isResending}
+                        className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 flex items-center justify-center gap-1 transition-colors py-2"
+                      >
+                        {isResending ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <CheckCircle size={12} />
+                        )}
+                        Resend OTP
+                      </button>
+                    </div>
                     
                     <div className="flex gap-4">
                        <button 

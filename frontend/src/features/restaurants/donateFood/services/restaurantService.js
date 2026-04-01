@@ -73,3 +73,8 @@ export const verifyPickupOTP = async (pickupId, otp) => {
   const response = await api.post('/pickup/verify', { pickupId, otp });
   return response.data;
 };
+
+export const resendPickupOTP = async (pickupId) => {
+  const response = await api.post('/pickup/resend', { pickupId });
+  return response.data;
+};
