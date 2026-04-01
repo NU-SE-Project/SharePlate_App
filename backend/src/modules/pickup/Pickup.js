@@ -21,7 +21,7 @@ const pickupSchema = new mongoose.Schema(
     },
 
     // OTP Fields
-    otpHash: {
+    otp: {
       type: String,
     },
 
@@ -51,7 +51,7 @@ const pickupSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["generated", "verified"],
+      enum: ["generated", "verified", "expired"],
       default: "generated",
     },
   },

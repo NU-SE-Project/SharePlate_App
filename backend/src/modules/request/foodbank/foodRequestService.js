@@ -41,6 +41,7 @@ export async function getRequestsByFoodbankService(foodbankId) {
   const requestsWithAcceptances = await Promise.all(requests.map(async (req) => {
     const acceptances = await Acceptance.find({ request_id: req._id })
       .populate("restaurant_id", "name email address phone")
+      .populate("pickup_id", "otp status")
       .lean();
     return { ...req, acceptances };
   }));
@@ -59,6 +60,7 @@ export async function getAllOpenRequestsService() {
   const requestsWithAcceptances = await Promise.all(requests.map(async (req) => {
     const acceptances = await Acceptance.find({ request_id: req._id })
       .populate('restaurant_id', 'name address')
+      .populate("pickup_id", "otp status")
       .lean();
     const acceptedTotal = acceptances.reduce((s, a) => s + (Number(a.acceptedQuantity) || 0), 0);
     return { ...req, acceptances, acceptedTotal };

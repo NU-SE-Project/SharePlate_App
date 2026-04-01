@@ -184,6 +184,25 @@ const MyProactiveRequestsPage = () => {
                                   <span className="truncate">{acc.restaurant_id?.address || 'Local Pickup'}</span>
                                </div>
                             </div>
+
+                            {acc.pickup_id && (
+                               <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                                  {acc.status !== 'delivered' && acc.pickup_id.otp ? (
+                                    <div className="flex items-center gap-2">
+                                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">OTP:</span>
+                                       <span className="text-sm font-black tracking-widest bg-white/20 px-2 py-0.5 rounded italic">{acc.pickup_id.otp}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 text-emerald-400">
+                                       <CheckCircle2 size={12} />
+                                       <span className="text-[10px] font-black uppercase tracking-widest">Verification Complete</span>
+                                    </div>
+                                  )}
+                                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${acc.status === 'delivered' ? 'bg-emerald-500 text-white' : acc.status === 'expired' ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'}`}>
+                                     {acc.status}
+                                  </span>
+                               </div>
+                            )}
                          </div>
                        ))
                      ) : (

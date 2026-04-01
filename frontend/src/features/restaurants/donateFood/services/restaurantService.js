@@ -69,3 +69,7 @@ export const getRequestsForDonation = async (donationId) => {
   const response = await api.get(`/request/donation/${donationId}`);
   return response.data;
 };
+export const verifyPickupOTP = async (pickupId, otp) => {
+  const response = await api.post('/pickup/verify', { pickupId, otp });
+  return response.data;
+};

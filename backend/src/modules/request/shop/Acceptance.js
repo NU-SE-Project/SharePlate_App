@@ -18,6 +18,17 @@ const acceptanceSchema = new Schema({
     required: true,
     min: 1,
   },
+
+  pickup_id: {
+    type: Schema.Types.ObjectId,
+    ref: "Pickup",
+  },
+
+  status: {
+    type: String,
+    enum: ["pending", "delivered", "expired"],
+    default: "pending",
+  },
 }, { timestamps: true });
 
 // prevent same restaurant from accepting same request twice

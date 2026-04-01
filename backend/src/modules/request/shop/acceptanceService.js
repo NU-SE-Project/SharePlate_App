@@ -1,6 +1,7 @@
 import FoodRequest from "../foodbank/FoodRequest.js";
 import Acceptance from "./Acceptance.js";
 import { getIO } from "../../../socket.js";
+import { createPickupOTPService } from "../../pickup/pickupService.js";
 
 export async function acceptFoodRequestService({ requestId, restaurantId, quantity }) {
   const session = await FoodRequest.startSession();
@@ -41,11 +42,19 @@ export async function acceptFoodRequestService({ requestId, restaurantId, quanti
       throw err;
     }
 
-    await Acceptance.create([
+    // Generate OTP and create Pickup
+    const { pickup, otp } = await createPickupOTPService({
+      request_id: requestId,
+      restaurant_id: restaurantId,
+      foodbank_id: request.foodbank_id,
+    });
+
+    const [acceptance] = await Acceptance.create([
       {
         request_id: requestId,
         restaurant_id: restaurantId,
         acceptedQuantity: qty,
+        pickup_id: pickup._id,
       },
     ], { session });
 
