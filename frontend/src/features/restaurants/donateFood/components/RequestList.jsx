@@ -243,18 +243,20 @@ const RequestList = () => {
                         placeholder="Enter 6-digit OTP"
                         className="w-full text-center text-3xl font-black tracking-[0.5rem] py-5 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:ring-0 transition-all outline-none placeholder:text-slate-200 placeholder:tracking-normal placeholder:text-lg"
                       />
-                      <button 
-                        onClick={handleResendOTP}
-                        disabled={isResending}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 flex items-center justify-center gap-1 transition-colors py-2"
-                      >
-                        {isResending ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <CheckCircle size={12} />
-                        )}
-                        Resend OTP
-                      </button>
+                      {verifyingAcceptance.status === 'pending' && (
+                        <button 
+                          onClick={handleResendOTP}
+                          disabled={isResending}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 flex items-center justify-center gap-1 transition-colors py-2"
+                        >
+                          {isResending ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <CheckCircle size={12} />
+                          )}
+                          Resend OTP
+                        </button>
+                      )}
                     </div>
                     
                     <div className="flex gap-4">

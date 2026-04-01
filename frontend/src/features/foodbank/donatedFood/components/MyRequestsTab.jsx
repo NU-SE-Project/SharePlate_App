@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, CheckCircle2, XCircle, Timer, Info } from 'lucide-react';
+import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, CheckCircle2, XCircle, Timer, Info, Smartphone } from 'lucide-react';
 import { getMyFoodRequests } from '../../services/foodbankService';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../../../context/SocketContext';
@@ -77,7 +77,16 @@ const MyRequestsTab = ({ foodBankId }) => {
           bg: 'bg-emerald-50', 
           text: 'text-emerald-700', 
           border: 'border-emerald-100',
-          label: 'Request Approved'
+          label: 'Awaiting Pickup'
+        };
+      case 'collected':
+      case 'delivered':
+        return { 
+          icon: <CheckCircle2 size={16} />, 
+          bg: 'bg-blue-50', 
+          text: 'text-blue-700', 
+          border: 'border-blue-100',
+          label: 'Handed Over'
         };
       case 'rejected':
         return { 
@@ -129,7 +138,15 @@ const MyRequestsTab = ({ foodBankId }) => {
                 {statusInfo.icon}
                 {statusInfo.label}
               </div>
-              <span className="text-[10px] font-bold opacity-60">ID: {request._id.slice(-6)}</span>
+              {request.status === 'approved' && request.pickup_id?.otp && (
+                <div className="mt-2 text-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Pickup OTP</span>
+                  <div className="bg-white px-4 py-2 rounded-xl border-2 border-emerald-500 text-emerald-600 font-black tracking-widest text-lg shadow-sm">
+                    {request.pickup_id.otp}
+                  </div>
+                </div>
+              )}
+              <span className="text-[10px] font-bold opacity-60 mt-1">ID: {request._id.slice(-6)}</span>
             </div>
             
             <div className="flex flex-col gap-2">

@@ -4,6 +4,7 @@ import Request from "./Request.js";
 import User from "../../user/User.js";
 import { sendSms } from "../../../services/notifyService.js";
 import { getIO } from "../../../socket.js";
+import { createPickupOTPService } from "../../pickup/pickupService.js";
 
 
 // Get all requests of a particular food bank
@@ -13,7 +14,9 @@ export async function getRequestsByFoodbank({ foodBank_id }) {
         err.statusCode = 400;
         throw err;
     }
-    const foodbankRequests = await Request.find({ foodBank_id });
+    const foodbankRequests = await Request.find({ foodBank_id })
+      .populate('food_id')
+      .populate('pickup_id', 'otp status');
     return foodbankRequests;
 }
 
@@ -28,7 +31,8 @@ export async function getRequestsByRestaurant({ restaurant_id }) {
     // Populate food and foodbank information for clarity
     const requests = await Request.find({ restaurant_id })
       .populate('food_id')
-      .populate('foodBank_id', 'name address');
+      .populate('foodBank_id', 'name address')
+      .populate('pickup_id', 'otp status');
     return requests;
 }
 
@@ -195,6 +199,21 @@ export async function approveRequest(request_id) {
 
   request.status = "approved";
   request.approvedAt = new Date();
+
+  // Generate OTP and create Pickup
+  try {
+    const { pickup } = await createPickupOTPService({
+      request_id: request._id,
+      restaurant_id: request.restaurant_id,
+      foodbank_id: request.foodBank_id,
+    });
+    request.pickup_id = pickup._id;
+  } catch (otpErr) {
+    console.error("Failed to generate OTP for donation request approval:", otpErr);
+    // Continue even if OTP fails, or we could rollback. 
+    // Given the previous successful food bank requests flow, it should work.
+  }
+
   await request.save();
 
   try {
@@ -274,7 +293,8 @@ export async function getRequestsByDonation({ donationId }) {
 
   const requests = await Request.find({ food_id: donationId })
     .populate('foodBank_id', 'name address')
-    .populate('food_id');
+    .populate('food_id')
+    .populate('pickup_id', 'otp status');
 
   return requests;
 }

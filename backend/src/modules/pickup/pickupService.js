@@ -1,5 +1,6 @@
 import Pickup from "./Pickup.js";
 import Acceptance from "../request/shop/Acceptance.js";
+import Request from "../donation/foodbank/Request.js";
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -106,10 +107,16 @@ export async function verifyPickupOTPService({ pickupId, otp }) {
   pickup.otp = null; // Clear OTP after verification
   await pickup.save();
 
-  // Update related Acceptance
+  // Update related Acceptance (Flow A)
   await Acceptance.findOneAndUpdate(
     { pickup_id: pickup._id },
     { status: "delivered" }
+  );
+
+  // Update related Request (Flow B - Restaurant Donations)
+  await Request.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "delivered", collectedAt: new Date() }
   );
 
   return { message: "Pickup verified successfully" };
@@ -137,10 +144,16 @@ export async function resendPickupOTPService({ pickupId }) {
   pickup.status = "generated";
   await pickup.save();
 
-  // Reset related Acceptance status to pending
+  // Reset related Acceptance status to pending (Flow A)
   await Acceptance.findOneAndUpdate(
     { pickup_id: pickup._id },
     { status: "pending" }
+  );
+
+  // Reset related Request status to approved (Flow B)
+  await Request.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "approved" }
   );
 
   return { message: "New OTP generated", otp: newOtp };
