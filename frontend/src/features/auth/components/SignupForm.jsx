@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Phone, MapPin, Loader2, ChevronRight } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, Loader2, ChevronRight, Search } from 'lucide-react';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Select from '../../../components/common/Select';
 import { register } from '../services/authService';
+import LocationPicker from '../../../components/common/LocationPicker';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const SignupForm = () => {
   const navigate = useNavigate();
@@ -22,6 +25,53 @@ const SignupForm = () => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const handleLocationChange = (coords) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: {
+        ...prev.location,
+        coordinates: [Number(coords.longitude), Number(coords.latitude)],
+      },
+      ...(coords.address && { address: coords.address }),
+    }));
+  };
+
+  const handleGeocode = async () => {
+    if (!formData.address) {
+      toast.error('Please enter an address first');
+      return;
+    }
+
+    setIsGeocoding(true);
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          formData.address
+        )}&limit=1`
+      );
+
+      if (response.data && response.data.length > 0) {
+        const { lat, lon } = response.data[0];
+        setFormData((prev) => ({
+          ...prev,
+          location: {
+            ...prev.location,
+            coordinates: [Number(lon), Number(lat)],
+          },
+        }));
+        toast.success('Location found on map!');
+      } else {
+        toast.error('Could not find location for this address.');
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      toast.error('Error searching for location');
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   const roles = [
     { value: 'restaurant', label: 'Restaurant / Hotel' },
@@ -147,15 +197,34 @@ const SignupForm = () => {
               error={errors.confirmPassword}
               icon={<Lock size={18} />}
             />
-            <Input
-              label="Detailed Address"
-              name="address"
-              placeholder="123 Street Name, City"
-              value={formData.address}
-              onChange={handleChange}
-              error={errors.address}
-              icon={<MapPin size={18} />}
-            />
+            <div className="relative">
+              <Input
+                label="Detailed Address"
+                name="address"
+                placeholder="123 Street Name, City"
+                value={formData.address}
+                onChange={handleChange}
+                error={errors.address}
+                icon={<MapPin size={18} />}
+              />
+              <button
+                type="button"
+                onClick={handleGeocode}
+                disabled={isGeocoding}
+                className="absolute right-2 bottom-2 p-2 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:bg-slate-300"
+                title="Find on Map"
+              >
+                {isGeocoding ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+              </button>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <LocationPicker
+                lat={formData.location.coordinates[1]}
+                lng={formData.location.coordinates[0]}
+                onChange={handleLocationChange}
+              />
+            </div>
             <Input
               label="Contact Number"
               name="contactNumber"
