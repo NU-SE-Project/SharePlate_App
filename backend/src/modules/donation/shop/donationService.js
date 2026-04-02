@@ -4,7 +4,7 @@ import { getIO } from "../../../socket.js";
 import path from 'path';
 
 export async function createDonationService(data, file) {
-  const { 
+  const {
     restaurant_id,
     foodName,
     description,
@@ -114,7 +114,7 @@ export async function getAllDonationsService(query) {
     filter.restaurant_id = restaurant_id;
   }
 
-  const donations = await Donation.find(filter).sort({ expiryTime: 1 });
+  const donations = await Donation.find(filter).populate("restaurant_id", "name address location").sort({ expiryTime: 1 });
   return donations;
 }
 
@@ -125,7 +125,7 @@ export async function getSingleDonationService(id) {
     throw err;
   }
 
-  const donation = await Donation.findById(id);
+  const donation = await Donation.findById(id).populate("restaurant_id", "name address location");
   if (!donation) {
     const err = new Error("Donation not found");
     err.statusCode = 404;

@@ -71,8 +71,9 @@ const LocationPicker = ({ lat, lng, onChange }) => {
     let address = null;
     if (fetchAddress) {
       try {
+        const baseUrl = import.meta.env.VITE_NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org';
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`
+          `${baseUrl}/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`
         );
         const data = await response.json();
         if (data && data.display_name) {
@@ -136,7 +137,7 @@ const LocationPicker = ({ lat, lng, onChange }) => {
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            url={import.meta.env.VITE_MAP_TILE_URL || "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
           />
           <ChangeView center={mapCenter} />
           <LocationMarker position={position} setPosition={handlePositionChange} />

@@ -81,14 +81,18 @@ class SessionService {
       expiresAt: tokenService.getRefreshExpiryDate(),
     });
 
+    const userObj = user.toObject();
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id: userObj._id,
+        _id: userObj._id,
+        name: userObj.name,
+        email: userObj.email,
+        role: userObj.role,
+        address: userObj.address,
+        location: userObj.location,
       },
     };
   }

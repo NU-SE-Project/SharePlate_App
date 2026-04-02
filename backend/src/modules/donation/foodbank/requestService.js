@@ -9,31 +9,34 @@ import { createPickupOTPService } from "../../pickup/pickupService.js";
 
 // Get all requests of a particular food bank
 export async function getRequestsByFoodbank({ foodBank_id }) {
-    if (!foodBank_id || !mongoose.Types.ObjectId.isValid(foodBank_id)) {
-        const err = new Error("Invalid or missing foodBank_id");
-        err.statusCode = 400;
-        throw err;
-    }
-    const foodbankRequests = await Request.find({ foodBank_id })
-      .populate('food_id')
-      .populate('pickup_id', 'otp status');
-    return foodbankRequests;
+  if (!foodBank_id || !mongoose.Types.ObjectId.isValid(foodBank_id)) {
+    const err = new Error("Invalid or missing foodBank_id");
+    err.statusCode = 400;
+    throw err;
+  }
+  const foodbankRequests = await Request.find({ foodBank_id })
+    .populate('food_id')
+    .populate('restaurant_id', 'name address location')
+    .populate('pickup_id', 'otp status')
+    .sort({ createdAt: -1 });
+  return foodbankRequests;
 }
 
 
 // Get all requests targeting a particular restaurant (requests made to restaurant donations)
 export async function getRequestsByRestaurant({ restaurant_id }) {
-    if (!restaurant_id || !mongoose.Types.ObjectId.isValid(restaurant_id)) {
-        const err = new Error("Invalid or missing restaurant_id");
-        err.statusCode = 400;
-        throw err;
-    }
-    // Populate food and foodbank information for clarity
-    const requests = await Request.find({ restaurant_id })
-      .populate('food_id')
-      .populate('foodBank_id', 'name address')
-      .populate('pickup_id', 'otp status');
-    return requests;
+  if (!restaurant_id || !mongoose.Types.ObjectId.isValid(restaurant_id)) {
+    const err = new Error("Invalid or missing restaurant_id");
+    err.statusCode = 400;
+    throw err;
+  }
+  // Populate food and foodbank information for clarity
+  const requests = await Request.find({ restaurant_id })
+    .populate('food_id')
+    .populate('foodBank_id', 'name address location')
+    .populate('pickup_id', 'otp status')
+    .sort({ createdAt: -1 });
+  return requests;
 }
 
 
@@ -45,7 +48,10 @@ export async function createRequest({ food_id, restaurant_id, foodBank_id, reque
     err.statusCode = 400;
     throw err;
   }
-  if (!mongoose.Types.ObjectId.isValid(restaurant_id)) {
+  // Extract ID if object is passed (safeguard)
+  const r_id = restaurant_id?._id || restaurant_id?.id || restaurant_id;
+
+  if (!mongoose.Types.ObjectId.isValid(r_id)) {
     const err = new Error("Invalid restaurant_id");
     err.statusCode = 400;
     throw err;
@@ -82,41 +88,41 @@ export async function createRequest({ food_id, restaurant_id, foodBank_id, reque
   // Create request
   const request = new Request({
     food_id,
-    restaurant_id,
+    restaurant_id: r_id,
     foodBank_id,
     requestedQuantity: qty,
     status: "pending",
   });
   await request.save();
 
-    // Emit real-time events: notify restaurant and update donation state
-    try {
-      const io = getIO();
-      // Try to include friendly names for client display
-      const foodbank = await User.findById(foodBank_id).select('name');
-      const foodbankName = foodbank?.name || null;
-      const itemName = food.foodName || null;
-      if (io && request.restaurant_id) {
-        io.to(request.restaurant_id.toString()).emit("new_food_request", {
-          requestId: request._id,
-          food_id,
-          requestedQuantity: qty,
-          foodName: food.foodName,
-          foodBank_id,
-          foodbankName,
-          itemName,
-        });
-      }
-      // Broadcast donation update so UIs can refresh
-      if (io) {
-        io.emit("donation_updated", {
-          food_id,
-          remainingQuantity: food.remainingQuantity,
-        });
-      }
-    } catch (emitErr) {
-      console.error("Socket emit failed for request creation:", emitErr);
+  // Emit real-time events: notify restaurant and update donation state
+  try {
+    const io = getIO();
+    // Try to include friendly names for client display
+    const foodbank = await User.findById(foodBank_id).select('name');
+    const foodbankName = foodbank?.name || null;
+    const itemName = food.foodName || null;
+    if (io && request.restaurant_id) {
+      io.to(request.restaurant_id.toString()).emit("new_food_request", {
+        requestId: request._id,
+        food_id,
+        requestedQuantity: qty,
+        foodName: food.foodName,
+        foodBank_id,
+        foodbankName,
+        itemName,
+      });
     }
+    // Broadcast donation update so UIs can refresh
+    if (io) {
+      io.emit("donation_updated", {
+        food_id,
+        remainingQuantity: food.remainingQuantity,
+      });
+    }
+  } catch (emitErr) {
+    console.error("Socket emit failed for request creation:", emitErr);
+  }
   // Try to notify the restaurant via SMS if contactNumber exists.
   try {
     await sendRequestNotification(request);
@@ -292,9 +298,10 @@ export async function getRequestsByDonation({ donationId }) {
   }
 
   const requests = await Request.find({ food_id: donationId })
-    .populate('foodBank_id', 'name address')
+    .populate('foodBank_id', 'name address location')
     .populate('food_id')
-    .populate('pickup_id', 'otp status');
+    .populate('pickup_id', 'otp status')
+    .sort({ createdAt: -1 });
 
   return requests;
 }

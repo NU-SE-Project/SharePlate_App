@@ -58,7 +58,7 @@ const DonatedFoodPage = () => {
       if (!foodBankId) throw new Error('Missing food bank identity');
       if (!selectedDonation?.restaurant_id) throw new Error('Missing restaurant id on donation');
       const payload = {
-        restaurant_id: selectedDonation.restaurant_id,
+        restaurant_id: selectedDonation.restaurant_id?._id || selectedDonation.restaurant_id,
         foodBank_id: foodBankId,
         requestedQuantity: Number(requestQuantity),
       };

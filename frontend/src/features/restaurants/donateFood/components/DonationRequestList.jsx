@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Loader2, ChevronRight, CheckCircle, Smartphone } from 'lucide-react';
+import { useAuth } from '../../../../context/AuthContext';
 import Button from "../../../../components/common/Button";
 import { getDonationRequests, approveDonationRequest, verifyPickupOTP, resendPickupOTP } from "../services/restaurantService";
 import toast from 'react-hot-toast';
@@ -10,6 +11,7 @@ const DonationRequestList = () => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const { user } = useAuth();
 
   // OTP Verification state
   const [verifyingRequest, setVerifyingRequest] = useState(null);
@@ -132,16 +134,17 @@ const DonationRequestList = () => {
                 <span className="text-slate-400 font-normal">| {request.foodBank_id?.address || ''}</span>
               </div>
 
-              <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-6 text-sm mb-6">
                 <div className="flex flex-col">
-                  <span className="text-slate-400 mb-1">Requested</span>
-                  <span className="text-lg font-bold text-slate-900">{request.requestedQuantity} servings</span>
+                  <span className="text-slate-400 mb-1 font-bold uppercase text-[10px] tracking-widest">Requested</span>
+                  <span className="text-lg font-black text-slate-900">{request.requestedQuantity} servings</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-slate-400 mb-1">Still Needed</span>
-                  <span className="text-lg font-bold text-emerald-600">{request.remainingQuantity ?? request.requestedQuantity} servings</span>
+                  <span className="text-slate-400 mb-1 font-bold uppercase text-[10px] tracking-widest">Still Needed</span>
+                  <span className="text-lg font-black text-emerald-600">{request.remainingQuantity ?? request.requestedQuantity} servings</span>
                 </div>
               </div>
+
             </div>
 
             <div className="flex flex-col gap-3 min-w-[200px]">
@@ -161,7 +164,7 @@ const DonationRequestList = () => {
                 </Button>
               ) : (
                 <div className="w-full py-4 flex items-center justify-center rounded-lg bg-slate-50 text-slate-600 font-semibold">
-                  {request.status === 'collected' || request.status === 'fulfilled' ? 'Delivered' : request.status}
+                  {request.status === 'collected' || request.status === 'delivered' || request.status === 'fulfilled' ? 'Delivered' : request.status}
                 </div>
               )}
               <p className="text-xs text-center text-slate-400 italic">
@@ -243,6 +246,7 @@ const DonationRequestList = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

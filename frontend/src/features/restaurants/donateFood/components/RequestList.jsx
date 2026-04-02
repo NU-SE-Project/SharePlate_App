@@ -12,7 +12,7 @@ const RequestList = () => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  
+
   // OTP Verification state
   const [verifyingAcceptance, setVerifyingAcceptance] = useState(null);
   const [otpValue, setOtpValue] = useState("");
@@ -101,8 +101,8 @@ const RequestList = () => {
   if (requests.length === 0) {
     return (
       <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-         <h3 className="text-xl font-bold text-slate-800 mb-2">No active requests nearby</h3>
-         <p className="text-slate-500 max-w-sm mx-auto">There are currently no food requests from food banks. Check back later!</p>
+        <h3 className="text-xl font-bold text-slate-800 mb-2">No active requests nearby</h3>
+        <p className="text-slate-500 max-w-sm mx-auto">There are currently no food requests from food banks. Check back later!</p>
       </div>
     );
   }
@@ -110,20 +110,20 @@ const RequestList = () => {
   return (
     <div className="space-y-6">
       {requests.map((request) => {
-        const myAcceptance = request.acceptances?.find(a => 
+        const myAcceptance = request.acceptances?.find(a =>
           (a.restaurant_id?._id || a.restaurant_id) === (user?._id || user?.id)
         );
 
         return (
-          <div 
-            key={request._id} 
+          <div
+            key={request._id}
             className="bg-white p-8 rounded-3xl border border-emerald-100 shadow-sm hover:shadow-lg transition-all duration-300"
           >
             <div className="flex items-start justify-between flex-wrap gap-6">
               <div className="flex-grow min-w-[280px]">
                 <div className="flex items-center gap-3 mb-4">
                   <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${request.foodType === 'veg' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
-                      {request.foodType}
+                    {request.foodType}
                   </span>
                   <span className="text-xs font-medium text-slate-500">Posted on {new Date(request.createdAt).toLocaleDateString()}</span>
                   {myAcceptance && (
@@ -132,25 +132,26 @@ const RequestList = () => {
                     </span>
                   )}
                 </div>
-                
+
                 <h3 className="text-2xl font-extrabold text-slate-900 mb-2">{request.foodName}</h3>
-                
-                <div className="flex items-center gap-2 text-slate-600 mb-6">
+
+                <div className="flex items-center gap-2 text-slate-600 mb-2">
                   <MapPin size={18} className="text-emerald-500 shrink-0" />
-                  <span className="font-semibold text-slate-900">{request.foodbank_id?.name}</span>
+                  <span className="font-semibold text-slate-900">{request.foodbank_id?.name || (typeof request.foodbank_id === 'string' ? `Food Bank ${request.foodbank_id.slice(-4)}` : 'Local Food Bank')}</span>
                   <span className="text-slate-400 font-normal">| {request.foodbank_id?.address}</span>
                 </div>
 
+
                 <div className="flex items-center gap-6 text-sm mb-4">
-                   <div className="flex flex-col">
+                  <div className="flex flex-col">
                     <span className="text-slate-400 mb-1">Requested</span>
                     <span className="text-lg font-bold text-slate-900">{request.requestedQuantity} servings</span>
                   </div>
-                   <div className="flex flex-col">
+                  <div className="flex flex-col">
                     <span className="text-slate-400 mb-1">Accepted</span>
                     <span className="text-lg font-bold text-slate-900">{request.acceptedTotal ?? (request.requestedQuantity - request.remainingQuantity)} servings</span>
                   </div>
-                   <div className="flex flex-col">
+                  <div className="flex flex-col">
                     <span className="text-slate-400 mb-1">Still Needed</span>
                     <span className="text-lg font-bold text-emerald-600">{request.remainingQuantity} servings</span>
                   </div>
@@ -173,23 +174,23 @@ const RequestList = () => {
                 )}
               </div>
 
-                <div className="flex flex-col gap-3 min-w-[200px]">
+              <div className="flex flex-col gap-3 min-w-[200px]">
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-4">
-                  <div 
+                  <div
                     className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                     style={{ width: `${((request.requestedQuantity - request.remainingQuantity) / request.requestedQuantity) * 100}%` }}
                   />
                 </div>
-                
+
                 {myAcceptance && myAcceptance.status === 'pending' ? (
-                  <Button 
+                  <Button
                     onClick={() => setVerifyingAcceptance(myAcceptance)}
                     className="w-full py-4 shadow-blue-100 bg-blue-600 hover:bg-blue-700"
                   >
                     Mark as Delivered <CheckCircle className="ml-2" size={18} />
                   </Button>
                 ) : request.status === 'open' && request.remainingQuantity > 0 ? (
-                  <Button 
+                  <Button
                     onClick={() => setSelectedRequest(request)}
                     className="w-full py-4 shadow-emerald-100"
                   >
@@ -197,10 +198,10 @@ const RequestList = () => {
                   </Button>
                 ) : (
                   <div className="w-full py-3 flex items-center justify-center rounded-lg bg-slate-50 text-slate-600 font-semibold">
-                    {request.status === 'fulfilled' || request.remainingQuantity === 0 ? 'Fully Accepted' : request.status}
+                    {request.status === 'fulfilled' || request.status === 'delivered' || request.remainingQuantity === 0 ? 'Delivered' : request.status}
                   </div>
                 )}
-                 <p className="text-xs text-center text-slate-400 italic">
+                <p className="text-xs text-center text-slate-400 italic">
                   Support your community food bank
                 </p>
               </div>
@@ -210,75 +211,76 @@ const RequestList = () => {
       })}
 
       {selectedRequest && (
-        <AcceptRequestModal 
-           request={selectedRequest} 
-           onClose={() => setSelectedRequest(null)}
-           onSuccess={() => {
-             setSelectedRequest(null);
-             fetchRequests();
-           }}
+        <AcceptRequestModal
+          request={selectedRequest}
+          onClose={() => setSelectedRequest(null)}
+          onSuccess={() => {
+            setSelectedRequest(null);
+            fetchRequests();
+          }}
         />
       )}
 
       {/* OTP Verification Modal */}
       {verifyingAcceptance && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-           <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
-              <div className="flex flex-col items-center text-center gap-6">
-                 <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-100">
-                    <Smartphone size={40} />
-                 </div>
-                 <div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verify Delivery</h3>
-                    <p className="text-slate-500 font-medium mt-2">Enter the 6-digit OTP provided by the food bank to complete this donation.</p>
-                 </div>
-                 
-                 <div className="w-full space-y-4">
-                    <div className="flex flex-col gap-2">
-                      <input 
-                        type="text" 
-                        maxLength="6"
-                        value={otpValue}
-                        onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
-                        placeholder="Enter 6-digit OTP"
-                        className="w-full text-center text-3xl font-black tracking-[0.5rem] py-5 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:ring-0 transition-all outline-none placeholder:text-slate-200 placeholder:tracking-normal placeholder:text-lg"
-                      />
-                      {verifyingAcceptance.status === 'pending' && (
-                        <button 
-                          onClick={handleResendOTP}
-                          disabled={isResending}
-                          className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 flex items-center justify-center gap-1 transition-colors py-2"
-                        >
-                          {isResending ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            <CheckCircle size={12} />
-                          )}
-                          Resend OTP
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="flex gap-4">
-                       <button 
-                         onClick={() => { setVerifyingAcceptance(null); setOtpValue(""); }}
-                         className="flex-1 py-4 font-bold text-slate-400 hover:text-slate-600 transition-colors"
-                       >
-                         Cancel
-                       </button>
-                       <Button 
-                         onClick={handleVerifyOTP}
-                         isLoading={isVerifying}
-                         className="flex-[2] py-4 rounded-2xl shadow-xl shadow-blue-100 bg-blue-600 hover:bg-blue-700"
-                       >
-                         Verify & Complete
-                       </Button>
-                    </div>
-                 </div>
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center gap-6">
+              <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-100">
+                <Smartphone size={40} />
               </div>
-           </div>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verify Delivery</h3>
+                <p className="text-slate-500 font-medium mt-2">Enter the 6-digit OTP provided by the food bank to complete this donation.</p>
+              </div>
+
+              <div className="w-full space-y-4">
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    maxLength="6"
+                    value={otpValue}
+                    onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Enter 6-digit OTP"
+                    className="w-full text-center text-3xl font-black tracking-[0.5rem] py-5 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:ring-0 transition-all outline-none placeholder:text-slate-200 placeholder:tracking-normal placeholder:text-lg"
+                  />
+                  {verifyingAcceptance.status === 'pending' && (
+                    <button
+                      onClick={handleResendOTP}
+                      disabled={isResending}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 flex items-center justify-center gap-1 transition-colors py-2"
+                    >
+                      {isResending ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <CheckCircle size={12} />
+                      )}
+                      Resend OTP
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => { setVerifyingAcceptance(null); setOtpValue(""); }}
+                    className="flex-1 py-4 font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <Button
+                    onClick={handleVerifyOTP}
+                    isLoading={isVerifying}
+                    className="flex-[2] py-4 rounded-2xl shadow-xl shadow-blue-100 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Verify & Complete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
+
     </div>
   );
 };
