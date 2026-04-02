@@ -9,6 +9,7 @@ import Button from '../../../../components/common/Button';
 import { requestFoodDonation } from '../../services/foodbankService';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../../context/AuthContext';
+import { displayImage } from '../../../../utils/displayImage';
 
 const DonatedFoodPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -57,7 +58,7 @@ const DonatedFoodPage = () => {
       if (!foodBankId) throw new Error('Missing food bank identity');
       if (!selectedDonation?.restaurant_id) throw new Error('Missing restaurant id on donation');
       const payload = {
-        restaurant_id: selectedDonation.restaurant_id,
+        restaurant_id: selectedDonation.restaurant_id?._id || selectedDonation.restaurant_id,
         foodBank_id: foodBankId,
         requestedQuantity: Number(requestQuantity),
       };
@@ -153,9 +154,18 @@ const DonatedFoodPage = () => {
         {selectedDonation && (
           <form onSubmit={handleSubmitRequest} className="space-y-8">
             <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 flex items-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-md">
+              {/* <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-md">
                  <ShoppingBag size={32} />
+              </div> */}
+
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-md">
+                <img
+                  src={displayImage(selectedDonation)}
+                  alt={selectedDonation.foodName}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
               </div>
+             
               <div>
                 <h4 className="text-xl font-black text-slate-900">{selectedDonation.foodName}</h4>
                 <p className="text-slate-500 font-medium">Available: <span className="text-emerald-600">{selectedDonation.remainingQuantity}</span> servings</p>

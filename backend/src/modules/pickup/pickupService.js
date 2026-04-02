@@ -1,12 +1,9 @@
-import crypto from "crypto";
 import Pickup from "./Pickup.js";
+import Acceptance from "../request/shop/Acceptance.js";
+import Request from "../donation/foodbank/Request.js";
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function hashOTP(otp) {
-  return crypto.createHash("sha256").update(otp).digest("hex");
 }
 
 export async function createPickupOTPService({ request_id, restaurant_id, foodbank_id }) {
@@ -22,8 +19,8 @@ export async function createPickupOTPService({ request_id, restaurant_id, foodba
     request_id,
     restaurant_id,
     foodbank_id,
-    otpHash: hashOTP(otp),
-    otpExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    otp,
+    otpExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours expiry
   });
 
   return { pickup, otp };
@@ -49,16 +46,32 @@ export async function verifyPickupOTPService({ pickupId, otp }) {
     throw err;
   }
 
-  if (!pickup.otpHash) {
-    const err = new Error("No active OTP. Please resend.");
+  if (pickup.status === "expired") {
+    const err = new Error("OTP has expired");
     err.statusCode = 400;
     throw err;
   }
 
   const now = new Date();
 
+  // Check if actually expired
   if (pickup.otpExpiresAt && pickup.otpExpiresAt < now) {
+    pickup.status = "expired";
+    await pickup.save();
+
+    // Also update acceptance status
+    await Acceptance.findOneAndUpdate(
+      { pickup_id: pickup._id },
+      { status: "expired" }
+    );
+
     const err = new Error("OTP expired");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (!pickup.otp) {
+    const err = new Error("No active OTP. Please resend.");
     err.statusCode = 400;
     throw err;
   }
@@ -74,8 +87,7 @@ export async function verifyPickupOTPService({ pickupId, otp }) {
     pickup.otpLockedUntil = null;
   }
 
-  const hashedInput = hashOTP(otp);
-  if (hashedInput !== pickup.otpHash) {
+  if (otp !== pickup.otp) {
     pickup.otpAttempts = (pickup.otpAttempts || 0) + 1;
     if (pickup.otpAttempts >= 3) {
       pickup.otpLockedUntil = new Date(Date.now() + 5 * 60 * 1000);
@@ -92,8 +104,20 @@ export async function verifyPickupOTPService({ pickupId, otp }) {
   pickup.verified = true;
   pickup.verifiedAt = new Date();
   pickup.status = "verified";
-  pickup.otpHash = null;
+  pickup.otp = null; // Clear OTP after verification
   await pickup.save();
+
+  // Update related Acceptance (Flow A)
+  await Acceptance.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "delivered" }
+  );
+
+  // Update related Request (Flow B - Restaurant Donations)
+  await Request.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "delivered", collectedAt: new Date() }
+  );
 
   return { message: "Pickup verified successfully" };
 }
@@ -113,11 +137,24 @@ export async function resendPickupOTPService({ pickupId }) {
   }
 
   const newOtp = generateOTP();
-  pickup.otpHash = hashOTP(newOtp);
+  pickup.otp = newOtp;
   pickup.otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   pickup.otpAttempts = 0;
   pickup.otpLockedUntil = null;
+  pickup.status = "generated";
   await pickup.save();
+
+  // Reset related Acceptance status to pending (Flow A)
+  await Acceptance.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "pending" }
+  );
+
+  // Reset related Request status to approved (Flow B)
+  await Request.findOneAndUpdate(
+    { pickup_id: pickup._id },
+    { status: "approved" }
+  );
 
   return { message: "New OTP generated", otp: newOtp };
 }

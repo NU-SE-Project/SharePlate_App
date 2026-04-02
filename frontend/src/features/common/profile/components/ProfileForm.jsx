@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, MapPin, Phone, Loader2, Save, Globe, Info } from 'lucide-react';
 import Input from '../../../../components/common/Input';
 import Button from '../../../../components/common/Button';
-import { updateMe } from '../../../auth/services/authService';
+import { updateMe, getMe } from '../../../auth/services/authService';
 import { useAuth } from '../../../../context/AuthContext';
 import toast from 'react-hot-toast';
+import LocationPicker from '../../../../components/common/LocationPicker';
+import axios from 'axios';
+import { Search } from 'lucide-react';
 
 const ProfileForm = () => {
   const { user, setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +21,21 @@ const ProfileForm = () => {
     latitude: '',
     longitude: '',
   });
+
+  useEffect(() => {
+    const fetchLatestProfile = async () => {
+      try {
+        const data = await getMe();
+        if (data?.user) {
+          setUser(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      }
+    };
+    fetchLatestProfile();
+  }, [setUser]);
 
   useEffect(() => {
     if (user) {
@@ -34,6 +53,48 @@ const ProfileForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLocationChange = (coords) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      ...(coords.address && { address: coords.address }),
+    }));
+  };
+
+  const handleGeocode = async () => {
+    if (!formData.address) {
+      toast.error('Please enter an address first');
+      return;
+    }
+
+    setIsGeocoding(true);
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          formData.address
+        )}&limit=1`
+      );
+
+      if (response.data && response.data.length > 0) {
+        const { lat, lon } = response.data[0];
+        setFormData((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lon,
+        }));
+        toast.success('Location found on map!');
+      } else {
+        toast.error('Could not find location for this address. Please try a more specific address or select manually on map.');
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      toast.error('Error searching for location');
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -109,14 +170,33 @@ const ProfileForm = () => {
               icon={<Phone size={18} />}
               required
             />
-            <Input
-              label="Pickup Address"
-              name="address"
-              placeholder="123 Harmony St, Community City"
-              value={formData.address}
-              onChange={handleChange}
-              icon={<MapPin size={18} />}
-              required
+            <div className="relative group">
+              <Input
+                label="Pickup Address"
+                name="address"
+                placeholder="123 Harmony St, Community City"
+                value={formData.address}
+                onChange={handleChange}
+                icon={<MapPin size={18} />}
+                required
+              />
+              <button
+                type="button"
+                onClick={handleGeocode}
+                disabled={isGeocoding}
+                className="absolute right-2 bottom-2 p-2 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:bg-slate-300 disabled:shadow-none"
+                title="Find on Map"
+              >
+                {isGeocoding ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-6 bg-slate-50/50 p-6 md:p-8 rounded-[2.5rem] border border-slate-100">
+            <LocationPicker 
+              lat={formData.latitude} 
+              lng={formData.longitude} 
+              onChange={handleLocationChange} 
             />
           </div>
 

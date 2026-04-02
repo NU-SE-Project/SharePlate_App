@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, CheckCircle2, XCircle, Timer, Info } from 'lucide-react';
+import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, CheckCircle2, XCircle, Timer, Info, Smartphone } from 'lucide-react';
 import { getMyFoodRequests } from '../../services/foodbankService';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../../../context/SocketContext';
+import { useAuth } from '../../../../context/AuthContext';
+import RouteMapModal from '../../../../components/common/RouteMapModal';
+import { Map as MapIcon } from 'lucide-react';
 
 const MyRequestsTab = ({ foodBankId }) => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [routeModalData, setRouteModalData] = useState(null);
+  const { user } = useAuth();
 
   const fetchRequests = async () => {
     if (!foodBankId) {
@@ -77,7 +82,16 @@ const MyRequestsTab = ({ foodBankId }) => {
           bg: 'bg-emerald-50', 
           text: 'text-emerald-700', 
           border: 'border-emerald-100',
-          label: 'Request Approved'
+          label: 'Awaiting Pickup'
+        };
+      case 'collected':
+      case 'delivered':
+        return { 
+          icon: <CheckCircle2 size={16} />, 
+          bg: 'bg-blue-50', 
+          text: 'text-blue-700', 
+          border: 'border-blue-100',
+          label: 'Handed Over'
         };
       case 'rejected':
         return { 
@@ -129,12 +143,49 @@ const MyRequestsTab = ({ foodBankId }) => {
                 {statusInfo.icon}
                 {statusInfo.label}
               </div>
-              <span className="text-[10px] font-bold opacity-60">ID: {request._id.slice(-6)}</span>
+              {request.status === 'approved' && request.pickup_id?.otp && (
+                <div className="mt-2 text-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Pickup OTP</span>
+                  <div className="bg-white px-4 py-2 rounded-xl border-2 border-emerald-500 text-emerald-600 font-black tracking-widest text-lg shadow-sm">
+                    {request.pickup_id.otp}
+                  </div>
+                </div>
+              )}
+              <span className="text-[10px] font-bold opacity-60 mt-1">ID: {typeof request._id === 'string' ? request._id.slice(-6) : 'N/A'}</span>
             </div>
             
             <div className="flex flex-col gap-2">
-               <button className="px-6 py-3 rounded-xl bg-slate-50 text-slate-600 font-bold text-sm border border-slate-100 hover:bg-white hover:shadow-md transition-all">
-                  Details
+               <button 
+                 disabled={!request.restaurant_id?.location?.coordinates}
+                 onClick={() => {
+                   if (!request.restaurant_id?.location?.coordinates) {
+                     toast.error("Restaurant location not available");
+                     return;
+                   }
+                   if (!user?.location?.coordinates) {
+                     toast.error("Your location not available. Please update profile.");
+                     return;
+                   }
+                   setRouteModalData({
+                     start: {
+                       lat: user.location.coordinates[1],
+                       lng: user.location.coordinates[0],
+                       name: user.name,
+                       address: user.address
+                     },
+                     end: {
+                       lat: request.restaurant_id.location.coordinates[1],
+                       lng: request.restaurant_id.location.coordinates[0],
+                       name: request.restaurant_id.name,
+                       address: request.restaurant_id.address
+                     },
+                     title: `Route to ${request.restaurant_id.name}`
+                   });
+                 }}
+                 className="px-6 py-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-[10px] uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 hover:shadow-md transition-all flex items-center justify-center gap-2 group/map disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+                  <MapIcon size={14} className="group-hover/map:rotate-12 transition-transform" />
+                  Map
                </button>
                {request.status === 'pending' && (
                  <button className="px-6 py-3 rounded-xl text-red-600 font-bold text-sm hover:bg-red-50 transition-all">
@@ -145,6 +196,16 @@ const MyRequestsTab = ({ foodBankId }) => {
           </div>
         );
       })}
+
+      {routeModalData && (
+        <RouteMapModal 
+          isOpen={!!routeModalData}
+          onClose={() => setRouteModalData(null)}
+          startLocation={routeModalData.start}
+          endLocation={routeModalData.end}
+          title={routeModalData.title}
+        />
+      )}
     </div>
   );
 };

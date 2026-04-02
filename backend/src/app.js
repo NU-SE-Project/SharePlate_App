@@ -17,6 +17,7 @@ import foodrequestRoutes from "./modules/request/foodbank/foodrequestRoutes.js"
 import acceptsfoodrequestRoutes from './modules/request/shop/acceptsfoodrequestRoutes.js'
 import distancetestRoutes from './modules/testing/distancetestRoute.js';
 import complainRoutes from "./modules/complain/complainRoutes.js";
+import dashboardRoutes from "./modules/dashboard/dashboardRoutes.js";
 
 const app = express();
 
@@ -84,6 +85,9 @@ app.use("/api/nearby", distancetestRoutes);
 
 // Complaint system routes
 app.use("/api/complaints", complainRoutes);
+
+// Dashboard Routes
+app.use("/api/dashboard", dashboardRoutes);
 
 // Global error handler
 app.use(notFound);

@@ -3,6 +3,7 @@ import app from "./src/app.js";
 import connectDB from "./src/config/db.js";
 import dotenv from "dotenv";
 import { startOtpCleanupJob } from "./src/utils/otpCleanupJob.js";
+import { startDonationCleanupJob } from "./src/utils/donationCleanupJob.js";
 import { initSocket } from "./src/socket.js";
 import http from "http";
 
@@ -13,6 +14,7 @@ const PORT = process.env.PORT || 5000;
 async function start() {
   await connectDB(process.env.MONGO_URI);
   startOtpCleanupJob(); // Start background clear otp job
+  startDonationCleanupJob(); // Start background auto-expire donation job
 
   // create HTTP server and attach Socket.IO to the same server
   const server = http.createServer(app);

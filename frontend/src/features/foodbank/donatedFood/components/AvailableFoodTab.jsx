@@ -4,12 +4,17 @@ import { getAvailableDonatedFood } from '../../services/foodbankService';
 import Button from '../../../../components/common/Button';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../../../context/SocketContext';
+import { useAuth } from '../../../../context/AuthContext';
+import RouteMapModal from '../../../../components/common/RouteMapModal';
+import { Map as MapIcon } from 'lucide-react';
 
 const AvailableFoodTab = ({ onRequest }) => {
   const [donations, setDonations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [routeModalData, setRouteModalData] = useState(null);
+  const { user } = useAuth();
 
   const fetchDonations = async () => {
     setIsLoading(true);
@@ -146,8 +151,43 @@ const AvailableFoodTab = ({ onRequest }) => {
                        <Clock size={14} className="text-emerald-500" />
                        <span>Until {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <span>By: Restaurant {donation.restaurant_id.slice(-4)}</span>
+                    <span>By: {donation.restaurant_id?.name || (typeof donation.restaurant_id === 'string' ? `Restaurant ${donation.restaurant_id.slice(-4)}` : 'Local Restaurant')}</span>
                   </div>
+
+                  <button 
+                    disabled={!donation.restaurant_id?.location?.coordinates}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!donation.restaurant_id?.location?.coordinates) {
+                        toast.error("Restaurant location not available");
+                        return;
+                      }
+                      if (!user?.location?.coordinates) {
+                        toast.error("Your location not available. Please update profile.");
+                        return;
+                      }
+                      setRouteModalData({
+                        start: {
+                          lat: user.location.coordinates[1],
+                          lng: user.location.coordinates[0],
+                          name: user.name,
+                          address: user.address
+                        },
+                        end: {
+                          lat: donation.restaurant_id.location.coordinates[1],
+                          lng: donation.restaurant_id.location.coordinates[0],
+                          name: donation.restaurant_id.name,
+                          address: donation.restaurant_id.address
+                        },
+                        title: `Route to ${donation.restaurant_id.name}`
+                      });
+                    }}
+                    className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed border border-emerald-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-600 transition-all flex items-center justify-center gap-2 group/map"
+                  >
+                    <MapIcon size={14} className="group-hover/map:rotate-12 transition-transform" />
+                    {donation.restaurant_id?.location?.coordinates ? 'View Route on Map' : 'Location Hidden'}
+                  </button>
+
                   <Button 
                     className="w-full rounded-2xl py-4 flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 hover:shadow-emerald-900/10 active:scale-95 transition-all text-base tracking-tight"
                     onClick={() => onRequest(donation)}
@@ -160,6 +200,16 @@ const AvailableFoodTab = ({ onRequest }) => {
             </div>
           ))}
         </div>
+      )}
+
+      {routeModalData && (
+        <RouteMapModal 
+          isOpen={!!routeModalData}
+          onClose={() => setRouteModalData(null)}
+          startLocation={routeModalData.start}
+          endLocation={routeModalData.end}
+          title={routeModalData.title}
+        />
       )}
     </div>
   );

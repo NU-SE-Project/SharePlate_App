@@ -45,6 +45,11 @@ const requestSchema = new Schema(
       type: String,
       trim: true,
     },
+
+    pickup_id: {
+      type: Schema.Types.ObjectId,
+      ref: "Pickup",
+    },
   },
   { timestamps: true },
 );

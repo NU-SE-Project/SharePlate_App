@@ -55,15 +55,19 @@ class LoginService {
       userAgent: meta.userAgent,
     });
 
+    const userObj = user.toObject();
     return {
       accessToken,
       refreshToken,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        emailVerified: user.emailVerified,
+        id: userObj._id,
+        _id: userObj._id,
+        name: userObj.name,
+        email: userObj.email,
+        role: userObj.role,
+        emailVerified: userObj.emailVerified,
+        address: userObj.address,
+        location: userObj.location,
       },
     };
   }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, Heart, CheckCircle2, XCircle, Info, Trash2, ArrowRight, User, Phone, MapPin } from 'lucide-react';
+import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, Heart, CheckCircle2, XCircle, Info, Trash2, ArrowRight, User, Phone, MapPin, Map as MapIcon } from 'lucide-react';
 import { getMyProactiveRequests, deleteProactiveRequest } from '../../services/foodbankService';
 import { useAuth } from '../../../../context/AuthContext';
 import Button from '../../../../components/common/Button';
+import RouteMapModal from '../../../../components/common/RouteMapModal';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
@@ -10,7 +11,10 @@ const MyProactiveRequestsPage = () => {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const [routeModalData, setRouteModalData] = useState(null);
+
+  const selectedRequest = requests.find(r => r._id === selectedRequestId);
 
   const fetchRequests = async () => {
     if (!user?._id && !user?.id) return;
@@ -35,7 +39,7 @@ const MyProactiveRequestsPage = () => {
       await deleteProactiveRequest(id);
       toast.success('Request cancelled');
       setRequests((prev) => prev.filter((r) => r._id !== id));
-      if (selectedRequest?._id === id) setSelectedRequest(null);
+      if (selectedRequestId === id) setSelectedRequestId(null);
     } catch (error) {
       toast.error('Failed to delete request');
     }
@@ -89,7 +93,14 @@ const MyProactiveRequestsPage = () => {
             return (
               <div 
                 key={request._id} 
-                onClick={() => setSelectedRequest(request)}
+                onClick={() => {
+                  setSelectedRequestId(request._id);
+                  if (window.innerWidth < 1024) {
+                    setTimeout(() => {
+                      document.getElementById('request-details')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }
+                }}
                 className={`group cursor-pointer bg-white rounded-[2.5rem] border transition-all duration-500 p-8 flex flex-col gap-6 hover:shadow-2xl hover:shadow-emerald-900/5 ${isSelected ? 'border-emerald-500 shadow-xl shadow-emerald-500/5 ring-4 ring-emerald-500/5' : 'border-slate-100 hover:border-emerald-100 shadow-sm'}`}
               >
                 <div className="flex justify-between items-start">
@@ -144,7 +155,7 @@ const MyProactiveRequestsPage = () => {
       </div>
 
       {/* Right Column: Detail / Updates View */}
-      <div className="lg:col-span-5 relative">
+      <div id="request-details" className="lg:col-span-5 relative">
         <div className="sticky top-40 space-y-8">
            {selectedRequest ? (
              <div className="animate-in slide-in-from-right-10 duration-500">
@@ -179,11 +190,63 @@ const MyProactiveRequestsPage = () => {
                                   <Phone size={12} />
                                   <span>{acc.restaurant_id?.phone || 'Hidden Contact'}</span>
                                </div>
-                               <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-200">
-                                  <MapPin size={12} />
-                                  <span className="truncate">{acc.restaurant_id?.address || 'Local Pickup'}</span>
+                                  <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-200">
+                                     <MapPin size={12} />
+                                     <span className="truncate">{acc.restaurant_id?.address || 'Local Pickup'}</span>
+                                  </div>
                                </div>
-                            </div>
+
+                               <button 
+                                 disabled={!acc.restaurant_id?.location?.coordinates}
+                                 onClick={() => {
+                                   if (!acc.restaurant_id?.location?.coordinates) {
+                                     toast.error("Restaurant location not available");
+                                     return;
+                                   }
+                                   if (!user?.location?.coordinates) {
+                                      toast.error("Your location not available. Please update profile.");
+                                      return;
+                                   }
+                                   setRouteModalData({
+                                     start: {
+                                       lat: user.location.coordinates[1],
+                                       lng: user.location.coordinates[0],
+                                       name: user.name,
+                                       address: user.address
+                                     },
+                                     end: {
+                                       lat: acc.restaurant_id.location.coordinates[1],
+                                       lng: acc.restaurant_id.location.coordinates[0],
+                                       name: acc.restaurant_id.name,
+                                       address: acc.restaurant_id.address
+                                     },
+                                     title: `Route to ${acc.restaurant_id.name}`
+                                   });
+                                 }}
+                                 className="mt-2 w-full py-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-300 transition-all flex items-center justify-center gap-2"
+                               >
+                                  <MapIcon size={12} />
+                                  {acc.restaurant_id?.location?.coordinates ? 'View Map Route' : 'Location Not Available'}
+                               </button>
+
+                            {acc.pickup_id && (
+                               <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                                  {acc.status !== 'delivered' && acc.pickup_id.otp ? (
+                                    <div className="flex items-center gap-2">
+                                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">OTP:</span>
+                                       <span className="text-sm font-black tracking-widest bg-white/20 px-2 py-0.5 rounded italic">{acc.pickup_id.otp}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 text-emerald-400">
+                                       <CheckCircle2 size={12} />
+                                       <span className="text-[10px] font-black uppercase tracking-widest">Verification Complete</span>
+                                    </div>
+                                  )}
+                                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${acc.status === 'delivered' ? 'bg-emerald-500 text-white' : acc.status === 'expired' ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'}`}>
+                                     {acc.status}
+                                  </span>
+                               </div>
+                            )}
                          </div>
                        ))
                      ) : (
@@ -225,6 +288,16 @@ const MyProactiveRequestsPage = () => {
            )}
         </div>
       </div>
+      
+      {routeModalData && (
+        <RouteMapModal 
+          isOpen={!!routeModalData}
+          onClose={() => setRouteModalData(null)}
+          startLocation={routeModalData.start}
+          endLocation={routeModalData.end}
+          title={routeModalData.title}
+        />
+      )}
     </div>
   );
 };
