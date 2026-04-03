@@ -2,16 +2,26 @@ import Donation from '../donation/shop/Donation.js';
 import FoodRequest from '../request/foodbank/FoodRequest.js';
 import Acceptance from '../request/shop/Acceptance.js';
 import Notification from '../notification/Notification.js';
+import User from '../user/User.js';
 
 export const getRestaurantDashboardData = async (restaurantId) => {
     try {
+        // Fetch restaurant profile
+        const restaurant = await User.findById(restaurantId).select('name address contactNumber verificationStatus');
+
         const totalDonations = await Donation.countDocuments({ restaurant_id: restaurantId });
         
         const recentDonations = await Donation.find({ restaurant_id: restaurantId })
             .sort({ createdAt: -1 })
             .limit(5);
 
-        const acceptances = await Acceptance.find({ restaurant_id: restaurantId }).populate('request_id');
+        // Fetch acceptances with populated request and foodbank info
+        const acceptances = await Acceptance.find({ restaurant_id: restaurantId })
+            .populate({
+                path: 'request_id',
+                populate: { path: 'foodbank_id', select: 'name address contactNumber' }
+            })
+            .sort({ createdAt: -1 });
         
         const activeRequests = acceptances.filter(acc => acc.request_id && acc.request_id.status === 'open').length;
         const approvedRequests = acceptances.filter(acc => acc.request_id && acc.request_id.status === 'fulfilled').length;
@@ -31,17 +41,18 @@ export const getRestaurantDashboardData = async (restaurantId) => {
         const nonVegCount = await Donation.countDocuments({ restaurant_id: restaurantId, foodType: 'non-veg' });
         
         const requestStats = [
-          { name: 'Pending', value: activeRequests || 1 }, // Added || 1 for testing visualization
-          { name: 'Approved', value: approvedRequests || 2 },
-          { name: 'Rejected', value: rejectedRequests || 0 },
-          { name: 'Collected', value: mealsCollectedItems.length || 3 }
+          { name: 'Pending', value: activeRequests },
+          { name: 'Approved', value: approvedRequests },
+          { name: 'Rejected', value: rejectedRequests },
+          { name: 'Collected', value: mealsCollectedItems.length }
         ];
 
         const notifications = await Notification.find({ user_id: restaurantId, isRead: false }).sort({ createdAt: -1 }).limit(10);
 
-        const recentRequests = acceptances.slice(0, 5).map(acc => acc.request_id).filter(Boolean);
+        const recentRequests = acceptances.slice(0, 5); // These are acceptances, not just requests
 
         return {
+            profile: restaurant,
             stats: {
                totalDonations,
                activeRequests,
@@ -56,8 +67,8 @@ export const getRestaurantDashboardData = async (restaurantId) => {
             alerts: expiringDonations,
             charts: {
                foodTypeDistribution: [
-                  { name: 'Veg', value: vegCount || 4 }, // Add default visual numbers for testing
-                  { name: 'Non-veg', value: nonVegCount || 6 } 
+                  { name: 'Veg', value: vegCount },
+                  { name: 'Non-veg', value: nonVegCount } 
                ],
                requestStatusDistribution: requestStats
             },

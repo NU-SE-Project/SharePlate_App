@@ -134,7 +134,7 @@ const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
               </div>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between mb-4">
+            {/* <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between mb-4">
                <div className="flex items-center gap-2 text-slate-400 text-xs">
                   <Clock size={14} />
                   <span>Pickup Ends: {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -142,6 +142,34 @@ const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded ${donation.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
                  {donation.status}
                </span>
+            </div> */}
+
+
+            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-slate-400 text-xs">
+                <Clock size={14} />
+                <span>
+                  Pickup Ends:{" "}
+                  {new Date(donation.pickupWindowEnd).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+
+              <span
+                className={`text-[10px] font-black uppercase px-2 py-1 rounded ${
+                  donation.status === "available"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : donation.status === "closed"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : donation.status === "expired"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {donation.status}
+              </span>
             </div>
 
             <button 
