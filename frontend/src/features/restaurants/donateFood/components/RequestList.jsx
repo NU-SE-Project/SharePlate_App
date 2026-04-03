@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Loader2, MapPin, Calendar, CheckSquare, ChevronRight, CheckCircle, Smartphone } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ShoppingBag, Loader2, MapPin, Calendar, CheckSquare, ChevronRight, CheckCircle, Smartphone, Filter } from 'lucide-react';
 import Button from "../../../../components/common/Button";
 import { getAllOpenRequests, verifyPickupOTP, resendPickupOTP } from "../services/restaurantService";
 import toast from 'react-hot-toast';
 import AcceptRequestModal from './AcceptRequestModal';
 import { useSocket } from '../../../../context/SocketContext';
 import { useAuth } from '../../../../context/AuthContext';
+import { calculateDistance } from '../../../../utils/distance';
 
 const RequestList = () => {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [distanceFilter, setDistanceFilter] = useState('all');
 
   // OTP Verification state
   const [verifyingAcceptance, setVerifyingAcceptance] = useState(null);
@@ -90,6 +92,42 @@ const RequestList = () => {
     }
   };
 
+  const processedRequests = useMemo(() => {
+    console.log('User Coordinates:', user?.location?.coordinates);
+    return requests.map(req => {
+      const distance = calculateDistance(
+        user?.location?.coordinates,
+        req.foodbank_id?.location?.coordinates
+      );
+      if (req.foodbank_id?.location?.coordinates) {
+        console.log(`Distance to ${req.foodbank_id.name}:`, distance);
+      }
+      return { ...req, distance };
+    });
+  }, [requests, user]);
+
+  const filteredRequests = useMemo(() => {
+    let result = [...processedRequests];
+
+    // Filter by distance
+    if (distanceFilter !== 'all') {
+      const maxDist = parseFloat(distanceFilter);
+      result = result.filter(req => req.distance !== null && req.distance <= maxDist);
+    }
+
+    // Sort by distance (closest first), then by date
+    result.sort((a, b) => {
+      if (a.distance !== null && b.distance !== null) {
+        return a.distance - b.distance;
+      }
+      if (a.distance !== null) return -1;
+      if (b.distance !== null) return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    return result;
+  }, [requests, distanceFilter]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -109,7 +147,53 @@ const RequestList = () => {
 
   return (
     <div className="space-y-6">
-      {requests.map((request) => {
+      {/* Distance Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between flex-wrap gap-4 mb-2">
+        <div className="flex items-center gap-2 text-slate-600">
+          <Filter size={18} className="text-emerald-500" />
+          <span className="font-bold text-sm">Filter by Distance:</span>
+        </div>
+        <div className="flex bg-slate-50 p-1 rounded-xl">
+          {[
+            { label: 'All', value: 'all' },
+            { label: '2 km', value: '2' },
+            { label: '5 km', value: '5' },
+            { label: '10 km', value: '10' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setDistanceFilter(opt.value)}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
+                distanceFilter === opt.value
+                  ? 'bg-white text-emerald-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filteredRequests.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+          <h3 className="text-xl font-bold text-slate-800 mb-2">No requests found</h3>
+          <p className="text-slate-500 max-w-sm mx-auto">
+            {distanceFilter === 'all' 
+              ? "There are currently no food requests from food banks." 
+              : `There are no requests within ${distanceFilter} km of your location.`}
+          </p>
+          {distanceFilter !== 'all' && (
+            <button 
+              onClick={() => setDistanceFilter('all')}
+              className="mt-4 text-emerald-600 font-bold hover:underline"
+            >
+              Show all requests
+            </button>
+          )}
+        </div>
+      ) : (
+        filteredRequests.map((request) => {
         const myAcceptance = request.acceptances?.find(a =>
           (a.restaurant_id?._id || a.restaurant_id) === (user?._id || user?.id)
         );
@@ -139,6 +223,15 @@ const RequestList = () => {
                   <MapPin size={18} className="text-emerald-500 shrink-0" />
                   <span className="font-semibold text-slate-900">{request.foodbank_id?.name || (typeof request.foodbank_id === 'string' ? `Food Bank ${request.foodbank_id.slice(-4)}` : 'Local Food Bank')}</span>
                   <span className="text-slate-400 font-normal">| {request.foodbank_id?.address}</span>
+                  {request.distance !== null && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-lg text-[11px] font-bold ${
+                      request.distance <= 2 ? 'bg-emerald-100 text-emerald-700' : 
+                      request.distance <= 5 ? 'bg-blue-100 text-blue-700' : 
+                      'bg-slate-100 text-slate-700'
+                    }`}>
+                      {request.distance} km away
+                    </span>
+                  )}
                 </div>
 
 
@@ -208,7 +301,8 @@ const RequestList = () => {
             </div>
           </div>
         );
-      })}
+      })
+    )}
 
       {selectedRequest && (
         <AcceptRequestModal
