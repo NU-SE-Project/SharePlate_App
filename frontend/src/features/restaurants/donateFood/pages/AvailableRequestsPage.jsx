@@ -21,7 +21,7 @@ const AvailableRequestsPage = () => {
         </div>
       </div>
 
-      <div className="mb-12 bg-white p-8 rounded-[2rem] border border-emerald-50 shadow-sm flex flex-col md:flex-row items-center gap-8 justify-between">
+      {/* <div className="mb-12 bg-white p-8 rounded-[2rem] border border-emerald-50 shadow-sm flex flex-col md:flex-row items-center gap-8 justify-between">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600 border border-emerald-200">
             <Bell size={32} className="animate-bounce" />
@@ -38,7 +38,7 @@ const AvailableRequestsPage = () => {
             </button>
           </Link>
         </div>
-      </div>
+      </div> */}
 
       <div className="bg-white p-6 rounded-2xl border border-slate-100 mb-8">
         <div className="flex items-center gap-4">

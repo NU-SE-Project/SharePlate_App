@@ -59,7 +59,7 @@ api.interceptors.response.use(
 
       try {
         // call refresh endpoint - expects refresh cookie (withCredentials=true)
-        const resp = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/auth/refresh', {}, { withCredentials: true });
+        const resp = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/auth/refresh', {}, { withCredentials: true });
         const newToken = resp.data?.accessToken;
         if (newToken) {
           try { localStorage.setItem('accessToken', newToken); } catch (e) {}

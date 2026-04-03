@@ -11,18 +11,9 @@ import {
 import { requireAuth } from "../../../middlewares/authMiddleware.js";
 import { allowRoles } from "../../../middlewares/roleMiddleware.js";
 
-const router = express.Router();
+import { storage } from "../../../config/cloudinary.js";
 
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(process.cwd(), 'uploads'));
-  },
-  filename: function (req, file, cb) {
-    const safeName = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
-    cb(null, safeName);
-  }
-});
+const router = express.Router();
 const upload = multer({ storage });
 
 router.post("/", requireAuth, allowRoles("restaurant"), upload.single('image'), createDonation); // CREATE

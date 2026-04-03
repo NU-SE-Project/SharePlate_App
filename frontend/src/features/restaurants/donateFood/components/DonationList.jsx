@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Calendar, ShoppingBag, Eye, Loader2, AlertCircle, Clock } from 'lucide-react';
+import { Edit2, Trash2, Calendar, Eye, Loader2, AlertCircle, Clock, Leaf, Flame } from 'lucide-react';
 import Button from "../../../../components/common/Button";
 import { getMyDonations, deleteDonation } from "../services/restaurantService";
 import toast from 'react-hot-toast';
@@ -32,7 +32,6 @@ const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this donation?')) return;
-    
     try {
       await deleteDonation(id);
       toast.success('Donation deleted');
@@ -42,145 +41,202 @@ const DonationList = ({ restaurantId, refreshTrigger, onEdit }) => {
     }
   };
 
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('/')) {
+      const base = import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+        : 'http://localhost:5000';
+      return base + url;
+    }
+    return url;
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'available': return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+      case 'closed':    return 'bg-amber-100 text-amber-700 border border-amber-200';
+      case 'expired':   return 'bg-red-100 text-red-700 border border-red-200';
+      default:          return 'bg-slate-100 text-slate-500 border border-slate-200';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Loader2 className="animate-spin text-emerald-600" size={40} />
+        <Loader2 className="animate-spin text-emerald-600" size={36} />
       </div>
     );
   }
 
   if (donations.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-200">
-        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-          <AlertCircle size={40} className="text-slate-300" />
+      <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <AlertCircle size={32} className="text-slate-300" />
         </div>
-        <h3 className="text-xl font-bold text-slate-700 mb-2">No donations found</h3>
-        <p className="text-slate-500 max-w-sm mx-auto">You haven't listed any food items for donation yet. Your kindness can make a difference!</p>
+        <h3 className="text-lg font-bold text-slate-700 mb-1">No donations yet</h3>
+        <p className="text-slate-400 text-sm max-w-xs mx-auto">
+          You haven't listed any food for donation. Your kindness can make a difference!
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {donations.map((donation) => (
-        <div key={donation._id} className="group bg-white rounded-[2.5rem] border border-emerald-50 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-500 overflow-hidden flex flex-col">
-          {donation.imageUrl ? (
-            <div className="h-48 w-full overflow-hidden relative">
-              <img 
-                src={(donation.imageUrl && donation.imageUrl.startsWith('/')) ? (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:5000') + donation.imageUrl : donation.imageUrl}
-                alt={donation.foodName} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-              />
-              <div className="absolute top-4 left-4">
-                <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full backdrop-blur-md ${donation.foodType === 'veg' ? 'bg-emerald-500/80 text-white' : 'bg-orange-500/80 text-white'}`}>
-                  {donation.foodType}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className={`h-4 w-full ${donation.foodType === 'veg' ? 'bg-emerald-500' : 'bg-orange-500'}`} />
-          )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      {donations.map((donation) => {
+        const imageUrl = getImageUrl(donation.imageUrl);
+        const isVeg = donation.foodType === 'veg';
 
-          <div className="p-8 flex-1 flex flex-col">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-1">
-                {!donation.imageUrl && (
-                  <span className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md mb-2 ${donation.foodType === 'veg' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+        return (
+          <div
+            key={donation._id}
+            className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all duration-300 overflow-hidden flex flex-col"
+          >
+            {/* Image / Color Strip */}
+            {imageUrl ? (
+              <div className="relative h-50 w-full overflow-hidden flex-shrink-0">
+                <img
+                  src={imageUrl}
+                  alt={donation.foodName}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                {/* Gradient overlay at bottom */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+                {/* Veg/Non-veg badge */}
+                <div className="absolute top-2.5 left-2.5">
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full backdrop-blur-sm shadow-sm ${isVeg ? 'bg-emerald-500/90 text-white' : 'bg-orange-500/90 text-white'}`}>
+                    {isVeg ? <Leaf size={9} /> : <Flame size={9} />}
                     {donation.foodType}
                   </span>
-                )}
-                <h3 className="text-xl font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">{donation.foodName}</h3>
-              </div>
-              <div className="flex gap-1 ml-4 shadow-sm bg-slate-50 rounded-xl p-1">
-                <button 
-                  onClick={() => onEdit && onEdit(donation)}
-                  className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-lg transition-all duration-300"
-                  title="Edit"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button 
-                  onClick={() => handleDelete(donation._id)}
-                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg transition-all duration-300" 
-                  title="Delete"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
+                </div>
 
-            {donation.description && (
-              <p className="text-slate-500 text-sm mb-6 line-clamp-2 italic leading-relaxed">
-                "{donation.description}"
-              </p>
+                {/* Status badge on image */}
+                <div className="absolute top-2.5 right-2.5">
+                  <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full backdrop-blur-sm ${getStatusStyle(donation.status)}`}>
+                    {donation.status}
+                  </span>
+                </div>
+
+                {/* Action buttons overlaid on image */}
+                <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={() => onEdit && onEdit(donation)}
+                    className="p-1.5 bg-white/90 backdrop-blur-sm rounded-lg text-slate-500 hover:text-emerald-600 shadow-sm transition-colors"
+                    title="Edit"
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(donation._id)}
+                    className="p-1.5 bg-white/90 backdrop-blur-sm rounded-lg text-slate-500 hover:text-red-500 shadow-sm transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={`relative h-2 w-full flex-shrink-0 ${isVeg ? 'bg-emerald-500' : 'bg-orange-500'}`} />
             )}
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl font-black text-emerald-600">{donation.remainingQuantity}</span>
-                  <span className="text-xs text-slate-400">/{donation.totalQuantity}</span>
+            {/* Content */}
+            <div className="p-4 flex-1 flex flex-col gap-3">
+
+              {/* Header row — no image variant shows badge here */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  {!imageUrl && (
+                    <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-1 ${isVeg ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                      {isVeg ? <Leaf size={8} /> : <Flame size={8} />}
+                      {donation.foodType}
+                    </span>
+                  )}
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                    {donation.foodName}
+                  </h3>
+                </div>
+
+                {/* Action buttons (no image case — always visible) */}
+                {!imageUrl && (
+                  <div className="flex gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => onEdit && onEdit(donation)}
+                      className="p-1.5 bg-slate-50 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(donation._id)}
+                      className="p-1.5 bg-slate-50 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Status badge (no image case) */}
+                {!imageUrl && (
+                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${getStatusStyle(donation.status)}`}>
+                    {donation.status}
+                  </span>
+                )}
+              </div>
+
+              {/* Description */}
+              {donation.description && (
+                <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed italic">
+                  "{donation.description}"
+                </p>
+              )}
+
+              {/* Stats row */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-50 rounded-xl p-2.5 flex flex-col gap-0.5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Remaining</span>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-base font-black text-emerald-600">{donation.remainingQuantity}</span>
+                    <span className="text-[10px] text-slate-400">/{donation.totalQuantity}</span>
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-2.5 flex flex-col gap-0.5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Expiry</span>
+                  <div className="flex items-center gap-1 text-slate-600">
+                    <Calendar size={11} className="text-emerald-500 flex-shrink-0" />
+                    <span className="text-[11px] font-bold truncate">
+                      {new Date(donation.expiryTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Expiry</span>
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <Calendar size={14} className="text-emerald-500" />
-                  <span className="text-sm font-bold">{new Date(donation.expiryTime).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
 
-            {/* <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between mb-4">
-               <div className="flex items-center gap-2 text-slate-400 text-xs">
-                  <Clock size={14} />
-                  <span>Pickup Ends: {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-               </div>
-               <span className={`text-[10px] font-black uppercase px-2 py-1 rounded ${donation.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                 {donation.status}
-               </span>
-            </div> */}
-
-
-            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-slate-400 text-xs">
-                <Clock size={14} />
+              {/* Pickup time */}
+              <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+                <Clock size={11} className="flex-shrink-0" />
                 <span>
-                  Pickup Ends:{" "}
-                  {new Date(donation.pickupWindowEnd).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  Pickup ends{' '}
+                  <span className="font-semibold text-slate-500">
+                    {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </span>
               </div>
 
-              <span
-                className={`text-[10px] font-black uppercase px-2 py-1 rounded ${
-                  donation.status === "available"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : donation.status === "closed"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : donation.status === "expired"
-                    ? "bg-red-100 text-red-700"
-                    : "bg-slate-100 text-slate-500"
-                }`}
+              {/* CTA */}
+              <button
+                onClick={() => navigate(`/restaurant/donation-requests/${donation._id}`)}
+                className="mt-auto w-full py-2.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all duration-200 flex items-center justify-center gap-1.5 border border-emerald-100 hover:border-emerald-600"
               >
-                {donation.status}
-              </span>
+                <Eye size={14} />
+                View Requests
+              </button>
             </div>
-
-            <button 
-             onClick={() => navigate(`/restaurant/donation-requests/${donation._id}`)}
-              className="w-full mt-auto py-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2 shadow-sm"
-            >
-              <Eye size={18} /> View Request Details
-            </button>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
