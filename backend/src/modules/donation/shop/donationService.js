@@ -63,10 +63,10 @@ export async function createDonationService(data, file) {
     throw err;
   }
 
-  // If a file was uploaded, use its path as imageUrl
+  // If a file was uploaded, use its path as imageUrl (Cloudinary provides full URL in file.path)
   let finalImageUrl = imageUrl;
-  if (file && file.filename) {
-    finalImageUrl = `/uploads/${file.filename}`;
+  if (file && file.path) {
+    finalImageUrl = file.path;
   }
 
   const donation = await Donation.create({
@@ -150,8 +150,8 @@ export async function updateDonationService(id, updates) {
 
   // handle image file update passed as updates._file (if provided by controller)
   let finalUpdates = { ...updates };
-  if (updates && updates._file && updates._file.filename) {
-    finalUpdates.imageUrl = `/uploads/${updates._file.filename}`;
+  if (updates && updates._file && updates._file.path) {
+    finalUpdates.imageUrl = updates._file.path;
     delete finalUpdates._file;
   }
 

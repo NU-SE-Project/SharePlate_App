@@ -50,13 +50,13 @@ const DonateFoodPage = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4">
-          <Link 
+          {/* <Link 
             to="/restaurant/donation-requests"
             className="rounded-2xl py-4 px-6 flex items-center justify-center gap-2 font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors border border-emerald-100 shadow-sm"
           >
             <Inbox size={20} />
             <span>View Donation Requests</span>
-          </Link>
+          </Link> */}
           <Button 
             onClick={handleAddClick}
             className="rounded-2xl py-4 px-8 flex justify-center items-center gap-2 shadow-xl shadow-emerald-200 hover:-translate-y-1 transition-transform"
