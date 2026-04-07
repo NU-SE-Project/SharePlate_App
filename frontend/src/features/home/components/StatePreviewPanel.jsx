@@ -10,6 +10,8 @@ import {
   Clock,
   TrendingUp,
 } from "lucide-react";
+import Button from "../../../components/common/Button";
+import Card from "../../../components/common/Card";
 
 const tabs = [
   { id: "available", label: "Available pickups" },
@@ -88,13 +90,14 @@ const EmptyState = ({ title, description }) => (
     <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600">
       {description}
     </p>
-    <button
+    <Button
       type="button"
-      className="group mt-6 inline-flex cursor-pointer items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+      variant="secondary"
+      className="group mt-6 cursor-pointer rounded-full border-0 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:text-emerald-700 focus-visible:ring-emerald-500"
     >
       Expand coverage
       <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-    </button>
+    </Button>
   </div>
 );
 
@@ -113,13 +116,14 @@ const ErrorState = ({ title, description }) => (
           {title}
         </h3>
         <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
-        <button
+        <Button
           type="button"
-          className="group mt-5 inline-flex cursor-pointer items-center gap-2 rounded-full border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+          variant="outline"
+          className="group mt-5 cursor-pointer rounded-full border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-md focus-visible:ring-red-500"
         >
           <RefreshCcw className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
           Retry sync
-        </button>
+        </Button>
       </div>
     </div>
   </div>
@@ -144,7 +148,7 @@ const ReadyState = ({ title, description, metrics }) => (
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
-            <div
+            <Card
               key={metric.label}
               className="group rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md md:rounded-3xl md:p-5"
             >
@@ -157,7 +161,7 @@ const ReadyState = ({ title, description, metrics }) => (
               <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 md:mt-3 md:text-2xl">
                 {metric.value}
               </p>
-            </div>
+            </Card>
           );
         })}
       </div>
@@ -211,15 +215,16 @@ const StatePreviewPanel = () => {
             {/* Tabs */}
             <div className="flex flex-wrap gap-2 sm:gap-3">
               {tabs.map((tab) => (
-                <button
+                <Button
                   key={tab.id}
                   type="button"
+                  variant={activeTab === tab.id ? "primary" : "secondary"}
                   onClick={() => handleTabChange(tab.id)}
                   className={tabClassName(activeTab === tab.id)}
                   aria-pressed={activeTab === tab.id}
                 >
                   {tab.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>

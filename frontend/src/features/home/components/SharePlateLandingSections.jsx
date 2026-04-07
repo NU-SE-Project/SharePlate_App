@@ -19,6 +19,8 @@ import {
   Inbox,
 } from "lucide-react";
 import ScrollReveal from "./ScrollReveal";
+import Button from "../../../components/common/Button";
+import Card from "../../../components/common/Card";
 
 const sectionShell =
   "relative overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur-sm";
@@ -138,7 +140,8 @@ const StepCard = memo(function StepCard({ step }) {
   const Icon = step.icon;
 
   return (
-    <article
+    <Card
+      as="article"
       className="group relative rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg"
       aria-label={step.title}
     >
@@ -162,7 +165,7 @@ const StepCard = memo(function StepCard({ step }) {
           </p>
         </div>
       </div>
-    </article>
+    </Card>
   );
 });
 
@@ -170,7 +173,10 @@ const ImpactCard = memo(function ImpactCard({ item }) {
   const Icon = item.icon;
 
   return (
-    <article className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg">
+    <Card
+      as="article"
+      className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg"
+    >
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 transition duration-300 group-hover:scale-105">
         <Icon className="h-6 w-6" />
       </div>
@@ -181,7 +187,7 @@ const ImpactCard = memo(function ImpactCard({ item }) {
       <p className="mt-3 text-sm leading-7 text-slate-600">
         {item.description}
       </p>
-    </article>
+    </Card>
   );
 });
 
@@ -189,7 +195,7 @@ const ActivityPill = memo(function ActivityPill({ icon, label, value }) {
   const Icon = icon;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition duration-300 hover:border-emerald-200 hover:bg-emerald-50/50">
+    <Card className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition duration-300 hover:border-emerald-200 hover:bg-emerald-50/50">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-700 shadow-sm">
           <Icon className="h-5 w-5" />
@@ -201,7 +207,7 @@ const ActivityPill = memo(function ActivityPill({ icon, label, value }) {
           <p className="text-lg font-semibold text-slate-900">{value}</p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 });
 
@@ -257,14 +263,14 @@ const ErrorState = memo(function ErrorState({ onRetry }) {
         Something broke. Don't hide the failure. Show it clearly and let the
         user recover.
       </p>
-      <button
+      <Button
         type="button"
         onClick={onRetry}
-        className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+        className="mt-6 cursor-pointer rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:ring-slate-900"
       >
         <RefreshCw className="h-4 w-4" />
         Retry
-      </button>
+      </Button>
     </div>
   );
 });
@@ -279,7 +285,10 @@ const ActivityCard = memo(function ActivityCard({ item }) {
   };
 
   return (
-    <article className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg">
+    <Card
+      as="article"
+      className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg"
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 transition duration-300 group-hover:scale-105">
@@ -311,7 +320,7 @@ const ActivityCard = memo(function ActivityCard({ item }) {
           {item.status}
         </span>
       </div>
-    </article>
+    </Card>
   );
 });
 
@@ -381,45 +390,44 @@ const WhySharePlateSection = memo(function WhySharePlateSection() {
 
           <div className="mt-8 grid gap-4 rounded-3xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-blue-50 p-6 lg:grid-cols-3">
             <ScrollReveal delay={100}>
-              <div className="rounded-2xl bg-white/80 p-5 shadow-sm">
+              <Card className="rounded-2xl bg-white/80 p-5 shadow-sm">
                 <p className="text-sm font-medium text-slate-500">
-                  Meals redistributed
+                  Active food listings
                 </p>
-                <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                  12,480+
-                </h3>
+                <h3 className="mt-2 text-3xl font-bold text-slate-900">248</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Proof that small donations scale when the process is simple.
+                  Surplus meals and essential food items currently available for
+                  request and pickup.
                 </p>
-              </div>
+              </Card>
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
-              <div className="rounded-2xl bg-white/80 p-5 shadow-sm">
+              <Card className="rounded-2xl bg-white/80 p-5 shadow-sm">
                 <p className="text-sm font-medium text-slate-500">
-                  Partner donors
+                  Verified donors
                 </p>
-                <h3 className="mt-2 text-3xl font-bold text-slate-900">180+</h3>
+                <h3 className="mt-2 text-3xl font-bold text-slate-900">67</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Restaurants, stores, event organizers, and households
-                  contributing regularly.
+                  Restaurants, grocery stores, event organizers, and households
+                  contributing usable food.
                 </p>
-              </div>
+              </Card>
             </ScrollReveal>
 
             <ScrollReveal delay={300}>
-              <div className="rounded-2xl bg-white/80 p-5 shadow-sm">
+              <Card className="rounded-2xl bg-white/80 p-5 shadow-sm">
                 <p className="text-sm font-medium text-slate-500">
-                  Waste reduced
+                  Requests fulfilled
                 </p>
                 <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                  8.2 tons
+                  1,420+
                 </h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Real environmental impact, not vague promises with zero
-                  numbers.
+                  Completed food redistribution requests successfully matched,
+                  collected, and delivered.
                 </p>
-              </div>
+              </Card>
             </ScrollReveal>
           </div>
         </div>
@@ -499,8 +507,10 @@ const ActivitySection = memo(function ActivitySection() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() =>
                       setState((prev) => ({
                         ...prev,
@@ -509,14 +519,16 @@ const ActivitySection = memo(function ActivitySection() {
                         empty: false,
                       }))
                     }
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition duration-200 hover:border-emerald-300 hover:text-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-emerald-300 hover:text-emerald-700 focus-visible:ring-emerald-600"
                   >
                     <RefreshCw className="h-4 w-4" />
                     Loading
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() =>
                       setState({
                         loading: false,
@@ -525,14 +537,16 @@ const ActivitySection = memo(function ActivitySection() {
                         items: [],
                       })
                     }
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition duration-200 hover:border-emerald-300 hover:text-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-emerald-300 hover:text-emerald-700 focus-visible:ring-emerald-600"
                   >
                     <Inbox className="h-4 w-4" />
                     Empty
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() =>
                       setState({
                         loading: false,
@@ -541,20 +555,21 @@ const ActivitySection = memo(function ActivitySection() {
                         items: [],
                       })
                     }
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition duration-200 hover:border-red-300 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-red-300 hover:text-red-700 focus-visible:ring-red-600"
                   >
                     <AlertCircle className="h-4 w-4" />
                     Error
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => setState(DEFAULT_ACTIVITY)}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+                    className="cursor-pointer rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:ring-slate-900"
                   >
                     Live data
                     <ArrowRight className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
 

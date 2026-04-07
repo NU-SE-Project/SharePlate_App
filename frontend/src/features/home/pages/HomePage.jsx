@@ -9,33 +9,36 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
-import HomeHeader from "../components/HomeHeader";
+import Button from "../../../components/common/Button";
+import Card from "../../../components/common/Card";
+import HomeHeader from "../components/Header";
+import Footer from "../components/Footer";
 import SharePlateLandingSections from "../components/SharePlateLandingSections";
 import ScrollReveal from "../components/ScrollReveal";
 
 const heroStats = [
-  { label: "Meals redirected monthly", value: "18.2k+" },
-  { label: "Average claim response", value: "3 min" },
-  { label: "Verified partners", value: "320+" },
+  { label: "Meals wasted daily worldwide", value: "1B+" },
+  { label: "Food lost or wasted globally", value: "30%+" },
+  { label: "People facing hunger", value: "700M+" },
 ];
 
 const valueCards = [
   {
-    title: "Fast donation publishing",
+    title: "Instant food listing",
     description:
-      "Restaurants can post surplus food quickly with freshness windows, quantity, and pickup guidance.",
+      "Publish surplus food in seconds with clear quantity, freshness windows, and pickup details — no unnecessary steps",
     icon: Sparkles,
   },
   {
-    title: "Safer handoffs",
+    title: "Reliable handoffs",
     description:
-      "Verified organizations, clear statuses, and traceable updates reduce confusion during pickups.",
+      "Verified participants, live status updates, and structured pickup flows reduce confusion and failed collections",
     icon: ShieldCheck,
   },
   {
-    title: "Visible impact",
+    title: "Track real impact",
     description:
-      "Track activity, response speed, and rescued food volume through a cleaner operational interface.",
+      "See how much food is rescued, how fast requests are fulfilled, and how your contributions make a measurable difference",
     icon: TrendingUp,
   },
 ];
@@ -55,25 +58,31 @@ const SectionBadge = memo(({ children }) => (
 ));
 
 const HeroStatCard = memo(({ label, value }) => (
-  <div className="group rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.35)] backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_90px_-42px_rgba(16,185,129,0.32)]">
+  <Card className="group rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.35)] backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_90px_-42px_rgba(16,185,129,0.32)]">
     <p className="text-3xl font-bold tracking-tight text-slate-950">{value}</p>
     <p className="mt-2 text-sm leading-6 text-slate-500">{label}</p>
-  </div>
+  </Card>
 ));
 
 const FeatureCard = memo(({ title, description, icon }) => {
   const IconComponent = icon;
 
   return (
-    <article className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition duration-300 hover:-translate-y-1 hover:bg-white/10">
+    <Card
+      as="article"
+      className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition duration-300 hover:-translate-y-1 hover:bg-white/10"
+    >
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-300 transition duration-300 group-hover:scale-105">
         <IconComponent className="h-6 w-6" />
       </div>
-      <h3 className="mt-5 text-lg font-semibold tracking-tight text-white">
+      <h3 className="mt-5 text-lg font-semibold tracking-tight text-slate-900 group-hover:text-white transition-colors duration-200">
         {title}
       </h3>
-      <p className="mt-3 text-sm leading-7 text-slate-300">{description}</p>
-    </article>
+
+      <p className="mt-3 text-sm leading-7 text-slate-600 group-hover:text-slate-500 transition-colors duration-200">
+        {description}
+      </p>
+    </Card>
   );
 });
 
@@ -101,10 +110,10 @@ const AuthLoadingScreen = memo(() => (
 ));
 
 const HomePage = () => {
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, isInitializing } = useAuth();
   const primaryHref = useMemo(() => getPrimaryHref(user), [user]);
 
-  if (authLoading) return <AuthLoadingScreen />;
+  if (isInitializing) return <AuthLoadingScreen />;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(250,204,21,0.12),_transparent_24%),linear-gradient(180deg,_#f8fafc_0%,_#ffffff_42%,_#ecfdf5_100%)] text-slate-900">
@@ -136,20 +145,25 @@ const HomePage = () => {
 
               <ScrollReveal delay={300}>
                 <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                  <Link
+                  <Button
+                    as={Link}
                     to={primaryHref}
-                    className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/10 transition duration-300 hover:-translate-y-1 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    className="group cursor-pointer rounded-full px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/10 transition duration-300 hover:-translate-y-1 hover:bg-emerald-700 focus-visible:ring-emerald-500"
                   >
-                    {isAuthenticated ? "Open workspace" : "Start with SharePlate"}
+                    {isAuthenticated
+                      ? "Open workspace"
+                      : "Start with SharePlate"}
                     <ArrowRight className="h-4 w-4 transition duration-300 group-hover:translate-x-1" />
-                  </Link>
+                  </Button>
 
-                  <a
+                  <Button
+                    as="a"
                     href="#how-it-works"
-                    className="inline-flex cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white/80 px-6 py-4 text-sm font-semibold text-slate-700 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    variant="secondary"
+                    className="cursor-pointer rounded-full border border-slate-200 bg-white/80 px-6 py-4 text-sm font-semibold text-slate-700 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:text-emerald-700 focus-visible:ring-emerald-500"
                   >
                     Explore workflow
-                  </a>
+                  </Button>
                 </div>
               </ScrollReveal>
 
@@ -222,55 +236,12 @@ const HomePage = () => {
                   clearer actions, better visibility, and smoother coordination.
                 </p>
               </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  to={primaryHref}
-                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-emerald-700 transition hover:-translate-y-1 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-emerald-600"
-                >
-                  {isAuthenticated ? "Continue now" : "Create account"}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-
-                <Link
-                  to="/auth/login"
-                  className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-emerald-600"
-                >
-                  Sign in
-                </Link>
-              </div>
             </div>
           </div>
         </ScrollReveal>
       </main>
 
-      <footer className="border-t border-slate-200/80 bg-white/70 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div>
-            <p className="text-lg font-semibold tracking-tight text-slate-950">
-              SharePlate
-            </p>
-            <p className="mt-2 text-sm text-slate-500">
-              A cleaner way to connect surplus food with people who need it.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              to="/auth/login"
-              className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-            >
-              Sign in
-            </Link>
-            <Link
-              to={primaryHref}
-              className="cursor-pointer rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-            >
-              {isAuthenticated ? "Continue" : "Get started"}
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
