@@ -1,5 +1,14 @@
 import * as dashboardService from './dashboardService.js';
 
+export const getLandingOverview = async (req, res) => {
+    try {
+        const data = await dashboardService.getLandingOverviewData();
+        res.status(200).json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 export const getRestaurantDashboard = async (req, res) => {
     try {
         const restaurantId = req.user._id || req.user.userId; // fallback to userId

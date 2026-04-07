@@ -18,6 +18,7 @@ import acceptsfoodrequestRoutes from './modules/request/shop/acceptsfoodrequestR
 import distancetestRoutes from './modules/testing/distancetestRoute.js';
 import complainRoutes from "./modules/complain/complainRoutes.js";
 import dashboardRoutes from "./modules/dashboard/dashboardRoutes.js";
+import { buildPublicAppUrl } from "./utils/publicAppUrl.js";
 
 const app = express();
 
@@ -57,6 +58,16 @@ app.get("/api", (req, res) => {
 
 // Routes
 app.get("/", (req, res) => res.json({ message: "SharePlate API running" }));
+
+// Public browser-entry compatibility routes for email links.
+// These redirect to the frontend pages, which then call the API routes.
+app.get("/verify-email", (req, res) => {
+  res.redirect(302, buildPublicAppUrl("/verify-email", { token: req.query.token }));
+});
+
+app.get("/reset-password", (req, res) => {
+  res.redirect(302, buildPublicAppUrl("/reset-password", { token: req.query.token }));
+});
 
 // Auth and user routes
 app.use("/api/auth", authLimiter, authRoutes);

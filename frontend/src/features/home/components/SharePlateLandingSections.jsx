@@ -1,10 +1,8 @@
-import React, { memo, useMemo, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
-  ArrowRight,
   CheckCircle2,
   Clock3,
-  HandHeart,
   HeartHandshake,
   MapPin,
   PackageCheck,
@@ -21,6 +19,7 @@ import {
 import ScrollReveal from "./ScrollReveal";
 import Button from "../../../components/common/Button";
 import Card from "../../../components/common/Card";
+import { getLandingOverview } from "../services/homeService";
 
 const sectionShell =
   "relative overflow-hidden rounded-3xl border border-emerald-100 bg-white/90 shadow-sm backdrop-blur-sm";
@@ -88,11 +87,16 @@ const WHY_SHAREPLATE_ITEMS = [
   },
 ];
 
-const DEFAULT_ACTIVITY = {
-  loading: false,
+const DEFAULT_ACTIVITY_STATE = {
+  loading: true,
   error: false,
-  empty: false,
-  items: [
+  items: [],
+  stats: {
+    liveListings: 0,
+    activeDonors: 0,
+    openRequests: 0,
+  },
+  /* legacyItems: [
     {
       id: 1,
       title: "Fresh meal packs accepted",
@@ -117,7 +121,7 @@ const DEFAULT_ACTIVITY = {
       status: "Completed",
       icon: HandHeart,
     },
-  ],
+  ], */
 };
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
@@ -276,12 +280,25 @@ const ErrorState = memo(function ErrorState({ onRetry }) {
 });
 
 const ActivityCard = memo(function ActivityCard({ item }) {
-  const Icon = item.icon;
+  const iconByKind = {
+    donation: PackageCheck,
+    "donation-request": HeartHandshake,
+    "food-request": Clock3,
+    acceptance: CheckCircle2,
+  };
+  const Icon = iconByKind[item.kind] || Activity;
 
   const statusStyles = {
+    Live: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    Requested: "bg-slate-50 text-slate-700 border-slate-200",
     Matched: "bg-emerald-50 text-emerald-700 border-emerald-200",
     Urgent: "bg-amber-50 text-amber-700 border-amber-200",
     Completed: "bg-blue-50 text-blue-700 border-blue-200",
+    Declined: "bg-red-50 text-red-700 border-red-200",
+    Closed: "bg-slate-50 text-slate-700 border-slate-200",
+    Cancelled: "bg-slate-50 text-slate-700 border-slate-200",
+    Expired: "bg-slate-50 text-slate-700 border-slate-200",
+    Updated: "bg-slate-50 text-slate-700 border-slate-200",
   };
 
   return (
@@ -437,22 +454,66 @@ const WhySharePlateSection = memo(function WhySharePlateSection() {
 });
 
 const ActivitySection = memo(function ActivitySection() {
-  const [state, setState] = useState(DEFAULT_ACTIVITY);
+  const [state, setState] = useState(DEFAULT_ACTIVITY_STATE);
+
+  const applyLandingOverview = useCallback((data) => {
+    setState({
+      loading: false,
+      error: false,
+      items: Array.isArray(data.activity) ? data.activity : [],
+      stats: {
+        liveListings: Number(data.stats?.liveListings) || 0,
+        activeDonors: Number(data.stats?.activeDonors) || 0,
+        openRequests: Number(data.stats?.openRequests) || 0,
+      },
+    });
+  }, []);
+
+  const loadActivity = useCallback(async () => {
+    setState((prev) => ({ ...prev, loading: true, error: false }));
+
+    try {
+      const data = await getLandingOverview();
+      applyLandingOverview(data);
+    } catch {
+      setState((prev) => ({ ...prev, loading: false, error: true }));
+    }
+  }, [applyLandingOverview]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadInitialActivity = async () => {
+      try {
+        const data = await getLandingOverview();
+        if (!isMounted) return;
+        applyLandingOverview(data);
+      } catch {
+        if (!isMounted) return;
+        setState((prev) => ({ ...prev, loading: false, error: true }));
+      }
+    };
+
+    loadInitialActivity();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [applyLandingOverview]);
 
   const stats = useMemo(
     () => [
-      { icon: Activity, label: "Live listings", value: "48" },
-      { icon: Store, label: "Active donors", value: "21" },
-      { icon: Users, label: "Receivers online", value: "34" },
+      { icon: Activity, label: "Live listings", value: state.stats.liveListings },
+      { icon: Store, label: "Active donors", value: state.stats.activeDonors },
+      { icon: Users, label: "Open requests", value: state.stats.openRequests },
     ],
-    [],
+    [state.stats],
   );
 
   const visibleContent = useMemo(() => {
     if (state.loading) return <ActivitySkeleton />;
-    if (state.error)
-      return <ErrorState onRetry={() => setState(DEFAULT_ACTIVITY)} />;
-    if (state.empty) return <EmptyState />;
+    if (state.error) return <ErrorState onRetry={loadActivity} />;
+    if (state.items.length === 0) return <EmptyState />;
 
     return (
       <div className="grid gap-4">
@@ -461,7 +522,7 @@ const ActivitySection = memo(function ActivitySection() {
         ))}
       </div>
     );
-  }, [state]);
+  }, [loadActivity, state]);
 
   return (
     <ScrollReveal
@@ -502,73 +563,21 @@ const ActivitySection = memo(function ActivitySection() {
                     Recent activity feed
                   </h3>
                   <p className="text-sm text-slate-600">
-                    Real-time donation and request updates across the platform.
+                    Real donation and request updates pulled from the backend.
                   </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    variant="outline"
                     size="sm"
-                    onClick={() =>
-                      setState((prev) => ({
-                        ...prev,
-                        loading: true,
-                        error: false,
-                        empty: false,
-                      }))
-                    }
-                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-emerald-300 hover:text-emerald-700 focus-visible:ring-emerald-600"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Loading
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setState({
-                        loading: false,
-                        error: false,
-                        empty: true,
-                        items: [],
-                      })
-                    }
-                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-emerald-300 hover:text-emerald-700 focus-visible:ring-emerald-600"
-                  >
-                    <Inbox className="h-4 w-4" />
-                    Empty
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setState({
-                        loading: false,
-                        error: true,
-                        empty: false,
-                        items: [],
-                      })
-                    }
-                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-red-300 hover:text-red-700 focus-visible:ring-red-600"
-                  >
-                    <AlertCircle className="h-4 w-4" />
-                    Error
-                  </Button>
-
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => setState(DEFAULT_ACTIVITY)}
+                    onClick={loadActivity}
                     className="cursor-pointer rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:ring-slate-900"
                   >
-                    Live data
-                    <ArrowRight className="h-4 w-4" />
+                    <RefreshCw
+                      className={cn("h-4 w-4", state.loading && "animate-spin")}
+                    />
+                    Refresh
                   </Button>
                 </div>
               </div>

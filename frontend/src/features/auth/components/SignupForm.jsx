@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Mail,
@@ -25,10 +25,48 @@ import {
   setStoredGoogleOnboarding,
 } from "../utils/googleOnboardingStorage";
 
+const SRI_LANKA_PLACE_FALLBACKS = [
+  { label: "Colombo, Sri Lanka", lat: 6.9271, lon: 79.8612 },
+  { label: "Sri Jayawardenepura Kotte, Sri Lanka", lat: 6.8941, lon: 79.9025 },
+  { label: "Dehiwala-Mount Lavinia, Sri Lanka", lat: 6.8402, lon: 79.8712 },
+  { label: "Moratuwa, Sri Lanka", lat: 6.773, lon: 79.8816 },
+  { label: "Negombo, Sri Lanka", lat: 7.2083, lon: 79.8358 },
+  { label: "Gampaha, Sri Lanka", lat: 7.0917, lon: 79.9999 },
+  { label: "Kalutara, Sri Lanka", lat: 6.5854, lon: 79.9607 },
+  { label: "Panadura, Sri Lanka", lat: 6.7132, lon: 79.9026 },
+  { label: "Kandy, Sri Lanka", lat: 7.2906, lon: 80.6337 },
+  { label: "Matale, Sri Lanka", lat: 7.4675, lon: 80.6234 },
+  { label: "Nuwara Eliya, Sri Lanka", lat: 6.9497, lon: 80.7891 },
+  { label: "Galle, Sri Lanka", lat: 6.0535, lon: 80.221 },
+  { label: "Matara, Sri Lanka", lat: 5.9549, lon: 80.555 },
+  { label: "Hambantota, Sri Lanka", lat: 6.1241, lon: 81.1185 },
+  { label: "Jaffna, Sri Lanka", lat: 9.6615, lon: 80.0255 },
+  { label: "Kilinochchi, Sri Lanka", lat: 9.3961, lon: 80.3982 },
+  { label: "Mannar, Sri Lanka", lat: 8.977, lon: 79.9042 },
+  { label: "Vavuniya, Sri Lanka", lat: 8.7514, lon: 80.4971 },
+  { label: "Mullaitivu, Sri Lanka", lat: 9.2671, lon: 80.8142 },
+  { label: "Trincomalee, Sri Lanka", lat: 8.5874, lon: 81.2152 },
+  { label: "Batticaloa, Sri Lanka", lat: 7.7102, lon: 81.6924 },
+  { label: "Ampara, Sri Lanka", lat: 7.2975, lon: 81.682 },
+  { label: "Kurunegala, Sri Lanka", lat: 7.4863, lon: 80.3647 },
+  { label: "Puttalam, Sri Lanka", lat: 8.0362, lon: 79.8283 },
+  { label: "Anuradhapura, Sri Lanka", lat: 8.3114, lon: 80.4037 },
+  { label: "Polonnaruwa, Sri Lanka", lat: 7.94, lon: 81.0188 },
+  { label: "Badulla, Sri Lanka", lat: 6.9934, lon: 81.055 },
+  { label: "Monaragala, Sri Lanka", lat: 6.872, lon: 81.3507 },
+  { label: "Ratnapura, Sri Lanka", lat: 6.6828, lon: 80.3992 },
+  { label: "Kegalle, Sri Lanka", lat: 7.2527, lon: 80.3464 },
+];
+
 const SignupForm = () => {
+  const nominatimBaseUrl =
+    import.meta.env.VITE_NOMINATIM_BASE_URL ||
+    "https://nominatim.openstreetmap.org";
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
+  const addressFieldRef = useRef(null);
+  const addressRequestIdRef = useRef(0);
   const googleOnboarding =
     location.state?.googleOnboarding || getStoredGoogleOnboarding() || null;
   const isGoogleOnboarding = Boolean(googleOnboarding?.onboardingToken);
@@ -47,6 +85,10 @@ const SignupForm = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [isAddressLoading, setIsAddressLoading] = useState(false);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [addressSearchMessage, setAddressSearchMessage] = useState("");
 
   const roles = useMemo(
     () => [
@@ -69,6 +111,71 @@ const SignupForm = () => {
     }));
   }, [googleOnboarding, isGoogleOnboarding]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!addressFieldRef.current?.contains(event.target)) {
+        setShowAddressSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const query = formData.address.trim();
+
+    if (query.length === 0) {
+      setAddressSuggestions([]);
+      setIsAddressLoading(false);
+      setAddressSearchMessage("");
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const requestId = ++addressRequestIdRef.current;
+    const debounceId = window.setTimeout(async () => {
+      setIsAddressLoading(true);
+      setAddressSearchMessage("");
+
+      try {
+        const suggestions = await fetchSriLankaAddressSuggestions(
+          query,
+          controller.signal,
+        );
+        if (requestId !== addressRequestIdRef.current) return;
+
+        setAddressSuggestions(suggestions);
+        setAddressSearchMessage(
+          suggestions.length === 0 ? "No matching places found." : "",
+        );
+      } catch (error) {
+        if (
+          axios.isCancel?.(error) ||
+          error.name === "CanceledError" ||
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        if (requestId !== addressRequestIdRef.current) return;
+        console.error("Address autocomplete error:", error);
+        setAddressSuggestions([]);
+        setAddressSearchMessage("Unable to load address suggestions.");
+      } finally {
+        if (requestId !== addressRequestIdRef.current) return;
+        setIsAddressLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(debounceId);
+    };
+  }, [formData.address, nominatimBaseUrl]);
+
   const navigateByRole = (nextUser) => {
     const role = nextUser?.role || "";
     if (role === "restaurant") navigate("/restaurant/dashboard");
@@ -87,6 +194,72 @@ const SignupForm = () => {
     }));
   };
 
+  const buildFallbackSuggestions = (query) => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return [];
+
+    return SRI_LANKA_PLACE_FALLBACKS.filter(({ label }) =>
+      label.toLowerCase().includes(normalizedQuery),
+    ).map((place) => ({
+      place_id: `fallback-${place.label}`,
+      display_name: place.label,
+      lat: String(place.lat),
+      lon: String(place.lon),
+      source: "fallback",
+    }));
+  };
+
+  const mergeAddressSuggestions = (primarySuggestions, fallbackSuggestions) => {
+    const mergedSuggestions = [];
+    const seenLabels = new Set();
+
+    [...primarySuggestions, ...fallbackSuggestions].forEach((suggestion) => {
+      const label = String(suggestion.display_name || "").toLowerCase();
+      if (!label || seenLabels.has(label)) return;
+      seenLabels.add(label);
+      mergedSuggestions.push(suggestion);
+    });
+
+    return mergedSuggestions;
+  };
+
+  const fetchSriLankaAddressSuggestions = async (query, signal) => {
+    const normalizedQuery = query.trim();
+    const searchVariants = [
+      `${normalizedQuery}, Sri Lanka`,
+      `${normalizedQuery} Sri Lanka`,
+      normalizedQuery,
+    ];
+
+    for (const searchQuery of searchVariants) {
+      const response = await axios.get(`${nominatimBaseUrl}/search`, {
+        params: {
+          format: "jsonv2",
+          q: searchQuery,
+          addressdetails: 1,
+          countrycodes: "lk",
+          dedupe: 1,
+          limit: 8,
+        },
+        signal,
+        headers: {
+          Accept: "application/json",
+          "Accept-Language": "en",
+        },
+      });
+
+      const suggestions = Array.isArray(response.data) ? response.data : [];
+      if (suggestions.length > 0) {
+        return mergeAddressSuggestions(
+          suggestions,
+          buildFallbackSuggestions(normalizedQuery),
+        );
+      }
+    }
+
+    return buildFallbackSuggestions(normalizedQuery);
+  };
+
   const handleGeocode = async () => {
     if (!formData.address) {
       toast.error("Please enter an address first");
@@ -95,11 +268,19 @@ const SignupForm = () => {
 
     setIsGeocoding(true);
     try {
-      const response = await axios.get(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          formData.address,
-        )}&limit=1`,
-      );
+      const response = await axios.get(`${nominatimBaseUrl}/search`, {
+        params: {
+          format: "jsonv2",
+          q: `${formData.address}, Sri Lanka`,
+          countrycodes: "lk",
+          dedupe: 1,
+          limit: 1,
+        },
+        headers: {
+          Accept: "application/json",
+          "Accept-Language": "en",
+        },
+      });
 
       if (response.data && response.data.length > 0) {
         const { lat, lon } = response.data[0];
@@ -125,7 +306,28 @@ const SignupForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "address") {
+      setShowAddressSuggestions(true);
+      setAddressSearchMessage("");
+    }
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
+  };
+
+  const handleAddressSuggestionSelect = (suggestion) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: suggestion.display_name,
+      location: {
+        ...prev.location,
+        coordinates: [Number(suggestion.lon), Number(suggestion.lat)],
+      },
+    }));
+    setAddressSuggestions([]);
+    setAddressSearchMessage("");
+    setShowAddressSuggestions(false);
+    if (errors.address) {
+      setErrors((prev) => ({ ...prev, address: null }));
+    }
   };
 
   const validateStep1 = () => {
@@ -173,11 +375,12 @@ const SignupForm = () => {
 
     setIsLoading(true);
     try {
-      const { confirmPassword, email, ...submitData } = formData;
+      const { confirmPassword, ...submitData } = formData;
       if (isGoogleOnboarding) {
+        const { email, ...googleSignupData } = submitData;
         const result = await auth.completeGoogleSignup({
           onboardingToken: googleOnboarding.onboardingToken,
-          ...submitData,
+          ...googleSignupData,
         });
         clearStoredGoogleOnboarding();
         navigateByRole(result?.user);
@@ -281,7 +484,6 @@ const SignupForm = () => {
               value={formData.role}
               onChange={handleChange}
               error={errors.role}
-              className="cursor-pointer"
             />
             {errors.server && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-100">
@@ -291,7 +493,7 @@ const SignupForm = () => {
             <Button
               type="button"
               onClick={handleNext}
-              className="w-full cursor-pointer py-4 text-lg font-bold"
+              className="w-full py-4 text-lg font-bold"
             >
               Next Step <ChevronRight className="ml-2" size={20} />
             </Button>
@@ -309,7 +511,7 @@ const SignupForm = () => {
 
                 <div className="flex justify-center">
                   <GoogleAuthButton
-                    text=""
+                    text="Sign up with Google"
                     disabled={isLoading}
                     onCredential={handleGoogleCredential}
                     onError={(message) =>
@@ -342,13 +544,19 @@ const SignupForm = () => {
               error={errors.confirmPassword}
               icon={<Lock size={18} />}
             />
-            <div className="relative">
+            <div className="relative" ref={addressFieldRef}>
               <Input
                 label="Detailed Address"
                 name="address"
                 placeholder="123 Street Name, City"
                 value={formData.address}
                 onChange={handleChange}
+                onFocus={() => {
+                  if (formData.address.trim().length >= 1) {
+                    setShowAddressSuggestions(true);
+                  }
+                }}
+                autoComplete="off"
                 error={errors.address}
                 icon={<MapPin size={18} />}
               />
@@ -356,7 +564,7 @@ const SignupForm = () => {
                 type="button"
                 onClick={handleGeocode}
                 disabled={isGeocoding}
-                className="absolute right-2 bottom-2 cursor-pointer rounded-xl bg-emerald-600 p-2 text-white shadow-lg shadow-emerald-200 transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="absolute right-2 bottom-2 p-2 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:bg-slate-300"
                 title="Find on Map"
               >
                 {isGeocoding ? (
@@ -365,6 +573,49 @@ const SignupForm = () => {
                   <Search size={16} />
                 )}
               </button>
+              {showAddressSuggestions &&
+              (isAddressLoading ||
+                addressSuggestions.length > 0 ||
+                addressSearchMessage) ? (
+                <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+                  {isAddressLoading ? (
+                    <div className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-500">
+                      <Loader2 size={16} className="animate-spin" />
+                      Searching places...
+                    </div>
+                  ) : null}
+
+                  {!isAddressLoading && addressSuggestions.length > 0 ? (
+                    <ul className="max-h-64 overflow-y-auto py-2">
+                      {addressSuggestions.map((suggestion) => (
+                        <li key={suggestion.place_id}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddressSuggestionSelect(suggestion)
+                            }
+                            className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50"
+                          >
+                            <MapPin
+                              size={16}
+                              className="mt-0.5 shrink-0 text-emerald-600"
+                            />
+                            <span className="text-sm text-slate-700">
+                              {suggestion.display_name}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  {!isAddressLoading && addressSearchMessage ? (
+                    <div className="px-4 py-3 text-sm font-medium text-slate-500">
+                      {addressSearchMessage}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -395,14 +646,14 @@ const SignupForm = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setStep(1)}
-                className="w-1/3 cursor-pointer"
+                className="w-1/3"
                 disabled={isLoading}
               >
                 Back
               </Button>
               <Button
                 type="submit"
-                className="w-2/3 cursor-pointer py-4 text-lg font-bold"
+                className="w-2/3 py-4 text-lg font-bold"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -420,7 +671,7 @@ const SignupForm = () => {
         Already part of SharePlate?{" "}
         <Link
           to="/auth/login"
-          className="cursor-pointer font-bold text-emerald-600 hover:text-emerald-700"
+          className="font-bold text-emerald-600 hover:text-emerald-700"
         >
           Sign in to continue
         </Link>
