@@ -1,5 +1,171 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Inter", "Segoe UI", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float-gentle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.18);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-fade-in {
+  opacity: 0;
+  animation: fade-in 0.7s ease-out forwards;
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-float-gentle {
+  animation: float-gentle 6s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.reveal-delay-100 {
+  transition-delay: 0.1s;
+}
+
+.reveal-delay-200 {
+  transition-delay: 0.2s;
+}
+
+.reveal-delay-300 {
+  transition-delay: 0.3s;
+}
+
+.reveal-delay-400 {
+  transition-delay: 0.4s;
+}
+
+.reveal-delay-500 {
+  transition-delay: 0.5s;
+}
+
+.reveal-delay-600 {
+  transition-delay: 0.6s;
+}
+
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animation-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-in,
+  .animate-fade-up,
+  .animate-float-gentle,
+  .animate-pulse-soft,
+  .reveal-on-scroll {
+    opacity: 1;
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* :root {
   --text: #6b6375;
   --text-h: #08060d;
