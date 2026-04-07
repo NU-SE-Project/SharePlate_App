@@ -8,6 +8,7 @@ const SocketContext = createContext();
 export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
+  const { user, isAuthenticated } = useAuth();
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -19,40 +20,23 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('connect', () => {
-      console.log('🔌 Connected to Socket.io');
+      console.log('ðŸ”Œ Connected to Socket.io');
       setIsConnected(true);
     });
 
-    // Auto-join user room when connected
-    newSocket.on('connect', () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        const user = storedUser ? JSON.parse(storedUser) : null;
-        const userId = user?._id || user?.id || null;
-        if (userId) {
-          newSocket.emit('join', userId);
-          console.log('Socket joined room for user', userId);
-        }
-      } catch (e) {
-        // ignore
-      }
-    });
-
     newSocket.on('disconnect', () => {
-      console.log('❌ Disconnected from Socket.io');
+      console.log('âŒ Disconnected from Socket.io');
       setIsConnected(false);
     });
 
-    // Listen for new food requests from food banks
     newSocket.on('new_food_request', (data) => {
       toast.success(`New request from ${data.foodbankName}: ${data.itemName}`, {
         duration: 6000,
         position: 'top-right',
-        icon: '🍞',
+        icon: 'ðŸž',
       });
     });
 
-    // Listen for donation updates (UI refresh handled in components)
     newSocket.on('donation_updated', (data) => {
       console.debug('donation_updated', data);
     });
@@ -63,6 +47,15 @@ export const SocketProvider = ({ children }) => {
       newSocket.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    const userId = user?._id || user?.id || null;
+
+    if (socket && isConnected && isAuthenticated && userId) {
+      socket.emit('join', userId);
+      console.log('Socket joined room for user', userId);
+    }
+  }, [socket, isConnected, isAuthenticated, user]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

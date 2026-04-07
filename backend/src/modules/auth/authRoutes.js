@@ -11,6 +11,10 @@ import {
   logoutAll,
 } from "./controllers/authController.js";
 import {
+  googleLogin,
+  completeGoogleOnboarding,
+} from "./controllers/googleAuthController.js";
+import {
   forgotPassword,
   resetPasswordHandler,
   changePasswordHandler,
@@ -92,6 +96,55 @@ const requestSchema = (bodySchema) =>
 
 const registerSchema = requestSchema(registerBodySchema);
 const loginSchema = requestSchema(loginBodySchema);
+const googleLoginSchema = requestSchema(
+  z
+    .object({
+      credential: z
+        .string({
+          error: (issue) =>
+            issue.input === undefined
+              ? "Google credential is required"
+              : "Google credential must be a text value",
+        })
+        .min(1, "Google credential is required"),
+    })
+    .strict(),
+);
+const googleCompleteSignupSchema = requestSchema(
+  z
+    .object({
+      onboardingToken: z
+        .string({
+          error: (issue) =>
+            issue.input === undefined
+              ? "Google onboarding token is required"
+              : "Google onboarding token must be a text value",
+        })
+        .min(1, "Google onboarding token is required"),
+      name: nameSchema,
+      password: passwordSchema,
+      address: addressSchema,
+      contactNumber: contactNumberSchema,
+      role: roleSchema,
+      location: geoSchema,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      const addr = String(data.address || "")
+        .trim()
+        .toLowerCase();
+      if (
+        (data.role === "restaurant" || data.role === "foodbank") &&
+        (addr === "sri lanka" || addr.length < 6)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["address"],
+          message: "Please provide a more specific address (street/city).",
+        });
+      }
+    }),
+);
 
 const forgotPasswordSchema = requestSchema(
   z.object({ email: emailSchema }).strict(),
@@ -138,6 +191,12 @@ const resendVerificationSchema = requestSchema(
 ---------------------------- */
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
+router.post("/google", validate(googleLoginSchema), googleLogin);
+router.post(
+  "/google/complete",
+  validate(googleCompleteSignupSchema),
+  completeGoogleOnboarding,
+);
 
 router.post("/refresh", refresh);
 router.post("/logout", logout);

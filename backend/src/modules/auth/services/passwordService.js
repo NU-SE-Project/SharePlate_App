@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 import User from "../../user/User.js";
-import RefreshToken from "../RefreshToken.js";
+import sessionService from "./SessionService.js";
 import {
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
@@ -85,7 +85,7 @@ export async function resetPassword(token, newPassword) {
   await user.save();
 
   // invalidate all sessions
-  await RefreshToken.deleteMany({ user: user._id });
+  await sessionService.revokeAllSessions(user._id);
 
   // send confirmation (do not fail reset if email fails)
   sendPasswordChangedEmail(user.email, user.name).catch(() => {});

@@ -1,6 +1,8 @@
 import RefreshToken from "../RefreshToken.js";
 import User from "../../user/User.js";
-import tokenService from "./tokenService.js";
+import { Types } from "mongoose";
+import tokenService from "./TokenService.js";
+import { buildAuthUser } from "./buildAuthUser.js";
 
 /**
  * SessionService - Manages user sessions and refresh tokens
@@ -10,11 +12,20 @@ class SessionService {
   /**
    * Create a new session (refresh token)
    */
-  async createSession(userId, meta = {}) {
-    const payload = { userId: userId.toString(), role: meta.role };
+  async createSession(user, meta = {}) {
+    const userId = user?._id || user;
+    const authVersion = Number(meta.authVersion ?? user?.authVersion ?? 0);
+    const sessionId = new Types.ObjectId();
+    const payload = {
+      userId: userId.toString(),
+      role: meta.role,
+      authVersion,
+      sessionId: sessionId.toString(),
+    };
     const refreshToken = tokenService.signRefreshToken(payload);
 
     await RefreshToken.create({
+      _id: sessionId,
       user: userId,
       tokenHash: tokenService.hashToken(refreshToken),
       expiresAt: tokenService.getRefreshExpiryDate(),
@@ -22,7 +33,11 @@ class SessionService {
       userAgent: meta.userAgent || null,
     });
 
-    return refreshToken;
+    return {
+      refreshToken,
+      sessionId: sessionId.toString(),
+      authVersion,
+    };
   }
 
   /**
@@ -37,11 +52,13 @@ class SessionService {
 
     // Verify token
     const decoded = tokenService.verifyRefreshToken(refreshTokenFromCookie);
-    const { userId } = decoded;
+    const { userId, sessionId, authVersion } = decoded;
 
     // Check if session exists in DB
     const incomingHash = tokenService.hashToken(refreshTokenFromCookie);
     const session = await RefreshToken.findOne({
+      _id: sessionId,
+      user: userId,
       tokenHash: incomingHash,
     }).select("+tokenHash");
 
@@ -66,34 +83,33 @@ class SessionService {
       throw err;
     }
 
+    if (Number(user.authVersion || 0) !== Number(authVersion || 0)) {
+      await RefreshToken.deleteOne({ _id: session._id });
+
+      const err = new Error("Session has been revoked. Please login again.");
+      err.statusCode = 401;
+      throw err;
+    }
+
     // Rotate: delete old session
     await RefreshToken.deleteOne({ _id: session._id });
 
     // Create new tokens
-    const newPayload = { userId: user._id.toString(), role: user.role };
-    const newAccessToken = tokenService.signAccessToken(newPayload);
-    const newRefreshToken = tokenService.signRefreshToken(newPayload);
-
-    // Store new session
-    await RefreshToken.create({
-      user: user._id,
-      tokenHash: tokenService.hashToken(newRefreshToken),
-      expiresAt: tokenService.getRefreshExpiryDate(),
+    const newSession = await this.createSession(user, {
+      role: user.role,
+      authVersion: user.authVersion,
+    });
+    const newAccessToken = tokenService.signAccessToken({
+      userId: user._id.toString(),
+      role: user.role,
+      authVersion: Number(user.authVersion || 0),
+      sessionId: newSession.sessionId,
     });
 
-    const userObj = user.toObject();
     return {
       accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-      user: {
-        id: userObj._id,
-        _id: userObj._id,
-        name: userObj.name,
-        email: userObj.email,
-        role: userObj.role,
-        address: userObj.address,
-        location: userObj.location,
-      },
+      refreshToken: newSession.refreshToken,
+      user: buildAuthUser(user),
     };
   }
 
@@ -113,6 +129,7 @@ class SessionService {
    * Revoke all sessions for a user
    */
   async revokeAllSessions(userId) {
+    await User.updateOne({ _id: userId }, { $inc: { authVersion: 1 } });
     await RefreshToken.deleteMany({ user: userId });
     return true;
   }

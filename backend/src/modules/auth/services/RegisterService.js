@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../../user/User.js";
 import { sendEmailVerification } from "./emailVerificationService.js";
+import { buildAuthUser } from "./buildAuthUser.js";
 
 const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
 
@@ -42,15 +43,7 @@ class RegistrationService {
     this._sendVerificationEmail(user._id);
 
     return {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      address: user.address,
-      contactNumber: user.contactNumber,
-      location: user.location,
-      isActive: user.isActive,
-      emailVerified: user.emailVerified,
+      ...buildAuthUser(user),
       createdAt: user.createdAt,
     };
   }

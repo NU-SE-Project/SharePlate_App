@@ -10,6 +10,7 @@ import { useAuth } from '../../../../context/AuthContext';
 const PostRequestPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const foodBankId = user?.id || user?._id || null;
   const [formData, setFormData] = useState({
     foodName: '',
     foodType: 'veg',
@@ -23,12 +24,16 @@ const PostRequestPage = () => {
       toast.error('Please fill in all required fields');
       return;
     }
+    if (!foodBankId) {
+      toast.error('Unable to identify your account. Please sign in again.');
+      return;
+    }
 
     setIsLoading(true);
     try {
       await createProactiveRequest({
         ...formData,
-        foodbank_id: user?._id || user?.id,
+        foodbank_id: foodBankId,
         requestedQuantity: Number(formData.requestedQuantity),
       });
       toast.success('Your request has been broadcasted to all nearby restaurants!');

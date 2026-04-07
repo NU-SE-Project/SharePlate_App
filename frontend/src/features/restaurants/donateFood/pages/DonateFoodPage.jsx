@@ -13,7 +13,7 @@ const DonateFoodPage = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   
   const { user } = useAuth();
-  const restaurantId = user?.id || user?._id || localStorage.getItem('restaurantId');
+  const restaurantId = user?.id || user?._id || null;
 
   const handleAddClick = () => {
     setEditingDonation(null);
@@ -112,7 +112,8 @@ const DonateFoodPage = () => {
       >
         <DirectDonationForm 
           initialData={editingDonation} 
-          onSuccess={handleSuccess} 
+          onSuccess={handleSuccess}
+          restaurantId={restaurantId}
         />
       </Modal>
     </div>

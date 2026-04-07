@@ -2,10 +2,11 @@ import React from 'react';
 import DonationList from '../components/DonationList';
 import { ShoppingBag, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../../../context/AuthContext';
 
 const ManageDonationsPage = () => {
-  // In a real app, this would come from an AuthContext
-  const restaurantId = "mock-restaurant-id"; 
+  const { user } = useAuth();
+  const restaurantId = user?.id || user?._id || null;
 
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700">

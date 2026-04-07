@@ -10,6 +10,7 @@ import { calculateDistance } from '../../../../utils/distance';
 
 const RequestList = () => {
   const { user } = useAuth();
+  const currentRestaurantId = user?.id || user?._id || null;
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -194,8 +195,8 @@ const RequestList = () => {
         </div>
       ) : (
         filteredRequests.map((request) => {
-        const myAcceptance = request.acceptances?.find(a =>
-          (a.restaurant_id?._id || a.restaurant_id) === (user?._id || user?.id)
+        const myAcceptance = request.acceptances?.find(
+          (a) => (a.restaurant_id?._id || a.restaurant_id) === currentRestaurantId,
         );
 
         return (

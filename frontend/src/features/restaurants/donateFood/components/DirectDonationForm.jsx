@@ -5,8 +5,10 @@ import Button from "../../../../components/common/Button";
 import Select from "../../../../components/common/Select";
 import { createDonation, updateDonation } from "../services/restaurantService";
 import toast from 'react-hot-toast';
+import { useAuth } from '../../../../context/AuthContext';
 
-const DirectDonationForm = ({ initialData, onSuccess }) => {
+const DirectDonationForm = ({ initialData, onSuccess, restaurantId: restaurantIdProp }) => {
+  const { user } = useAuth();
   // Aligning with backend schema: foodName, foodType, totalQuantity, expiryTime, etc.
   const [formData, setFormData] = useState(initialData ? {
     foodName: initialData.foodName || '',
@@ -75,16 +77,12 @@ const DirectDonationForm = ({ initialData, onSuccess }) => {
       return;
     }
 
-    // Prefer restaurant id from AuthContext
-    let restaurantId = localStorage.getItem('restaurantId');
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        const userId = parsed?.id || parsed?._id;
-        if (userId && parsed.role === 'restaurant') restaurantId = userId;
-      }
-    } catch (e) {}
+    const restaurantId =
+      restaurantIdProp ||
+      user?.id ||
+      user?._id ||
+      null;
+
     if (!restaurantId || restaurantId === '000000000000000000000000') {
       toast.error('Session expired. Please log in again.');
       return;

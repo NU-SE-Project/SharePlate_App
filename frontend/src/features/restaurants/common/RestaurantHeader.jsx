@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, Home, PlusCircle, LayoutDashboard, UserCircle, Bell, LogOut } from 'lucide-react';
+import { Heart, PlusCircle, LayoutDashboard, UserCircle, Bell, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 const RestaurantHeader = () => {
@@ -45,11 +45,7 @@ const RestaurantHeader = () => {
           ))}
           <button
             onClick={async () => {
-              try {
-                await auth.logout();
-              } catch (e) {
-                // ignore
-              }
+              await auth.logout();
               navigate('/auth/login');
             }}
             className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all duration-200 px-3 py-2 rounded-lg"
@@ -67,7 +63,7 @@ const RestaurantHeader = () => {
           </Link>
           <button
             onClick={async () => {
-              try { await auth.logout(); } catch (e) {}
+              await auth.logout();
               navigate('/auth/login');
             }}
             className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"

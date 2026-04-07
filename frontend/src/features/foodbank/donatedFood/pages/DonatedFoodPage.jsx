@@ -20,11 +20,10 @@ const DonatedFoodPage = () => {
   const [requestQuantity, setRequestQuantity] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
   
-  // Get FoodBank ID from AuthContext or localStorage
+  // Get FoodBank ID from AuthContext
   const auth = useAuth();
   const userFromCtx = auth?.user;
-  const userLocal = JSON.parse(localStorage.getItem('user') || 'null');
-  const foodBankId = userFromCtx?._id || userFromCtx?.id || userLocal?._id || userLocal?.id || null;
+  const foodBankId = userFromCtx?.id || userFromCtx?._id || null;
 
   useEffect(() => {
     if (!foodBankId) {

@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
+import User from "../modules/user/User.js";
+import RefreshToken from "../modules/auth/RefreshToken.js";
 
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const header = req.headers.authorization;
 
   // Check header exists and is Bearer token
@@ -14,10 +16,43 @@ export function requireAuth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const user = await User.findById(decoded.userId).select("role isActive authVersion");
 
-    // Attach to request so next middlewares/controllers can use it
-    // decoded should contain { userId, role }
-    req.user = decoded;
+    if (!user || !user.isActive) {
+      const err = new Error("Unauthorized");
+      err.statusCode = 401;
+      return next(err);
+    }
+
+    if (Number(decoded.authVersion || -1) !== Number(user.authVersion || 0)) {
+      const err = new Error("Session has been revoked. Please login again.");
+      err.statusCode = 401;
+      return next(err);
+    }
+
+    if (!decoded.sessionId) {
+      const err = new Error("Invalid session token");
+      err.statusCode = 401;
+      return next(err);
+    }
+
+    const session = await RefreshToken.findOne({
+      _id: decoded.sessionId,
+      user: user._id,
+    });
+
+    if (!session) {
+      const err = new Error("Session no longer exists. Please login again.");
+      err.statusCode = 401;
+      return next(err);
+    }
+
+    req.user = {
+      userId: user._id.toString(),
+      role: user.role,
+      authVersion: Number(user.authVersion || 0),
+      sessionId: decoded.sessionId,
+    };
 
     next();
   } catch (e) {
