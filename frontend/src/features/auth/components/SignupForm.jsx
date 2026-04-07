@@ -159,7 +159,7 @@ const SignupForm = () => {
 
     setIsLoading(true);
     try {
-      const { confirmPassword, ...submitData } = formData;
+      const { confirmPassword, email, ...submitData } = formData;
       if (isGoogleOnboarding) {
         const result = await auth.completeGoogleSignup({
           onboardingToken: googleOnboarding.onboardingToken,

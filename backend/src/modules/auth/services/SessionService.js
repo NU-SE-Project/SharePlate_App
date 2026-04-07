@@ -83,7 +83,7 @@ class SessionService {
       throw err;
     }
 
-    if (Number(user.authVersion || 0) !== Number(authVersion || 0)) {
+    if (Number(user.authVersion ?? 0) !== Number(authVersion ?? 0)) {
       await RefreshToken.deleteOne({ _id: session._id });
 
       const err = new Error("Session has been revoked. Please login again.");
@@ -102,7 +102,7 @@ class SessionService {
     const newAccessToken = tokenService.signAccessToken({
       userId: user._id.toString(),
       role: user.role,
-      authVersion: Number(user.authVersion || 0),
+      authVersion: Number(user.authVersion ?? 0),
       sessionId: newSession.sessionId,
     });
 

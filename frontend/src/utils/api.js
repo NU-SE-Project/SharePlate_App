@@ -51,6 +51,20 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
 
+  if (
+    import.meta.env.DEV &&
+    typeof config.url === "string" &&
+    (config.url.includes("/user/me") || config.url.includes("/dashboard/restaurant"))
+  ) {
+    const authHeader = config.headers?.Authorization || null;
+    console.debug("[api] request auth", {
+      url: config.url,
+      hasAccessToken: Boolean(accessToken),
+      authHeaderPreview:
+        typeof authHeader === "string" ? `${authHeader.slice(0, 24)}...` : null,
+    });
+  }
+
   return config;
 });
 

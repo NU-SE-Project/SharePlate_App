@@ -11,7 +11,7 @@ const RequireAuth = ({ children, roles } = {}) => {
     let isMounted = true;
 
     const revalidateRouteAccess = async () => {
-      if (auth.isInitializing || !auth.isAuthenticated) {
+      if (auth.isInitializing || !auth.isAuthenticated || auth.user) {
         if (isMounted) {
           setIsCheckingRoute(false);
         }
@@ -36,7 +36,7 @@ const RequireAuth = ({ children, roles } = {}) => {
     return () => {
       isMounted = false;
     };
-  }, [auth.accessToken, auth.isAuthenticated, auth.isInitializing, location.pathname]);
+  }, [auth.accessToken, auth.isAuthenticated, auth.isInitializing, auth.user]);
 
   if (auth.isInitializing || isCheckingRoute) {
     return (
