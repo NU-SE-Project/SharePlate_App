@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, MapPin, Loader2, ChevronRight, Search } from 'lucide-react';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Select from '../../../components/common/Select';
 import { register } from '../services/authService';
 import LocationPicker from '../../../components/common/LocationPicker';
+import GoogleAuthButton from './GoogleAuthButton';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../../context/AuthContext';
+import {
+  clearStoredGoogleOnboarding,
+  getStoredGoogleOnboarding,
+  setStoredGoogleOnboarding,
+} from '../utils/googleOnboardingStorage';
 
 const SignupForm = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const auth = useAuth();
+  const googleOnboarding =
+    location.state?.googleOnboarding || getStoredGoogleOnboarding() || null;
+  const isGoogleOnboarding = Boolean(googleOnboarding?.onboardingToken);
+  const [step, setStep] = useState(isGoogleOnboarding ? 1 : 1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,6 +38,34 @@ const SignupForm = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const roles = useMemo(
+    () => [
+      { value: 'restaurant', label: 'Restaurant / Hotel' },
+      { value: 'foodbank', label: 'Food Bank / NGO' },
+      { value: 'admin', label: 'Administrator' },
+    ],
+    [],
+  );
+
+  useEffect(() => {
+    if (!isGoogleOnboarding) return;
+
+    setStoredGoogleOnboarding(googleOnboarding);
+
+    setFormData((prev) => ({
+      ...prev,
+      name: googleOnboarding.profile?.name || prev.name,
+      email: googleOnboarding.profile?.email || prev.email,
+    }));
+  }, [googleOnboarding, isGoogleOnboarding]);
+
+  const navigateByRole = (nextUser) => {
+    const role = nextUser?.role || '';
+    if (role === 'restaurant') navigate('/restaurant/dashboard');
+    else if (role === 'foodbank') navigate('/foodbank/donated-food');
+    else navigate('/dashboard');
+  };
 
   const handleLocationChange = (coords) => {
     setFormData((prev) => ({
@@ -73,12 +113,6 @@ const SignupForm = () => {
     }
   };
 
-  const roles = [
-    { value: 'restaurant', label: 'Restaurant / Hotel' },
-    { value: 'foodbank', label: 'Food Bank / NGO' },
-    { value: 'admin', label: 'Administrator' },
-  ];
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -88,8 +122,10 @@ const SignupForm = () => {
   const validateStep1 = () => {
     const newErrors = {};
     if (!formData.name) newErrors.name = 'Full name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
+    if (!isGoogleOnboarding) {
+      if (!formData.email) newErrors.email = 'Email is required';
+      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
+    }
     return newErrors;
   };
 
@@ -123,9 +159,18 @@ const SignupForm = () => {
 
     setIsLoading(true);
     try {
-      const { confirmPassword, ...submitData } = formData;
-      await register(submitData);
-      navigate('/auth/login', { state: { message: 'Account created! Please log in.' } });
+      const { confirmPassword, email, ...submitData } = formData;
+      if (isGoogleOnboarding) {
+        const result = await auth.completeGoogleSignup({
+          onboardingToken: googleOnboarding.onboardingToken,
+          ...submitData,
+        });
+        clearStoredGoogleOnboarding();
+        navigateByRole(result?.user);
+      } else {
+        await register(submitData);
+        navigate('/auth/login', { state: { message: 'Account created! Please log in.' } });
+      }
     } catch (error) {
       setErrors({ server: error.response?.data?.message || 'Registration failed' });
     } finally {
@@ -133,8 +178,40 @@ const SignupForm = () => {
     }
   };
 
+  const handleGoogleCredential = async (credential) => {
+    setErrors((prev) => ({ ...prev, server: null }));
+    const result = await auth.loginWithGoogle(credential);
+
+    if (result?.requiresOnboarding) {
+      setStoredGoogleOnboarding({
+        onboardingToken: result.onboardingToken,
+        profile: result.profile,
+      });
+      navigate('/auth/signup', {
+        replace: true,
+        state: {
+          googleOnboarding: {
+            onboardingToken: result.onboardingToken,
+            profile: result.profile,
+          },
+        },
+      });
+      return;
+    }
+
+    clearStoredGoogleOnboarding();
+    navigateByRole(result?.user);
+  };
+
   return (
     <div className="space-y-6">
+      {isGoogleOnboarding ? (
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
+          Google verified <span className="font-bold">{googleOnboarding.profile?.email}</span>.
+          Complete the remaining account details to finish signup.
+        </div>
+      ) : null}
+
       {/* Steps Indicator */}
       <div className="flex items-center gap-2 mb-8">
         <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
@@ -162,6 +239,7 @@ const SignupForm = () => {
               onChange={handleChange}
               error={errors.email}
               icon={<Mail size={18} />}
+              disabled={isGoogleOnboarding}
             />
             <Select
               label="Account Type"
@@ -171,9 +249,34 @@ const SignupForm = () => {
               onChange={handleChange}
               error={errors.role}
             />
+            {errors.server && (
+              <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-100">
+                {errors.server}
+              </div>
+            )}
             <Button type="button" onClick={handleNext} className="w-full py-4 text-lg font-bold">
               Next Step <ChevronRight className="ml-2" size={20} />
             </Button>
+
+            {!isGoogleOnboarding ? (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    <span className="bg-slate-50 px-3">or</span>
+                  </div>
+                </div>
+
+                <GoogleAuthButton
+                  text="Sign up with Google"
+                  disabled={isLoading}
+                  onCredential={handleGoogleCredential}
+                  onError={(message) => setErrors((prev) => ({ ...prev, server: message }))}
+                />
+              </>
+            ) : null}
           </>
         ) : (
           <>

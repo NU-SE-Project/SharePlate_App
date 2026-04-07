@@ -9,8 +9,12 @@ class TokenService {
   constructor() {
     this.accessSecret = process.env.JWT_ACCESS_SECRET;
     this.refreshSecret = process.env.JWT_REFRESH_SECRET;
+    this.googleOnboardingSecret =
+      process.env.JWT_GOOGLE_ONBOARDING_SECRET || this.accessSecret;
     this.accessExpiresIn = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
     this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+    this.googleOnboardingExpiresIn =
+      process.env.JWT_GOOGLE_ONBOARDING_EXPIRES_IN || "15m";
   }
 
   /**
@@ -32,6 +36,15 @@ class TokenService {
   }
 
   /**
+   * Generate short-lived onboarding token for Google signup completion
+   */
+  signGoogleOnboardingToken(payload) {
+    return jwt.sign(payload, this.googleOnboardingSecret, {
+      expiresIn: this.googleOnboardingExpiresIn,
+    });
+  }
+
+  /**
    * Verify refresh token
    */
   verifyRefreshToken(token) {
@@ -39,6 +52,19 @@ class TokenService {
       return jwt.verify(token, this.refreshSecret);
     } catch (error) {
       const err = new Error("Invalid or expired refresh token");
+      err.statusCode = 401;
+      throw err;
+    }
+  }
+
+  /**
+   * Verify Google onboarding token
+   */
+  verifyGoogleOnboardingToken(token) {
+    try {
+      return jwt.verify(token, this.googleOnboardingSecret);
+    } catch (error) {
+      const err = new Error("Invalid or expired Google onboarding token");
       err.statusCode = 401;
       throw err;
     }

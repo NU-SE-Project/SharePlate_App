@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Package, Clock, CheckCircle, XCircle, Utensils, AlertCircle, Bell, ChevronRight, Check, X,
   TrendingUp, Activity, PlusCircle, List, MessageSquareWarning, ArrowUpRight
@@ -7,16 +7,24 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import api from '../../../../utils/api';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../../../context/AuthContext';
 
 const COLORS = ['#10b981', '#3b82f6', '#ef4444', '#f59e0b'];
 
 const RestaurantDashboard = () => {
+  const auth = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
+    if (auth.isInitializing || !auth.accessToken || hasFetchedRef.current) {
+      return;
+    }
+
+    hasFetchedRef.current = true;
     fetchDashboardData();
-  }, []);
+  }, [auth.accessToken, auth.isInitializing]);
 
   const fetchDashboardData = async () => {
     try {

@@ -12,15 +12,16 @@ const MyRequestsTab = ({ foodBankId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [routeModalData, setRouteModalData] = useState(null);
   const { user } = useAuth();
+  const currentFoodBankId = foodBankId || user?.id || user?._id || null;
 
   const fetchRequests = async () => {
-    if (!foodBankId) {
+    if (!currentFoodBankId) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     try {
-      const data = await getMyFoodRequests(foodBankId);
+      const data = await getMyFoodRequests(currentFoodBankId);
       setRequests(data);
     } catch (error) {
       toast.error('Failed to load your requests');
@@ -31,7 +32,7 @@ const MyRequestsTab = ({ foodBankId }) => {
 
   useEffect(() => {
     fetchRequests();
-  }, [foodBankId]);
+  }, [currentFoodBankId]);
 
   // Listen for request status changes for real-time updates
   const { socket } = useSocket();

@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
-import { login } from '../services/authService';
 import { useAuth } from '../../../context/AuthContext';
+import GoogleAuthButton from './GoogleAuthButton';
+import {
+  clearStoredGoogleOnboarding,
+  setStoredGoogleOnboarding,
+} from '../utils/googleOnboardingStorage';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -12,6 +16,13 @@ const LoginForm = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigateByRole = (nextUser) => {
+    const role = nextUser?.role || '';
+    if (role === 'restaurant') navigate('/restaurant/dashboard');
+    else if (role === 'foodbank') navigate('/foodbank/donated-food');
+    else navigate('/dashboard');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,15 +51,36 @@ const LoginForm = () => {
     setIsLoading(true);
     try {
       const data = await auth.login(formData);
-      const role = data?.user?.role || '';
-      if (role === 'restaurant') navigate('/restaurant/dashboard');
-      else if (role === 'foodbank') navigate('/foodbank/donated-food');
-      else navigate('/dashboard');
+      navigateByRole(data?.user);
     } catch (error) {
       setErrors({ server: error.response?.data?.message || 'Invalid email or password' });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleCredential = async (credential) => {
+    setErrors((prev) => ({ ...prev, server: null }));
+    const result = await auth.loginWithGoogle(credential);
+
+    if (result?.requiresOnboarding) {
+      setStoredGoogleOnboarding({
+        onboardingToken: result.onboardingToken,
+        profile: result.profile,
+      });
+      navigate('/auth/signup', {
+        state: {
+          googleOnboarding: {
+            onboardingToken: result.onboardingToken,
+            profile: result.profile,
+          },
+        },
+      });
+      return;
+    }
+
+    clearStoredGoogleOnboarding();
+    navigateByRole(result?.user);
   };
 
   return (
@@ -112,6 +144,22 @@ const LoginForm = () => {
           'Sign In'
         )}
       </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+          <span className="bg-slate-50 px-3">or</span>
+        </div>
+      </div>
+
+      <GoogleAuthButton
+        text="Continue with Google"
+        disabled={isLoading}
+        onCredential={handleGoogleCredential}
+        onError={(message) => setErrors((prev) => ({ ...prev, server: message }))}
+      />
 
       <p className="text-center text-slate-600 text-sm">
         Don't have an account?{' '}

@@ -1,84 +1,133 @@
-import axios from 'axios';
+import axios from "axios";
+import {
+  clearStoredAuth,
+  getStoredAuth,
+  setStoredAuth,
+} from "../features/auth/utils/authStorage";
+
+const DEFAULT_API_BASE_URL = "http://localhost:5000/api";
+
+function normalizeApiBaseUrl(rawUrl) {
+  const trimmed = String(rawUrl || DEFAULT_API_BASE_URL).trim().replace(
+    /\/+$/,
+    "",
+  );
+
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+}
+
+export const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
+const REFRESH_URL = `${API_BASE_URL}/auth/refresh`;
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Attach Authorization header from localStorage for every request if available
+const authRoutesToSkipRefresh = [
+  "/auth/login",
+  "/auth/google",
+  "/auth/google/complete",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/refresh",
+  "/auth/verify-email",
+  "/auth/validate-reset-token",
+  "/auth/resend-verification",
+];
+
+function shouldSkipRefresh(url = "") {
+  return authRoutesToSkipRefresh.some((route) => url.includes(route));
+}
+
 api.interceptors.request.use((config) => {
-  try {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  } catch (e) {
-    // ignore
+  const { accessToken } = getStoredAuth();
+  if (accessToken) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
+
+  if (
+    import.meta.env.DEV &&
+    typeof config.url === "string" &&
+    (config.url.includes("/user/me") || config.url.includes("/dashboard/restaurant"))
+  ) {
+    const authHeader = config.headers?.Authorization || null;
+    console.debug("[api] request auth", {
+      url: config.url,
+      hasAccessToken: Boolean(accessToken),
+      authHeaderPreview:
+        typeof authHeader === "string" ? `${authHeader.slice(0, 24)}...` : null,
+    });
+  }
+
   return config;
 });
 
-// Response interceptor: if 401, try to refresh access token using refresh cookie
-let isRefreshing = false;
-let refreshSubscribers = [];
+let refreshPromise = null;
 
-function onRefreshed(token) {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
-}
+async function refreshAuthSession() {
+  const response = await axios.post(
+    REFRESH_URL,
+    {},
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
 
-function addRefreshSubscriber(cb) {
-  refreshSubscribers.push(cb);
+  const nextAuth = {
+    accessToken: response.data?.accessToken || null,
+    user: response.data?.user || null,
+  };
+
+  if (!nextAuth.accessToken || !nextAuth.user) {
+    throw new Error("Refresh response did not include a complete auth payload");
+  }
+
+  setStoredAuth(nextAuth);
+  return nextAuth;
 }
 
 api.interceptors.response.use(
-  (res) => res,
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (!originalRequest || !error.response) return Promise.reject(error);
+    const status = error.response?.status;
+    const requestUrl = originalRequest?.url || "";
 
-    // If unauthorized and not already retried
-    if (error.response.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // queue the request
-        return new Promise((resolve, reject) => {
-          addRefreshSubscriber((token) => {
-            if (!originalRequest.headers) originalRequest.headers = {};
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          });
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        // call refresh endpoint - expects refresh cookie (withCredentials=true)
-        const resp = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/auth/refresh', {}, { withCredentials: true });
-        const newToken = resp.data?.accessToken;
-        if (newToken) {
-          try { localStorage.setItem('accessToken', newToken); } catch (e) {}
-          onRefreshed(newToken);
-          if (!originalRequest.headers) originalRequest.headers = {};
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshErr) {
-        // refresh failed - clear storage and redirect to login
-        try { localStorage.removeItem('accessToken'); localStorage.removeItem('user'); localStorage.removeItem('restaurantId'); } catch (e) {}
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
-      }
+    if (
+      !originalRequest ||
+      status !== 401 ||
+      originalRequest._retry ||
+      shouldSkipRefresh(requestUrl)
+    ) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
-  }
+    originalRequest._retry = true;
+
+    try {
+      refreshPromise = refreshPromise || refreshAuthSession();
+      const refreshedAuth = await refreshPromise;
+
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${refreshedAuth.accessToken}`;
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      clearStoredAuth();
+      return Promise.reject(refreshError);
+    } finally {
+      refreshPromise = null;
+    }
+  },
 );
 
 export default api;

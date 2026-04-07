@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import LocationPicker from '../../../../components/common/LocationPicker';
 import axios from 'axios';
 import { Search } from 'lucide-react';
+import AccountSecurityPanel from './AccountSecurityPanel';
 
 const ProfileForm = () => {
   const { user, setUser } = useAuth();
@@ -25,11 +26,10 @@ const ProfileForm = () => {
   useEffect(() => {
     const fetchLatestProfile = async () => {
       try {
-        const data = await getMe();
-        if (data?.user) {
-          setUser(data.user);
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
+      const data = await getMe();
+      if (data?.user) {
+        setUser(data.user);
+      }
       } catch (error) {
         console.error('Failed to fetch profile:', error);
       }
@@ -114,10 +114,8 @@ const ProfileForm = () => {
 
       const result = await updateMe(payload);
       
-      // Update local context and localStorage
       const updatedUser = { ...user, ...result.user };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
       
       toast.success('Profile updated successfully!');
     } catch (error) {
@@ -252,6 +250,8 @@ const ProfileForm = () => {
             </Button>
           </div>
         </form>
+
+        <AccountSecurityPanel />
       </div>
     </div>
   );

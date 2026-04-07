@@ -3,12 +3,14 @@ import { Toaster } from "react-hot-toast";
 import { SocketProvider } from "./context/SocketContext";
 import { AuthProvider } from "./context/AuthContext";
 
-// Auth Features
 import LoginPage from "./features/auth/pages/LoginPage";
 import SignupPage from "./features/auth/pages/SignupPage";
 import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
+import ResendVerificationPage from "./features/auth/pages/ResendVerificationPage";
+import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
+import VerifyEmailPage from "./features/auth/pages/VerifyEmailPage";
+import ChangePasswordPage from "./features/auth/pages/ChangePasswordPage";
 
-// Restaurant Features
 import RestaurantLayout from "./features/restaurants/common/RestaurantLayout";
 import FoodBankLayout from "./features/foodbank/common/FoodBankLayout";
 import RequireAuth from "./components/common/RequireAuth";
@@ -17,10 +19,9 @@ import DonateFoodPage from "./features/restaurants/donateFood/pages/DonateFoodPa
 import ManageDonationsPage from "./features/restaurants/donateFood/pages/ManageDonationsPage";
 import AvailableRequestsPage from "./features/restaurants/donateFood/pages/AvailableRequestsPage";
 import RestaurantProfilePage from "./features/restaurants/profile/pages/RestaurantProfilePage";
-import RestaurantDashboard from './features/restaurants/common/pages/Restaurantdashboard'
+import RestaurantDashboard from "./features/restaurants/common/pages/Restaurantdashboard";
 import SingleDonationRequestsPage from "./features/restaurants/donateFood/pages/SingleDonationRequestsPage";
 
-// Foodbank Features
 import DonatedFoodPage from "./features/foodbank/donatedFood/pages/DonatedFoodPage";
 import PostRequestPage from "./features/foodbank/proactiveRequests/pages/PostRequestPage";
 import MyProactiveRequestsPage from "./features/foodbank/proactiveRequests/pages/MyProactiveRequestsPage";
@@ -31,97 +32,101 @@ function App() {
     <AuthProvider>
       <SocketProvider>
         <BrowserRouter>
-        {/* Toast notifications */}
-        <Toaster position="top-right" reverseOrder={false} />
-        
-        <Routes>
-          {/* Default redirect to Login */}
-          <Route path="/" element={<Navigate to="/auth/login" />} />
+          <Toaster position="top-right" reverseOrder={false} />
 
-          {/* Auth Routes */}
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/signup" element={<SignupPage />} />
-          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Routes>
+            <Route path="/" element={<Navigate to="/auth/login" />} />
 
-          {/* Restaurant Routes - Protected and Nested
-          <Route path="/restaurant" element={<RequireAuth roles={["restaurant"]}><RestaurantLayout /></RequireAuth>}>
-             <Route index element={<Navigate to="/restaurant/dashboard" />} />
-             <Route 
-                path="dashboard" 
-                element={
-                  <div className="flex flex-col gap-8">
-                     <h1 className="text-3xl font-bold">Restaurant Dashboard</h1>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <Link to="/restaurant/donate" className="p-8 bg-white rounded-3xl border border-emerald-100 shadow-sm hover:shadow-md transition-all">
-                           <h3 className="text-xl font-bold mb-2">Donate Food</h3>
-                           <p className="text-slate-500 text-sm">Create a new food donation listing.</p>
-                        </Link>
-                        <Link to="/restaurant/manage" className="p-8 bg-white rounded-3xl border border-emerald-100 shadow-sm hover:shadow-md transition-all">
-                           <h3 className="text-xl font-bold mb-2">Manage Donations</h3>
-                           <p className="text-slate-500 text-sm">View and update your donation listings.</p>
-                        </Link>
-                        <Link to="/restaurant/requests" className="p-8 bg-white rounded-3xl border border-emerald-100 shadow-sm hover:shadow-md transition-all">
-                           <h3 className="text-xl font-bold mb-2">Browse Requests</h3>
-                           <p className="text-slate-500 text-sm">See what food banks are asking for.</p>
-                        </Link>
-                     </div>
-                  </div>
-                } 
-             />
-             <Route path="donate" element={<DonateFoodPage />} />
-             <Route path="manage" element={<ManageDonationsPage />} />
-             <Route path="requests" element={<AvailableRequestsPage />} />
-             <Route path="profile" element={<RestaurantProfilePage />} />
-          </Route> */}
+            <Route path="/auth/login" element={<LoginPage />} />
+            <Route path="/auth/signup" element={<SignupPage />} />
+            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/auth/resend-verification"
+              element={<ResendVerificationPage />}
+            />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route
+              path="/auth/change-password"
+              element={
+                <RequireAuth>
+                  <ChangePasswordPage />
+                </RequireAuth>
+              }
+            />
 
-
-          <Route 
-              path="/restaurant" 
+            <Route
+              path="/restaurant"
               element={
                 <RequireAuth roles={["restaurant"]}>
                   <RestaurantLayout />
                 </RequireAuth>
               }
             >
-              {/* Default redirect */}
               <Route index element={<Navigate to="dashboard" />} />
-
-              {/* Pages */}
               <Route path="dashboard" element={<RestaurantDashboard />} />
               <Route path="donate" element={<DonateFoodPage />} />
               <Route path="manage" element={<ManageDonationsPage />} />
               <Route path="requests" element={<AvailableRequestsPage />} />
-               <Route path="donation-requests/:donationId" element={<SingleDonationRequestsPage />} />
+              <Route
+                path="donation-requests/:donationId"
+                element={<SingleDonationRequestsPage />}
+              />
               <Route path="profile" element={<RestaurantProfilePage />} />
-          </Route>
+            </Route>
 
-          {/* Foodbank Routes - Protected and Nested */}
-          <Route path="/foodbank" element={<RequireAuth roles={["foodbank"]}><FoodBankLayout /></RequireAuth>}>
-             <Route index element={<Navigate to="/foodbank/donated-food" />} />
-             <Route path="donated-food" element={<DonatedFoodPage />} />
-             <Route path="post-request" element={<PostRequestPage />} />
-             <Route path="my-proactive-requests" element={<MyProactiveRequestsPage />} />
-             <Route path="profile" element={<FoodBankProfilePage />} />
-             <Route path="leaderboard" element={<div className="p-10 font-bold text-2xl bg-white rounded-3xl shadow-sm">Community Leaderboard (Coming Soon)</div>} />
-          </Route>
+            <Route
+              path="/foodbank"
+              element={
+                <RequireAuth roles={["foodbank"]}>
+                  <FoodBankLayout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<Navigate to="/foodbank/donated-food" />} />
+              <Route path="donated-food" element={<DonatedFoodPage />} />
+              <Route path="post-request" element={<PostRequestPage />} />
+              <Route
+                path="my-proactive-requests"
+                element={<MyProactiveRequestsPage />}
+              />
+              <Route path="profile" element={<FoodBankProfilePage />} />
+              <Route
+                path="leaderboard"
+                element={
+                  <div className="p-10 font-bold text-2xl bg-white rounded-3xl shadow-sm">
+                    Community Leaderboard (Coming Soon)
+                  </div>
+                }
+              />
+            </Route>
 
-          <Route path="/dashboard" element={<RequireAuth><UserDashboard /></RequireAuth>} />
+            <Route
+              path="/dashboard"
+              element={
+                <RequireAuth>
+                  <UserDashboard />
+                </RequireAuth>
+              }
+            />
 
-          {/* ── 404 catch-all ── */}
-          <Route
-            path="*"
-            element={
-              <div className="flex flex-col items-center justify-center h-screen gap-4">
-                <h1 className="text-6xl font-bold text-emerald-600">404</h1>
-                <p className="text-slate-500">Page not found.</p>
-                <Link to="/auth/login" className="text-emerald-600 underline hover:text-emerald-800 font-medium font-sans">
-                  Go back to Login
-                </Link>
-              </div>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+            <Route
+              path="*"
+              element={
+                <div className="flex flex-col items-center justify-center h-screen gap-4">
+                  <h1 className="text-6xl font-bold text-emerald-600">404</h1>
+                  <p className="text-slate-500">Page not found.</p>
+                  <Link
+                    to="/auth/login"
+                    className="text-emerald-600 underline hover:text-emerald-800 font-medium font-sans"
+                  >
+                    Go back to Login
+                  </Link>
+                </div>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
       </SocketProvider>
     </AuthProvider>
   );

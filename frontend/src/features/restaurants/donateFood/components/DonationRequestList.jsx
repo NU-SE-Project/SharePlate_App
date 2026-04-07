@@ -22,9 +22,7 @@ const DonationRequestList = () => {
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      // derive restaurant id from localStorage user if available
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      const restaurantId = user?.id || user?._id;
+      const restaurantId = user?.id || user?._id || null;
       if (!restaurantId) {
         toast.error('Missing restaurant id');
         setIsLoading(false);
@@ -41,7 +39,7 @@ const DonationRequestList = () => {
 
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [user]);
 
   const { socket } = useSocket();
   useEffect(() => {

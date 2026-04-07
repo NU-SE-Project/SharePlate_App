@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 
 const MyProactiveRequestsPage = () => {
   const { user } = useAuth();
+  const currentFoodBankId = user?.id || user?._id || null;
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
@@ -17,10 +18,13 @@ const MyProactiveRequestsPage = () => {
   const selectedRequest = requests.find(r => r._id === selectedRequestId);
 
   const fetchRequests = async () => {
-    if (!user?._id && !user?.id) return;
+    if (!currentFoodBankId) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
-      const data = await getMyProactiveRequests(user?._id || user?.id);
+      const data = await getMyProactiveRequests(currentFoodBankId);
       setRequests(data);
     } catch (error) {
       toast.error('Failed to load your proactive requests');
@@ -31,7 +35,7 @@ const MyProactiveRequestsPage = () => {
 
   useEffect(() => {
     fetchRequests();
-  }, [user]);
+  }, [currentFoodBankId]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to cancel this broadcast?')) return;

@@ -17,6 +17,18 @@ const userSchema = new Schema(
     // Store HASHED password only
     password: { type: String, required: true, select: false },
 
+    googleId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+
     address: { type: String, required: true, trim: true },
 
     contactNumber: { type: String, required: true, trim: true },
@@ -57,6 +69,7 @@ const userSchema = new Schema(
 
     // Admin can disable accounts
     isActive: { type: Boolean, default: true },
+    authVersion: { type: Number, default: 0, min: 0 },
 
     // Email verification
     emailVerified: { type: Boolean, default: false },
