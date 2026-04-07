@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { buildPublicAppUrl } from "./publicAppUrl.js";
 
 dotenv.config();
 
@@ -118,7 +119,7 @@ export async function sendEmail({ to, subject, text, html }) {
  * Send email verification email
  */
 export async function sendVerificationEmail(email, name, token) {
-  const verifyUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/verify-email?token=${token}`;
+  const verifyUrl = buildPublicAppUrl("/verify-email", { token });
 
   const subject = "Verify Your Email - SharePlate";
   const text = `
@@ -181,7 +182,7 @@ SharePlate Team
  * Send password reset email
  */
 export async function sendPasswordResetEmail(email, name, token) {
-  const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+  const resetUrl = buildPublicAppUrl("/reset-password", { token });
 
   const subject = "Password Reset Request - SharePlate";
   const text = `

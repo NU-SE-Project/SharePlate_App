@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as authService from "../features/auth/services/authService";
 import {
   authStorageKeys,
@@ -9,6 +9,12 @@ import {
 } from "../features/auth/utils/authStorage";
 
 const AuthContext = createContext(null);
+const refreshSkipRoutes = new Set([
+  "/auth/login",
+  "/auth/register",
+  "/auth/resend-verification",
+  "/verify-email",
+]);
 
 function readLatestAuth(accessTokenFallback = null) {
   const storedAuth = getStoredAuth();
@@ -22,6 +28,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUserState] = useState(null);
   const [accessToken, setAccessTokenState] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const hasBootstrappedRef = useRef(false);
 
   const syncState = (nextAuth) => {
     setUserState(nextAuth?.user || null);
@@ -61,11 +68,18 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if (hasBootstrappedRef.current) {
+      return undefined;
+    }
+
+    hasBootstrappedRef.current = true;
     let isMounted = true;
 
     const bootstrapAuth = async () => {
       setIsInitializing(true);
       const storedAuth = readLatestAuth();
+      const currentPath = window.location.pathname;
+      const shouldSkipRefresh = refreshSkipRoutes.has(currentPath);
 
       try {
         if (storedAuth.accessToken) {
@@ -76,6 +90,10 @@ export const AuthProvider = ({ children }) => {
             accessToken: readLatestAuth(storedAuth.accessToken).accessToken,
             user: response?.user || null,
           });
+          return;
+        }
+
+        if (shouldSkipRefresh) {
           return;
         }
 

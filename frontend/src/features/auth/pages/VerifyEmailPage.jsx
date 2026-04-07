@@ -1,9 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import AuthLayout from "../components/AuthLayout";
-import { verifyEmail } from "../services/authService";
+import { verifyEmail as verifyEmailRequest } from "../services/authService";
 import { useAuth } from "../../../context/AuthContext";
+
+const verificationRequestCache = new Map();
+
+function verifyEmailOnce(token) {
+  if (!verificationRequestCache.has(token)) {
+    const request = verifyEmailRequest(token)
+      .then((response) => ({
+        ok: true,
+        response,
+      }))
+      .catch((error) => ({
+        ok: false,
+        error,
+      }));
+
+    verificationRequestCache.set(token, request);
+  }
+
+  return verificationRequestCache.get(token);
+}
 
 const VerifyEmailPage = () => {
   const auth = useAuth();
@@ -11,6 +31,11 @@ const VerifyEmailPage = () => {
   const token = searchParams.get("token") || "";
   const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("");
+  const authRef = useRef(auth);
+
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
 
   useEffect(() => {
     let isMounted = true;
@@ -24,21 +49,24 @@ const VerifyEmailPage = () => {
         return;
       }
 
-      try {
-        const response = await verifyEmail(token);
-        if (!isMounted) return;
+      const result = await verifyEmailOnce(token);
+      if (!isMounted) return;
 
+      if (result.ok) {
+        const response = result.response;
         setStatus("success");
         setMessage(
           response?.message || "Email verified successfully. You can now log in.",
         );
 
-        if (auth.isAuthenticated) {
-          auth.refreshCurrentUser().catch(() => {});
+        if (authRef.current.isAuthenticated) {
+          authRef.current.refreshCurrentUser().catch(() => {});
         }
-      } catch (error) {
-        if (!isMounted) return;
+        return;
+      }
 
+      const error = result.error;
+      if (isMounted) {
         setStatus("error");
         setMessage(
           error.response?.data?.message ||
@@ -52,7 +80,7 @@ const VerifyEmailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [auth.isAuthenticated, token]);
+  }, [token]);
 
   return (
     <AuthLayout

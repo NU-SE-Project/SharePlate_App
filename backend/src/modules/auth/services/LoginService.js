@@ -30,6 +30,15 @@ class LoginService {
       throw err;
     }
 
+    if (!user.emailVerified) {
+      const err = new Error(
+        "Please verify your email before logging in. You can request a new verification email if needed.",
+      );
+      err.statusCode = 403;
+      err.code = "EMAIL_NOT_VERIFIED";
+      throw err;
+    }
+
     // Check if account is locked
     await this._checkAccountLock(user);
 
