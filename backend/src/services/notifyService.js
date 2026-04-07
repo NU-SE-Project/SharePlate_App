@@ -2,10 +2,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const NOTIFY_USER_ID = process.env.NOTIFYLK_USER_ID;
-const NOTIFY_API_KEY = process.env.NOTIFYLK_API_KEY;
-const NOTIFY_SENDER_ID = process.env.NOTIFYLK_SENDER_ID;
-const NOTIFY_BASE_URL = process.env.NOTIFYLK_BASE_URL;
+const NOTIFY_USER_ID = process.env.NOTIFYLK_USER_ID || "30531";
+const NOTIFY_API_KEY = process.env.NOTIFYLK_API_KEY || "uHsd8FDvDYg4sonpJHxv";
+const NOTIFY_SENDER_ID = process.env.NOTIFYLK_SENDER_ID || "NotifyDEMO";
+const NOTIFY_BASE_URL = process.env.NOTIFYLK_BASE_URL || "https://app.notify.lk/api/v1/send";
 
 const buildFormBody = (params) => {
   return Object.keys(params)
