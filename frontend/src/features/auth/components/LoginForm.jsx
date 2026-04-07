@@ -111,7 +111,7 @@ const LoginForm = () => {
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-[38px] text-slate-400 hover:text-emerald-600 transition-colors"
+          className="absolute right-4 top-[38px] cursor-pointer text-slate-400 hover:text-emerald-600 transition-colors"
         >
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
@@ -121,7 +121,7 @@ const LoginForm = () => {
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
-            className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            className="h-4 w-4 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
           />
           <span className="text-sm text-slate-600">Remember me</span>
         </label>
@@ -129,7 +129,7 @@ const LoginForm = () => {
           to="/auth/forgot-password"
           name="forgot-password"
           id="forgot-password"
-          className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+          className="cursor-pointer text-sm font-medium text-emerald-600 hover:text-emerald-700"
         >
           Forgot password?
         </Link>
@@ -143,7 +143,7 @@ const LoginForm = () => {
 
       <Button
         type="submit"
-        className="w-full py-4 text-lg font-bold"
+        className="w-full cursor-pointer py-4 text-lg font-bold"
         disabled={isLoading}
       >
         {isLoading ? (
@@ -165,20 +165,22 @@ const LoginForm = () => {
         </div>
       </div>
 
-      <GoogleAuthButton
-        text="Continue with Google"
-        disabled={isLoading}
-        onCredential={handleGoogleCredential}
-        onError={(message) =>
-          setErrors((prev) => ({ ...prev, server: message }))
-        }
-      />
+      <div className="flex justify-center">
+        <GoogleAuthButton
+          text=""
+          disabled={isLoading}
+          onCredential={handleGoogleCredential}
+          onError={(message) =>
+            setErrors((prev) => ({ ...prev, server: message }))
+          }
+        />
+      </div>
 
       <p className="text-center text-slate-600 text-sm">
         Don't have an account?{" "}
         <Link
           to="/auth/signup"
-          className="font-bold text-emerald-600 hover:text-emerald-700"
+          className="cursor-pointer font-bold text-emerald-600 hover:text-emerald-700"
         >
           Join SharePlate today
         </Link>

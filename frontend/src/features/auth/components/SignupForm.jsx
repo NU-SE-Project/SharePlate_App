@@ -1,20 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Phone, MapPin, Loader2, ChevronRight, Search } from 'lucide-react';
-import Input from '../../../components/common/Input';
-import Button from '../../../components/common/Button';
-import Select from '../../../components/common/Select';
-import { register } from '../services/authService';
-import LocationPicker from '../../../components/common/LocationPicker';
-import GoogleAuthButton from './GoogleAuthButton';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../../context/AuthContext';
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Mail,
+  Lock,
+  User,
+  Phone,
+  MapPin,
+  Loader2,
+  ChevronRight,
+  Search,
+} from "lucide-react";
+import Input from "../../../components/common/Input";
+import Button from "../../../components/common/Button";
+import Select from "../../../components/common/Select";
+import { register } from "../services/authService";
+import LocationPicker from "../../../components/common/LocationPicker";
+import GoogleAuthButton from "./GoogleAuthButton";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useAuth } from "../../../context/AuthContext";
 import {
   clearStoredGoogleOnboarding,
   getStoredGoogleOnboarding,
   setStoredGoogleOnboarding,
-} from '../utils/googleOnboardingStorage';
+} from "../utils/googleOnboardingStorage";
 
 const SignupForm = () => {
   const navigate = useNavigate();
@@ -25,14 +34,14 @@ const SignupForm = () => {
   const isGoogleOnboarding = Boolean(googleOnboarding?.onboardingToken);
   const [step, setStep] = useState(isGoogleOnboarding ? 1 : 1);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    address: '',
-    contactNumber: '',
-    role: 'restaurant',
-    location: { type: 'Point', coordinates: [79.8612, 6.9271] }, // Default to Colombo
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    address: "",
+    contactNumber: "",
+    role: "restaurant",
+    location: { type: "Point", coordinates: [79.8612, 6.9271] }, // Default to Colombo
   });
 
   const [errors, setErrors] = useState({});
@@ -41,9 +50,9 @@ const SignupForm = () => {
 
   const roles = useMemo(
     () => [
-      { value: 'restaurant', label: 'Restaurant / Hotel' },
-      { value: 'foodbank', label: 'Food Bank / NGO' },
-      { value: 'admin', label: 'Administrator' },
+      { value: "restaurant", label: "Restaurant / Hotel" },
+      { value: "foodbank", label: "Food Bank / NGO" },
+      { value: "admin", label: "Administrator" },
     ],
     [],
   );
@@ -61,10 +70,10 @@ const SignupForm = () => {
   }, [googleOnboarding, isGoogleOnboarding]);
 
   const navigateByRole = (nextUser) => {
-    const role = nextUser?.role || '';
-    if (role === 'restaurant') navigate('/restaurant/dashboard');
-    else if (role === 'foodbank') navigate('/foodbank/donated-food');
-    else navigate('/dashboard');
+    const role = nextUser?.role || "";
+    if (role === "restaurant") navigate("/restaurant/dashboard");
+    else if (role === "foodbank") navigate("/foodbank/donated-food");
+    else navigate("/dashboard");
   };
 
   const handleLocationChange = (coords) => {
@@ -80,7 +89,7 @@ const SignupForm = () => {
 
   const handleGeocode = async () => {
     if (!formData.address) {
-      toast.error('Please enter an address first');
+      toast.error("Please enter an address first");
       return;
     }
 
@@ -88,8 +97,8 @@ const SignupForm = () => {
     try {
       const response = await axios.get(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          formData.address
-        )}&limit=1`
+          formData.address,
+        )}&limit=1`,
       );
 
       if (response.data && response.data.length > 0) {
@@ -101,13 +110,13 @@ const SignupForm = () => {
             coordinates: [Number(lon), Number(lat)],
           },
         }));
-        toast.success('Location found on map!');
+        toast.success("Location found on map!");
       } else {
-        toast.error('Could not find location for this address.');
+        toast.error("Could not find location for this address.");
       }
     } catch (error) {
-      console.error('Geocoding error:', error);
-      toast.error('Error searching for location');
+      console.error("Geocoding error:", error);
+      toast.error("Error searching for location");
     } finally {
       setIsGeocoding(false);
     }
@@ -121,22 +130,27 @@ const SignupForm = () => {
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.name) newErrors.name = 'Full name is required';
+    if (!formData.name) newErrors.name = "Full name is required";
     if (!isGoogleOnboarding) {
-      if (!formData.email) newErrors.email = 'Email is required';
-      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
+      if (!formData.email) newErrors.email = "Email is required";
+      else if (!/\S+@\S+\.\S+/.test(formData.email))
+        newErrors.email = "Invalid email address";
     }
     return newErrors;
   };
 
   const validateStep2 = () => {
     const newErrors = {};
-    if (!formData.address) newErrors.address = 'Detailed address is required';
-    if (!formData.contactNumber) newErrors.contactNumber = 'Contact number is required';
-    else if (!/^\+947[0-9]{8}$/.test(formData.contactNumber)) newErrors.contactNumber = 'Use format +947XXXXXXXX';
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!formData.address) newErrors.address = "Detailed address is required";
+    if (!formData.contactNumber)
+      newErrors.contactNumber = "Contact number is required";
+    else if (!/^\+947[0-9]{8}$/.test(formData.contactNumber))
+      newErrors.contactNumber = "Use format +947XXXXXXXX";
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters";
+    if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
     return newErrors;
   };
 
@@ -169,10 +183,14 @@ const SignupForm = () => {
         navigateByRole(result?.user);
       } else {
         await register(submitData);
-        navigate('/auth/login', { state: { message: 'Account created! Please log in.' } });
+        navigate("/auth/login", {
+          state: { message: "Account created! Please log in." },
+        });
       }
     } catch (error) {
-      setErrors({ server: error.response?.data?.message || 'Registration failed' });
+      setErrors({
+        server: error.response?.data?.message || "Registration failed",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -187,7 +205,7 @@ const SignupForm = () => {
         onboardingToken: result.onboardingToken,
         profile: result.profile,
       });
-      navigate('/auth/signup', {
+      navigate("/auth/signup", {
         replace: true,
         state: {
           googleOnboarding: {
@@ -207,18 +225,33 @@ const SignupForm = () => {
     <div className="space-y-6">
       {isGoogleOnboarding ? (
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
-          Google verified <span className="font-bold">{googleOnboarding.profile?.email}</span>.
+          Google verified{" "}
+          <span className="font-bold">{googleOnboarding.profile?.email}</span>.
           Complete the remaining account details to finish signup.
         </div>
       ) : null}
 
       {/* Steps Indicator */}
       <div className="flex items-center gap-2 mb-8">
-        <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
-        <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+        <div
+          className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 1 ? "bg-emerald-500" : "bg-slate-200"}`}
+        />
+        <div
+          className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 2 ? "bg-emerald-500" : "bg-slate-200"}`}
+        />
       </div>
 
-      <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="space-y-5">
+      <form
+        onSubmit={
+          step === 1
+            ? (e) => {
+                e.preventDefault();
+                handleNext();
+              }
+            : handleSubmit
+        }
+        className="space-y-5"
+      >
         {step === 1 ? (
           <>
             <Input
@@ -248,13 +281,18 @@ const SignupForm = () => {
               value={formData.role}
               onChange={handleChange}
               error={errors.role}
+              className="cursor-pointer"
             />
             {errors.server && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-100">
                 {errors.server}
               </div>
             )}
-            <Button type="button" onClick={handleNext} className="w-full py-4 text-lg font-bold">
+            <Button
+              type="button"
+              onClick={handleNext}
+              className="w-full cursor-pointer py-4 text-lg font-bold"
+            >
               Next Step <ChevronRight className="ml-2" size={20} />
             </Button>
 
@@ -269,12 +307,16 @@ const SignupForm = () => {
                   </div>
                 </div>
 
-                <GoogleAuthButton
-                  text="Sign up with Google"
-                  disabled={isLoading}
-                  onCredential={handleGoogleCredential}
-                  onError={(message) => setErrors((prev) => ({ ...prev, server: message }))}
-                />
+                <div className="flex justify-center">
+                  <GoogleAuthButton
+                    text=""
+                    disabled={isLoading}
+                    onCredential={handleGoogleCredential}
+                    onError={(message) =>
+                      setErrors((prev) => ({ ...prev, server: message }))
+                    }
+                  />
+                </div>
               </>
             ) : null}
           </>
@@ -314,10 +356,14 @@ const SignupForm = () => {
                 type="button"
                 onClick={handleGeocode}
                 disabled={isGeocoding}
-                className="absolute right-2 bottom-2 p-2 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:bg-slate-300"
+                className="absolute right-2 bottom-2 cursor-pointer rounded-xl bg-emerald-600 p-2 text-white shadow-lg shadow-emerald-200 transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 title="Find on Map"
               >
-                {isGeocoding ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                {isGeocoding ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Search size={16} />
+                )}
               </button>
             </div>
 
@@ -345,21 +391,25 @@ const SignupForm = () => {
             )}
 
             <div className="flex gap-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setStep(1)} 
-                className="w-1/3"
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep(1)}
+                className="w-1/3 cursor-pointer"
                 disabled={isLoading}
               >
                 Back
               </Button>
-              <Button 
-                type="submit" 
-                className="w-2/3 py-4 text-lg font-bold" 
+              <Button
+                type="submit"
+                className="w-2/3 cursor-pointer py-4 text-lg font-bold"
                 disabled={isLoading}
               >
-                {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Complete Registration'}
+                {isLoading ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  "Complete Registration"
+                )}
               </Button>
             </div>
           </>
@@ -367,9 +417,12 @@ const SignupForm = () => {
       </form>
 
       <p className="text-center text-slate-600 text-sm">
-        Already have an account?{' '}
-        <Link to="/auth/login" className="font-bold text-emerald-600 hover:text-emerald-700">
-          Sign in here
+        Already part of SharePlate?{" "}
+        <Link
+          to="/auth/login"
+          className="cursor-pointer font-bold text-emerald-600 hover:text-emerald-700"
+        >
+          Sign in to continue
         </Link>
       </p>
     </div>

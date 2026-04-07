@@ -123,7 +123,7 @@ const ChangePasswordForm = () => {
             <button
               type="button"
               onClick={() => togglePassword(field.name)}
-              className="absolute right-4 top-[38px] text-slate-400 hover:text-emerald-600"
+              className="absolute right-4 top-[38px] cursor-pointer text-slate-400 hover:text-emerald-600"
             >
               {showPassword[field.name] ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -138,7 +138,7 @@ const ChangePasswordForm = () => {
 
         <Button
           type="submit"
-          className="w-full py-4 text-lg font-bold"
+          className="w-full cursor-pointer py-4 text-lg font-bold"
           disabled={isSubmitting}
         >
           {isSubmitting ? (

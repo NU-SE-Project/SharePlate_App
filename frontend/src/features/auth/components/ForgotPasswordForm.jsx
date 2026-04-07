@@ -37,7 +37,7 @@ const ForgotPasswordForm = () => {
         <p className="text-emerald-700 mb-6">
           We've sent a password reset link to <span className="font-bold">{email}</span>.
         </p>
-        <Link to="/auth/login" className="flex items-center justify-center gap-2 text-emerald-600 font-bold hover:text-emerald-700">
+        <Link to="/auth/login" className="flex cursor-pointer items-center justify-center gap-2 text-emerald-600 font-bold hover:text-emerald-700">
           <ArrowLeft size={18} /> Back to Login
         </Link>
       </div>
@@ -67,7 +67,7 @@ const ForgotPasswordForm = () => {
 
         <Button
           type="submit"
-          className="w-full py-4 text-lg font-bold"
+          className="w-full cursor-pointer py-4 text-lg font-bold"
           disabled={status === 'loading'}
         >
           {status === 'loading' ? (
@@ -80,7 +80,7 @@ const ForgotPasswordForm = () => {
           )}
         </Button>
 
-        <Link to="/auth/login" className="flex items-center justify-center gap-2 text-slate-500 font-medium hover:text-emerald-600 transition-colors">
+        <Link to="/auth/login" className="flex cursor-pointer items-center justify-center gap-2 text-slate-500 font-medium hover:text-emerald-600 transition-colors">
           <ArrowLeft size={18} /> Back to Login
         </Link>
       </form>
