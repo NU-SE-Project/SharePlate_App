@@ -46,7 +46,7 @@ const AvailableRequestsPage = () => {
             className={`px-4 py-2 rounded-xl font-semibold ${false ? 'bg-emerald-600 text-white' : 'text-slate-700'}`}
             onClick={() => setActiveTab('foodbank')}
           >
-            Food Bank Requests
+            Requests From Food Banks
           </button>
           <button
             className={`px-4 py-2 rounded-xl font-semibold ${false ? 'bg-emerald-600 text-white' : 'text-slate-700'}`}

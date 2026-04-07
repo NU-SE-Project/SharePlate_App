@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Calendar, Clock, Loader2, AlertCircle, Heart, CheckCircle2, XCircle, Info, Trash2, ArrowRight, User, Phone, MapPin, Map as MapIcon } from 'lucide-react';
 import { getMyProactiveRequests, deleteProactiveRequest } from '../../services/foodbankService';
 import { useAuth } from '../../../../context/AuthContext';
+import { useSocket } from '../../../../context/SocketContext';
 import Button from '../../../../components/common/Button';
 import RouteMapModal from '../../../../components/common/RouteMapModal';
 import toast from 'react-hot-toast';
@@ -14,6 +15,7 @@ const MyProactiveRequestsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [routeModalData, setRouteModalData] = useState(null);
+   const { socket } = useSocket();
 
   const selectedRequest = requests.find(r => r._id === selectedRequestId);
 
@@ -36,6 +38,40 @@ const MyProactiveRequestsPage = () => {
   useEffect(() => {
     fetchRequests();
   }, [currentFoodBankId]);
+
+   useEffect(() => {
+      if (!socket || !currentFoodBankId) return;
+
+      const handleRequestCreated = (data) => {
+         if (data?.foodbankId && data.foodbankId !== currentFoodBankId) return;
+         fetchRequests();
+         toast.success('Your broadcast is now live for nearby restaurants.');
+      };
+
+      const handleRequestAccepted = () => {
+         fetchRequests();
+      };
+
+      const handleRequestRejected = () => {
+         fetchRequests();
+      };
+
+      const handleDonationUpdated = () => {
+         fetchRequests();
+      };
+
+      socket.on('foodbank_request_created', handleRequestCreated);
+      socket.on('request_accepted', handleRequestAccepted);
+      socket.on('request_rejected', handleRequestRejected);
+      socket.on('donation_updated', handleDonationUpdated);
+
+      return () => {
+         socket.off('foodbank_request_created', handleRequestCreated);
+         socket.off('request_accepted', handleRequestAccepted);
+         socket.off('request_rejected', handleRequestRejected);
+         socket.off('donation_updated', handleDonationUpdated);
+      };
+   }, [socket, currentFoodBankId]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to cancel this broadcast?')) return;

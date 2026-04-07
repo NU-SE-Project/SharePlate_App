@@ -31,12 +31,17 @@ const PostRequestPage = () => {
 
     setIsLoading(true);
     try {
-      await createProactiveRequest({
+      const response = await createProactiveRequest({
         ...formData,
         foodbank_id: foodBankId,
         requestedQuantity: Number(formData.requestedQuantity),
       });
-      toast.success('Your request has been broadcasted to all nearby restaurants!');
+      const restaurantCount = response?.notificationSummary?.restaurantCount ?? 0;
+      if (restaurantCount > 0) {
+        toast.success(`Your request has been broadcasted to ${restaurantCount} nearby restaurant${restaurantCount === 1 ? '' : 's'}!`);
+      } else {
+        toast.success('Your request was saved. No nearby restaurants were found to notify.');
+      }
       navigate('/foodbank/my-proactive-requests');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to post request');

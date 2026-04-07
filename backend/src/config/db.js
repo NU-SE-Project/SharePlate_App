@@ -1,3 +1,6 @@
+import dns from "node:dns";
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 // config/db.js
 import mongoose, { connect } from "mongoose";
 import dotenv from "dotenv";
