@@ -1,0 +1,44 @@
+config:
+  target: "{{ $processEnvironment.API_BASE_URL }}"
+  phases:
+    - name: warm-up
+      duration: 60
+      arrivalRate: 5
+      rampTo: 20
+    - name: steady-load
+      duration: 120
+      arrivalRate: 20
+    - name: spike-load
+      duration: 60
+      arrivalRate: 20
+      rampTo: 60
+  defaults:
+    headers:
+      Content-Type: application/json
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 1000
+      - http.response_time.p99: 2000
+      - http.codes.200: 90
+
+scenarios:
+  - name: mixed-read-traffic
+    weight: 70
+    flow:
+      - get:
+          url: "/api/foodsdonate"
+      - get:
+          url: "/api/foodbank-request"
+
+  - name: auth-and-read-traffic
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "loadtest@example.com"
+            password: "StrongPass123!"
+      - get:
+          url: "/api/foodsdonate"
