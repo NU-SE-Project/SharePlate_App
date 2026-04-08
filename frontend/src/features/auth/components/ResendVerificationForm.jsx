@@ -63,7 +63,7 @@ const ResendVerificationForm = () => {
 
         <Button
           type="submit"
-          className="w-full py-4 text-lg font-bold"
+          className="w-full cursor-pointer py-4 text-lg font-bold"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -82,7 +82,7 @@ const ResendVerificationForm = () => {
 
       <Link
         to="/auth/login"
-        className="block text-center text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+        className="block cursor-pointer text-center text-sm font-semibold text-emerald-600 hover:text-emerald-700"
       >
         Back to login
       </Link>

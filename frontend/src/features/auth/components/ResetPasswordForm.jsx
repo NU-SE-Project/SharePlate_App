@@ -121,13 +121,13 @@ const ResetPasswordForm = ({ token }) => {
         <div className="flex gap-3">
           <Link
             to="/auth/forgot-password"
-            className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
           >
             Request another link
           </Link>
           <Link
             to="/auth/login"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-600"
+            className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-600"
           >
             Back to login
           </Link>
@@ -147,7 +147,7 @@ const ResetPasswordForm = ({ token }) => {
         </div>
         <Link
           to="/auth/login"
-          className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
+          className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
         >
           Return to login
         </Link>
@@ -170,7 +170,7 @@ const ResetPasswordForm = ({ token }) => {
         <button
           type="button"
           onClick={() => setShowPassword((current) => !current)}
-          className="absolute right-4 top-[38px] text-slate-400 hover:text-emerald-600"
+          className="absolute right-4 top-[38px] cursor-pointer text-slate-400 hover:text-emerald-600"
         >
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
@@ -188,7 +188,7 @@ const ResetPasswordForm = ({ token }) => {
         <button
           type="button"
           onClick={() => setShowConfirmPassword((current) => !current)}
-          className="absolute right-4 top-[38px] text-slate-400 hover:text-emerald-600"
+          className="absolute right-4 top-[38px] cursor-pointer text-slate-400 hover:text-emerald-600"
         >
           {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
@@ -196,7 +196,7 @@ const ResetPasswordForm = ({ token }) => {
 
       <Button
         type="submit"
-        className="w-full py-4 text-lg font-bold"
+        className="w-full cursor-pointer py-4 text-lg font-bold"
         disabled={status === "submitting"}
       >
         {status === "submitting" ? (
@@ -211,7 +211,7 @@ const ResetPasswordForm = ({ token }) => {
 
       <Link
         to="/auth/login"
-        className="block text-center text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+        className="block cursor-pointer text-center text-sm font-semibold text-emerald-600 hover:text-emerald-700"
       >
         Back to login
       </Link>

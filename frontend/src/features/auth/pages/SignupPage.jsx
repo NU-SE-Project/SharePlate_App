@@ -1,12 +1,12 @@
-import React from 'react';
-import AuthLayout from '../components/AuthLayout';
-import SignupForm from '../components/SignupForm';
+import React from "react";
+import AuthLayout from "../components/AuthLayout";
+import SignupForm from "../components/SignupForm";
 
 const SignupPage = () => {
   return (
-    <AuthLayout 
-      title="Create an Account" 
-      subtitle="Help us make a difference by joining the SharePlate network"
+    <AuthLayout
+      title="Join SharePlate"
+      subtitle="Join SharePlate to reduce food waste and deliver meals to those who need them most"
     >
       <SignupForm />
     </AuthLayout>

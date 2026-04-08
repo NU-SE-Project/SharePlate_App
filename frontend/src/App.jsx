@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { SocketProvider } from "./context/SocketContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -10,6 +10,7 @@ import ResendVerificationPage from "./features/auth/pages/ResendVerificationPage
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import VerifyEmailPage from "./features/auth/pages/VerifyEmailPage";
 import ChangePasswordPage from "./features/auth/pages/ChangePasswordPage";
+import HomePage from "./features/home/pages/HomePage";
 
 import RestaurantLayout from "./features/restaurants/common/RestaurantLayout";
 import FoodBankLayout from "./features/foodbank/common/FoodBankLayout";
@@ -35,7 +36,7 @@ function App() {
           <Toaster position="top-right" reverseOrder={false} />
 
           <Routes>
-            <Route path="/" element={<Navigate to="/auth/login" />} />
+            <Route path="/" element={<HomePage />} />
 
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
@@ -110,21 +111,7 @@ function App() {
               }
             />
 
-            <Route
-              path="*"
-              element={
-                <div className="flex flex-col items-center justify-center h-screen gap-4">
-                  <h1 className="text-6xl font-bold text-emerald-600">404</h1>
-                  <p className="text-slate-500">Page not found.</p>
-                  <Link
-                    to="/auth/login"
-                    className="text-emerald-600 underline hover:text-emerald-800 font-medium font-sans"
-                  >
-                    Go back to Login
-                  </Link>
-                </div>
-              }
-            />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </SocketProvider>

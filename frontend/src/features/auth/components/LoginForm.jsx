@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import Input from '../../../components/common/Input';
-import Button from '../../../components/common/Button';
-import { useAuth } from '../../../context/AuthContext';
-import GoogleAuthButton from './GoogleAuthButton';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import Input from "../../../components/common/Input";
+import Button from "../../../components/common/Button";
+import { useAuth } from "../../../context/AuthContext";
+import GoogleAuthButton from "./GoogleAuthButton";
 import {
   clearStoredGoogleOnboarding,
   setStoredGoogleOnboarding,
-} from '../utils/googleOnboardingStorage';
+} from "../utils/googleOnboardingStorage";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const navigateByRole = (nextUser) => {
-    const role = nextUser?.role || '';
-    if (role === 'restaurant') navigate('/restaurant/dashboard');
-    else if (role === 'foodbank') navigate('/foodbank/donated-food');
-    else navigate('/dashboard');
+    const role = nextUser?.role || "";
+    if (role === "restaurant") navigate("/restaurant/dashboard");
+    else if (role === "foodbank") navigate("/foodbank/donated-food");
+    else navigate("/dashboard");
   };
 
   const handleChange = (e) => {
@@ -32,9 +32,10 @@ const LoginForm = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Invalid email address";
+    if (!formData.password) newErrors.password = "Password is required";
     return newErrors;
   };
 
@@ -53,7 +54,9 @@ const LoginForm = () => {
       const data = await auth.login(formData);
       navigateByRole(data?.user);
     } catch (error) {
-      setErrors({ server: error.response?.data?.message || 'Invalid email or password' });
+      setErrors({
+        server: error.response?.data?.message || "Invalid email or password",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +71,7 @@ const LoginForm = () => {
         onboardingToken: result.onboardingToken,
         profile: result.profile,
       });
-      navigate('/auth/signup', {
+      navigate("/auth/signup", {
         state: {
           googleOnboarding: {
             onboardingToken: result.onboardingToken,
@@ -99,7 +102,7 @@ const LoginForm = () => {
         <Input
           label="Password"
           name="password"
-          type={showPassword ? 'text' : 'password'}
+          type={showPassword ? "text" : "password"}
           placeholder="••••••••"
           value={formData.password}
           onChange={handleChange}
@@ -116,10 +119,18 @@ const LoginForm = () => {
 
       <div className="flex items-center justify-between ml-1">
         <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+          <input
+            type="checkbox"
+            className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+          />
           <span className="text-sm text-slate-600">Remember me</span>
         </label>
-        <Link to="/auth/forgot-password" name="forgot-password" id="forgot-password" className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+        <Link
+          to="/auth/forgot-password"
+          name="forgot-password"
+          id="forgot-password"
+          className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+        >
           Forgot password?
         </Link>
       </div>
@@ -141,7 +152,7 @@ const LoginForm = () => {
             Signing in...
           </>
         ) : (
-          'Sign In'
+          "Sign In"
         )}
       </Button>
 
@@ -154,17 +165,24 @@ const LoginForm = () => {
         </div>
       </div>
 
-      <GoogleAuthButton
-        text="Continue with Google"
-        disabled={isLoading}
-        onCredential={handleGoogleCredential}
-        onError={(message) => setErrors((prev) => ({ ...prev, server: message }))}
-      />
+      <div className="flex justify-center">
+        <GoogleAuthButton
+          text="Continue with Google"
+          disabled={isLoading}
+          onCredential={handleGoogleCredential}
+          onError={(message) =>
+            setErrors((prev) => ({ ...prev, server: message }))
+          }
+        />
+      </div>
 
       <p className="text-center text-slate-600 text-sm">
-        Don't have an account?{' '}
-        <Link to="/auth/signup" className="font-bold text-emerald-600 hover:text-emerald-700">
-          Create one for free
+        Don't have an account?{" "}
+        <Link
+          to="/auth/signup"
+          className="font-bold text-emerald-600 hover:text-emerald-700"
+        >
+          Join SharePlate today
         </Link>
       </p>
     </form>
