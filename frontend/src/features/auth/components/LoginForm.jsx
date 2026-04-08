@@ -180,7 +180,7 @@ const LoginForm = () => {
         Don't have an account?{" "}
         <Link
           to="/auth/signup"
-          className="font-bold text-emerald-600 hover:text-emerald-700"
+          className="font-semibold text-emerald-600 hover:text-emerald-700"
         >
           Join SharePlate today
         </Link>

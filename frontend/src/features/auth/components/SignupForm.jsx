@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Mail,
@@ -58,6 +58,12 @@ const SRI_LANKA_PLACE_FALLBACKS = [
   { label: "Kegalle, Sri Lanka", lat: 7.2527, lon: 80.3464 },
 ];
 
+const ACCOUNT_ROLES = [
+  { value: "restaurant", label: "Restaurant / Hotel" },
+  { value: "foodbank", label: "Food Bank / NGO" },
+  { value: "admin", label: "Administrator" },
+];
+
 const SignupForm = () => {
   const nominatimBaseUrl =
     import.meta.env.VITE_NOMINATIM_BASE_URL ||
@@ -70,7 +76,7 @@ const SignupForm = () => {
   const googleOnboarding =
     location.state?.googleOnboarding || getStoredGoogleOnboarding() || null;
   const isGoogleOnboarding = Boolean(googleOnboarding?.onboardingToken);
-  const [step, setStep] = useState(isGoogleOnboarding ? 1 : 1);
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -89,15 +95,6 @@ const SignupForm = () => {
   const [isAddressLoading, setIsAddressLoading] = useState(false);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [addressSearchMessage, setAddressSearchMessage] = useState("");
-
-  const roles = useMemo(
-    () => [
-      { value: "restaurant", label: "Restaurant / Hotel" },
-      { value: "foodbank", label: "Food Bank / NGO" },
-      { value: "admin", label: "Administrator" },
-    ],
-    [],
-  );
 
   useEffect(() => {
     if (!isGoogleOnboarding) return;
@@ -387,7 +384,10 @@ const SignupForm = () => {
       } else {
         await register(submitData);
         navigate("/auth/login", {
-          state: { message: "Account created! Please log in." },
+          state: {
+            message:
+              "Account created successfully. We've sent a verification link to your email—please verify before logging in",
+          },
         });
       }
     } catch (error) {
@@ -480,7 +480,7 @@ const SignupForm = () => {
             <Select
               label="Account Type"
               name="role"
-              options={roles}
+              options={ACCOUNT_ROLES}
               value={formData.role}
               onChange={handleChange}
               error={errors.role}

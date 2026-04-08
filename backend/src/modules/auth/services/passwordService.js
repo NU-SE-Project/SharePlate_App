@@ -74,6 +74,15 @@ export async function resetPassword(token, newPassword) {
     throw err;
   }
 
+  const isSameAsCurrentPassword = await bcrypt.compare(newPassword, user.password);
+  if (isSameAsCurrentPassword) {
+    const err = new Error(
+      "New password must be different from your current password",
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
   user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
   user.passwordResetToken = null;
   user.passwordResetExpires = null;
@@ -104,7 +113,7 @@ export async function changePassword(userId, currentPassword, newPassword) {
 
   if (currentPassword === newPassword) {
     const err = new Error(
-      "New password must be different from current password",
+      "New password must be different from your current password",
     );
     err.statusCode = 400;
     throw err;

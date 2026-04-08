@@ -58,7 +58,9 @@ const GoogleAuthButton = ({
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
-      onErrorRef.current?.("Google sign-in is not configured for this environment.");
+      onErrorRef.current?.(
+        "Google sign-in is not configured for this environment.",
+      );
       return () => {
         isMountedRef.current = false;
       };
@@ -72,7 +74,9 @@ const GoogleAuthButton = ({
           client_id: clientId,
           callback: async (response) => {
             if (!response?.credential) {
-              onErrorRef.current?.("Google sign-in did not return a credential.");
+              onErrorRef.current?.(
+                "Google sign-in did not return a credential.",
+              );
               return;
             }
 
@@ -103,7 +107,8 @@ const GoogleAuthButton = ({
             size: "large",
             shape: "pill",
             width: Math.min(buttonContainerRef.current.offsetWidth || 380, 380),
-            text: text === "Sign up with Google" ? "signup_with" : "signin_with",
+            text:
+              text === "Sign up with Google" ? "signup_with" : "signin_with",
           });
         }
 
@@ -121,7 +126,7 @@ const GoogleAuthButton = ({
   return (
     <div className={`space-y-2 ${className}`}>
       <div className="text-center text-sm font-semibold text-slate-500">
-        {isLoading ? "Connecting to Google..." : text}
+        {isLoading ? "Connecting to Google..." : "Or continue with Google"}
       </div>
       <div
         ref={buttonContainerRef}
