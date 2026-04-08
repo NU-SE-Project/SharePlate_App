@@ -85,7 +85,7 @@ const VerifyEmailPage = () => {
   return (
     <AuthLayout
       title="Verify Your Email"
-      subtitle="We are confirming your email address with the backend verification flow."
+      subtitle="We are confirming your email address."
     >
       <div className="rounded-[2rem] border border-slate-100 bg-white p-8 text-center shadow-sm">
         {status === "verifying" ? (

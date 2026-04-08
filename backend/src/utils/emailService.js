@@ -145,7 +145,7 @@ SharePlate Team
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
+        .header { background-color: #2196F3; color: white; padding: 20px; text-align: center; }
         .content { padding: 20px; background-color: #f9f9f9; }
         .button { display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
         .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
@@ -160,7 +160,9 @@ SharePlate Team
           <p>Hello <strong>${name}</strong>,</p>
           <p>Thank you for registering with SharePlate! Please verify your email address to complete your registration.</p>
           <p style="text-align: center;">
-            <a href="${verifyUrl}" class="button">Verify Email Address</a>
+            <a href="${verifyUrl}" class="button" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: #ffffff !important; text-decoration: none; border-radius: 4px; margin: 20px 0; -webkit-text-fill-color: #ffffff;">
+              <span style="color: #ffffff !important; text-decoration: none;">Verify Email Address</span>
+            </a>
           </p>
           <p>Or copy and paste this link into your browser:</p>
           <p style="word-break: break-all; color: #666;">${verifyUrl}</p>
@@ -224,7 +226,9 @@ SharePlate Team
           <p>Hello <strong>${name}</strong>,</p>
           <p>We received a request to reset the password for your SharePlate account.</p>
           <p style="text-align: center;">
-            <a href="${resetUrl}" class="button">Reset Password</a>
+            <a href="${resetUrl}" class="button" style="display: inline-block; padding: 12px 24px; background-color: #FF9800; color: #ffffff !important; text-decoration: none; border-radius: 4px; margin: 20px 0; -webkit-text-fill-color: #ffffff;">
+              <span style="color: #ffffff !important; text-decoration: none;">Reset Password</span>
+            </a>
           </p>
           <p>Or copy and paste this link into your browser:</p>
           <p style="word-break: break-all; color: #666;">${resetUrl}</p>
@@ -267,7 +271,7 @@ SharePlate Team
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #2196F3; color: white; padding: 20px; text-align: center; }
+        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
         .content { padding: 20px; background-color: #f9f9f9; }
         .warning { background-color: #ffebee; border-left: 4px solid #f44336; padding: 12px; margin: 20px 0; }
         .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
