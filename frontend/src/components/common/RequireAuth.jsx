@@ -62,6 +62,8 @@ const RequireAuth = ({ children, roles } = {}) => {
           ? "/restaurant/dashboard"
           : auth.user?.role === "foodbank"
             ? "/foodbank/donated-food"
+            : auth.user?.role === "admin"
+              ? "/admin/users"
             : "/dashboard";
 
       return <Navigate to={fallbackPath} replace />;

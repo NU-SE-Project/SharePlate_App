@@ -1,7 +1,7 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import RestaurantHeader from './RestaurantHeader';
-import RestaurantFooter from './RestaurantFooter';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import RestaurantHeader from "./RestaurantHeader";
+import RestaurantFooter from "./RestaurantFooter";
 
 const RestaurantLayout = () => {
   return (

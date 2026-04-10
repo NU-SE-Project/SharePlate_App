@@ -46,6 +46,7 @@ const valueCards = [
 function getPrimaryHref(user) {
   if (user?.role === "restaurant") return "/restaurant/dashboard";
   if (user?.role === "foodbank") return "/foodbank/donated-food";
+  if (user?.role === "admin") return "/admin/users";
   if (user) return "/dashboard";
   return "/auth/signup";
 }

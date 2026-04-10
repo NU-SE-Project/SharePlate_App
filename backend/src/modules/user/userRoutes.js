@@ -13,11 +13,11 @@ import {
 } from "./userController.js";
 import {
   nameSchema,
-  emailSchema,
-  passwordSchema,
   addressSchema,
   contactNumberSchema,
   roleSchema,
+  verificationStatusSchema,
+  verifiedAtSchema,
   geoSchema,
 } from "../../utils/validations.js";
 
@@ -38,6 +38,8 @@ const adminPatchSchema = z.object({
   body: z.object({
     role: roleSchema,
     isActive: z.boolean().optional(),
+    verificationStatus: verificationStatusSchema,
+    verifiedAt: verifiedAtSchema,
     name: nameSchema,
     address: addressSchema,
     contactNumber: contactNumberSchema,

@@ -21,6 +21,7 @@ const LoginForm = () => {
     const role = nextUser?.role || "";
     if (role === "restaurant") navigate("/restaurant/dashboard");
     else if (role === "foodbank") navigate("/foodbank/donated-food");
+    else if (role === "admin") navigate("/admin/users");
     else navigate("/dashboard");
   };
 
