@@ -132,7 +132,7 @@ const AvailableFoodTab = ({ onRequest }) => {
                     key={type}
                     type="button"
                     onClick={() => setFilterType(type)}
-                    className={`inline-flex items-center justify-center rounded-2xl border px-4 py-2.5 text-sm font-bold capitalize transition-all duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 ${
+                    className={`inline-flex cursor-pointer items-center justify-center rounded-2xl border px-4 py-2.5 text-sm font-bold capitalize transition-all duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 ${
                       isActive
                         ? "border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-200"
                         : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
@@ -312,7 +312,7 @@ const AvailableFoodTab = ({ onRequest }) => {
                           title: `Route to ${donation.restaurant_id.name}`,
                         });
                       }}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all duration-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all duration-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <MapIcon size={14} />
                       {donation.restaurant_id?.location?.coordinates

@@ -178,7 +178,7 @@ const DonatedFoodPage = () => {
                     activeTab === "available" ? "requested" : "available",
                   )
                 }
-                className="group rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-left text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                className="group cursor-pointer rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-left text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 <div className="flex h-full flex-col justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ const DonatedFoodPage = () => {
                     aria-controls={`${tab.key}-panel`}
                     id={`${tab.key}-tab`}
                     onClick={() => handleTabChange(tab.key)}
-                    className={`group inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:min-w-[200px] ${
+                    className={`group inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:min-w-[200px] ${
                       isActive
                         ? "bg-gradient-to-r from-emerald-600 to-green-800 text-white shadow-lg shadow-emerald-100"
                         : "bg-transparent text-slate-600 hover:bg-white hover:text-emerald-700"
