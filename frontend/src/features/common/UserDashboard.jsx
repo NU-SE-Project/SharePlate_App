@@ -2,6 +2,7 @@ import React, { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
+  BriefcaseBusiness,
   Building2,
   HeartHandshake,
   LayoutDashboard,
@@ -156,6 +157,18 @@ const UserDashboard = () => {
           description="Foodbank tools are still being built. For now, you can continue browsing available requests without changing the current flow."
           to="/restaurant/requests"
           actionLabel="Browse Requests"
+        />
+      );
+    }
+
+    if (user.role === "admin") {
+      return (
+        <DashboardActionCard
+          icon={BriefcaseBusiness}
+          title="Admin Workspace"
+          description="Review registered accounts, update user records, and manage account availability from the admin console."
+          to="/admin/users"
+          actionLabel="Open Admin Console"
         />
       );
     }

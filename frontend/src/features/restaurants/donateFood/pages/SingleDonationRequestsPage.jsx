@@ -1,48 +1,162 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';  // ✅ useParams, not useLocation
-import { useAuth } from '../../../../context/AuthContext';
-import { ChevronLeft, Loader2, AlertCircle, CheckCircle, XCircle, Heart, PackageOpen } from 'lucide-react';
-import { getSingleDonation, getRequestsForDonation, approveDonationRequest, rejectDonationRequest, verifyPickupOTP, resendPickupOTP } from '../services/restaurantService';
-import toast from 'react-hot-toast';
-import Modal from '../../../../components/common/Modal';
-import { Smartphone } from 'lucide-react';
-import Button from '../../../../components/common/Button';
+import React, { useState, useEffect, useMemo, memo, useCallback } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../../../../context/AuthContext";
+import {
+  ChevronLeft,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Bell,
+  HandHeart,
+  ArrowRight,
+  Sparkles,
+  PackageOpen,
+  Smartphone,
+  ShieldCheck,
+  Clock3,
+  CircleSlash,
+} from "lucide-react";
+import {
+  getSingleDonation,
+  getRequestsForDonation,
+  approveDonationRequest,
+  rejectDonationRequest,
+  verifyPickupOTP,
+  resendPickupOTP,
+} from "../services/restaurantService";
+import toast from "react-hot-toast";
+import Modal from "../../../../components/common/Modal";
+import Button from "../../../../components/common/Button";
 
-// ── RequestRow ─────────────────────────────────────────────────────────────
-const RequestRow = ({ request, onUpdateStatus }) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Small UI Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+const StatusBadge = memo(({ status }) => {
+  const styles = {
+    pending: "bg-amber-100 text-amber-700 border border-amber-200",
+    approved: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    rejected: "bg-red-100 text-red-700 border border-red-200",
+    collected: "bg-green-100 text-green-800 border border-green-200",
+    available: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    unavailable: "bg-slate-100 text-slate-600 border border-slate-200",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${styles[status] || "bg-slate-100 text-slate-700 border border-slate-200"}`}
+    >
+      {status}
+    </span>
+  );
+});
+
+const StatCard = memo(({ label, value, icon: Icon, tone }) => {
+  const toneStyles = {
+    neutral: {
+      wrap: "border-slate-200 bg-white",
+      icon: "bg-slate-100 text-slate-600",
+      value: "text-slate-900",
+    },
+    pending: {
+      wrap: "border-amber-200 bg-amber-50/70",
+      icon: "bg-amber-100 text-amber-700",
+      value: "text-amber-700",
+    },
+    approved: {
+      wrap: "border-emerald-200 bg-emerald-50/80",
+      icon: "bg-emerald-100 text-emerald-700",
+      value: "text-emerald-700",
+    },
+    rejected: {
+      wrap: "border-red-200 bg-red-50/80",
+      icon: "bg-red-100 text-red-700",
+      value: "text-red-700",
+    },
+  };
+
+  return (
+    <div
+      className={`group rounded-3xl border p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${toneStyles[tone].wrap}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            {label}
+          </p>
+          <p
+            className={`mt-2 text-3xl  sm:text-4xl ${toneStyles[tone].value}`}
+          >
+            {value}
+          </p>
+        </div>
+        <div
+          className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${toneStyles[tone].icon}`}
+        >
+          <Icon size={20} />
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Request Row
+// ─────────────────────────────────────────────────────────────────────────────
+const RequestRow = memo(({ request, onUpdateStatus }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [actionType, setActionType] = useState(null);
 
-  // OTP Verification state
   const [isVerifyingModalOpen, setIsVerifyingModalOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
-  const handleStatusUpdate = async (status) => {
-    setIsUpdating(true);
-    try {
-      if (status === 'approved') {
-        await approveDonationRequest(request._id, request.requestedQuantity);
-        toast.success('Request accepted successfully');
-      } else if (status === 'rejected') {
-        await rejectDonationRequest(request._id);
-        toast.success('Request rejected successfully');
-      }
-      onUpdateStatus(request._id, status);
-    } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to ${status} request`);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  const isPending = request.status === "pending";
+  const isApproved = request.status === "approved";
+  const isRejected = request.status === "rejected";
+  const isDelivered = request.status === "collected";
 
-  const handleResendOTP = async () => {
-    if (!request.pickup_id) return;
+  const rowStyle = useMemo(() => {
+    if (isApproved) return "border-emerald-200 bg-emerald-50/80";
+    if (isRejected) return "border-red-200 bg-red-50/80";
+    if (isDelivered) return "border-green-200 bg-green-50/80";
+    return "border-slate-200 bg-white hover:border-emerald-200 hover:shadow-md";
+  }, [isApproved, isRejected, isDelivered]);
+
+  const pickupId = request.pickup_id?._id || request.pickup_id;
+
+  const handleStatusUpdate = useCallback(
+    async (status) => {
+      setIsUpdating(true);
+      try {
+        if (status === "approved") {
+          await approveDonationRequest(request._id, request.requestedQuantity);
+          toast.success("Request accepted successfully");
+        } else if (status === "rejected") {
+          await rejectDonationRequest(request._id);
+          toast.success("Request rejected successfully");
+        }
+
+        onUpdateStatus(request._id, status);
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message || `Failed to ${status} request`,
+        );
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [request._id, request.requestedQuantity, onUpdateStatus],
+  );
+
+  const handleResendOTP = useCallback(async () => {
+    if (!pickupId) return;
+
     setIsResending(true);
     try {
-      await resendPickupOTP(request.pickup_id._id || request.pickup_id);
+      await resendPickupOTP(pickupId);
       toast.success("New OTP generated! Please contact the food bank.");
       setOtpValue("");
     } catch (error) {
@@ -50,190 +164,273 @@ const RequestRow = ({ request, onUpdateStatus }) => {
     } finally {
       setIsResending(false);
     }
-  };
+  }, [pickupId]);
 
-  const handleVerifyOTP = async () => {
+  const handleVerifyOTP = useCallback(async () => {
     if (!otpValue || otpValue.length < 6) {
       toast.error("Please enter a valid 6-digit OTP");
       return;
     }
 
+    if (!pickupId) {
+      toast.error("Pickup information not found");
+      return;
+    }
+
     setIsVerifying(true);
     try {
-      await verifyPickupOTP(request.pickup_id._id || request.pickup_id, otpValue);
+      await verifyPickupOTP(pickupId, otpValue);
       toast.success("Delivery verified successfully!");
       setIsVerifyingModalOpen(false);
       setOtpValue("");
-      onUpdateStatus(request._id, 'collected');
+      onUpdateStatus(request._id, "collected");
     } catch (error) {
-      const msg = error.response?.data?.message || "Invalid OTP. Please try again.";
+      const msg =
+        error.response?.data?.message || "Invalid OTP. Please try again.";
       toast.error(msg);
     } finally {
       setIsVerifying(false);
     }
-  };
-
-  const isPending = request.status === 'pending';
-  const isApproved = request.status === 'approved';
-  const isRejected = request.status === 'rejected';
-  const isDelivered = request.status === 'collected';
+  }, [otpValue, pickupId, request._id, onUpdateStatus]);
 
   return (
-    <div className={`flex items-center justify-between p-4 rounded-2xl mb-3 border transition-colors ${isApproved ? 'bg-emerald-50 border-emerald-200' :
-      isRejected ? 'bg-red-50 border-red-100' :
-        isDelivered ? 'bg-blue-50 border-blue-200' :
-          'bg-slate-50 hover:bg-white border-slate-100'
-      }`}>
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-        <div>
-          <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Food Bank</span>
-          <span className="font-semibold text-slate-800">
-            {request.foodBank_id?.name || 'Unknown Food Bank'}
-          </span>
-        </div>
-        <div>
-          <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Requested Qty</span>
-          <span className="font-bold text-slate-700">{request.requestedQuantity}</span>
-        </div>
-        <div>
-          <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Status</span>
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isApproved ? 'bg-emerald-100 text-emerald-700' :
-            isRejected ? 'bg-red-100 text-red-700' :
-              isDelivered ? 'bg-blue-100 text-blue-700' :
-                'bg-amber-100 text-amber-700'
-            }`}>
-            {request.status}
-          </span>
+    <>
+      <div
+        className={`group rounded-[1.75rem] border p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 ${rowStyle}`}
+      >
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="min-w-0">
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Food Bank
+              </span>
+              <p className="truncate text-sm font-semibold text-slate-800 sm:text-base">
+                {request.foodBank_id?.name || "Unknown Food Bank"}
+              </p>
+            </div>
+
+            <div>
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Requested Qty
+              </span>
+              <p className="text-lg  text-slate-900">
+                {request.requestedQuantity}
+              </p>
+            </div>
+
+            <div>
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Current Status
+              </span>
+              <StatusBadge status={request.status} />
+            </div>
+
+            <div>
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Action State
+              </span>
+              <p className="text-sm font-semibold text-slate-600">
+                {isPending && "Awaiting decision"}
+                {isApproved && "Ready for OTP verification"}
+                {isRejected && "Request closed"}
+                {isDelivered && "Pickup completed"}
+              </p>
+            </div>
+          </div>
+
+          {isPending && (
+            <div className="flex flex-col gap-3 sm:flex-row lg:ml-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setActionType("approved");
+                  setIsConfirmModalOpen(true);
+                }}
+                disabled={isUpdating}
+                className="inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-100 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isUpdating ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <CheckCircle size={16} />
+                )}
+                Accept
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActionType("rejected");
+                  setIsConfirmModalOpen(true);
+                }}
+                disabled={isUpdating}
+                className="inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isUpdating ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <XCircle size={16} />
+                )}
+                Reject
+              </button>
+            </div>
+          )}
+
+          {isApproved && (
+            <div className="lg:ml-6">
+              <button
+                type="button"
+                onClick={() => setIsVerifyingModalOpen(true)}
+                className="inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-2xl bg-green-800 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-green-100 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:bg-green-900 focus:outline-none focus:ring-4 focus:ring-green-200"
+              >
+                <ShieldCheck size={16} />
+                Mark as Delivered
+              </button>
+            </div>
+          )}
         </div>
       </div>
-
-      {isPending && (
-        <div className="flex gap-2 ml-4">
-          <button
-            onClick={() => { setActionType('approved'); setIsConfirmModalOpen(true); }}
-            disabled={isUpdating}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl flex items-center gap-2 transition-all disabled:opacity-50"
-          >
-            {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-            Accept
-          </button>
-          <button
-            onClick={() => { setActionType('rejected'); setIsConfirmModalOpen(true); }}
-            disabled={isUpdating}
-            className="px-4 py-2 bg-white border border-slate-200 text-red-600 hover:bg-red-50 font-medium rounded-xl flex items-center gap-2 transition-all disabled:opacity-50"
-          >
-            {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
-            Reject
-          </button>
-        </div>
-      )}
-
-      {isApproved && (
-        <div className="flex gap-2 ml-4">
-          <button
-            onClick={() => setIsVerifyingModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-md shadow-blue-100"
-          >
-            Mark as Delivered
-            <CheckCircle size={16} />
-          </button>
-        </div>
-      )}
 
       <Modal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
-        title={`Confirm ${actionType === 'approved' ? 'Acceptance' : 'Rejection'}`}
+        title={`Confirm ${actionType === "approved" ? "Acceptance" : "Rejection"}`}
       >
         <div className="flex flex-col gap-6">
-          <p className="text-slate-600 text-lg">
-            Are you sure you want to {actionType === 'approved' ? 'accept' : 'reject'} the request from
-            <span className="font-bold text-slate-900 ml-1">
-              {request.foodBank_id?.name || 'Unknown Food Bank'}
-            </span>
-            {' '}for {request.requestedQuantity} portions?
+          <p className="text-base leading-7 text-slate-600 sm:text-lg">
+            Are you sure you want to{" "}
+            <span className="font-semibold text-slate-900">
+              {actionType === "approved" ? "accept" : "reject"}
+            </span>{" "}
+            the request from{" "}
+            <span className="font-semibold text-slate-900">
+              {request.foodBank_id?.name || "Unknown Food Bank"}
+            </span>{" "}
+            for{" "}
+            <span className="font-semibold text-slate-900">
+              {request.requestedQuantity}
+            </span>{" "}
+            portions?
           </p>
 
-          <div className={`p-4 rounded-xl border flex items-start gap-3 ${actionType === 'approved'
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-            : 'bg-red-50 text-red-700 border-red-100'
-            }`}>
+          <div
+            className={`flex items-start gap-3 rounded-2xl border p-4 ${
+              actionType === "approved"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border-red-200 bg-red-50 text-red-700"
+            }`}
+          >
             <AlertCircle className="mt-0.5 shrink-0" size={20} />
-            <p className="text-sm font-medium">
-              {actionType === 'approved'
-                ? 'By accepting, you commit to providing this food. The requester will be notified.'
-                : 'This action cannot be undone. The requester will be notified of the rejection.'}
+            <p className="text-sm font-semibold leading-6">
+              {actionType === "approved"
+                ? "By accepting, you confirm that this donation can be prepared for pickup. The requester will be notified immediately."
+                : "This request will be closed and the requester will be notified. Make sure this decision is correct before continuing."}
             </p>
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
+              type="button"
               onClick={() => setIsConfirmModalOpen(false)}
               disabled={isUpdating}
-              className="px-6 py-3 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-2xl bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200 disabled:opacity-60"
             >
               Cancel
             </button>
+
             <button
-              onClick={() => { setIsConfirmModalOpen(false); handleStatusUpdate(actionType); }}
+              type="button"
+              onClick={() => {
+                setIsConfirmModalOpen(false);
+                handleStatusUpdate(actionType);
+              }}
               disabled={isUpdating}
-              className={`px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-transform hover:-translate-y-1 ${actionType === 'approved'
-                ? 'bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700'
-                : 'bg-red-600 shadow-red-200 hover:bg-red-700'
-                }`}
+              className={`inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-4 disabled:opacity-60 ${
+                actionType === "approved"
+                  ? "bg-emerald-600 shadow-emerald-100 hover:bg-emerald-700 focus:ring-emerald-200"
+                  : "bg-red-600 shadow-red-100 hover:bg-red-700 focus:ring-red-200"
+              }`}
             >
-              Yes, {actionType === 'approved' ? 'Accept' : 'Reject'}
+              Yes, {actionType === "approved" ? "Accept" : "Reject"}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* OTP Verification Modal */}
       {isVerifyingModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 shadow-2xl relative animate-in zoom-in-95 duration-300">
-            <div className="flex flex-col items-center text-center gap-6">
-              <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-100">
-                <Smartphone size={40} />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verify Pickup</h3>
-                <p className="text-slate-500 font-medium mt-2">Enter the 6-digit OTP provided by <span className="font-bold text-slate-700">{request.foodBank_id?.name}</span></p>
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md animate-in fade-in duration-300"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pickup-otp-title"
+        >
+          <div className="w-full max-w-md rounded-[2rem] border border-white/20 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-300 sm:p-8">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-emerald-50 text-emerald-700 shadow-lg shadow-emerald-100">
+                <Smartphone size={38} />
               </div>
 
-              <div className="w-full space-y-4">
-                <div className="flex flex-col gap-2">
-                  <input
-                    type="text"
-                    maxLength="6"
-                    value={otpValue}
-                    onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Enter 6-digit OTP"
-                    className="w-full text-center text-4xl font-black tracking-[1rem] py-5 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:ring-0 transition-all outline-none placeholder:text-slate-100 placeholder:tracking-normal placeholder:text-lg"
-                  />
-                  {request.status === 'approved' && (
-                    <button
-                      onClick={handleResendOTP}
-                      disabled={isResending}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 flex items-center justify-center gap-1 transition-colors py-2"
-                    >
-                      {isResending ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
-                      Resend OTP
-                    </button>
-                  )}
-                </div>
+              <h3
+                id="pickup-otp-title"
+                className="mt-5 text-2xl  tracking-tight text-slate-900"
+              >
+                Verify Pickup OTP
+              </h3>
 
-                <div className="flex gap-4">
+              <p className="mt-2 text-sm font-medium leading-6 text-slate-500 sm:text-base">
+                Enter the 6-digit code provided by{" "}
+                <span className="font-semibold text-slate-700">
+                  {request.foodBank_id?.name || "the food bank"}
+                </span>
+              </p>
+
+              <div className="mt-6 w-full space-y-4">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  maxLength={6}
+                  value={otpValue}
+                  onChange={(e) =>
+                    setOtpValue(e.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Enter OTP"
+                  aria-label="Enter pickup OTP"
+                  className="w-full rounded-3xl border-2 border-slate-200 bg-slate-50 px-5 py-4 text-center text-2xl  tracking-[0.5em] text-slate-900 outline-none transition-all duration-300 placeholder:text-base placeholder:font-semibold placeholder:tracking-normal placeholder:text-slate-300 focus:border-emerald-600 focus:bg-white focus:ring-4 focus:ring-emerald-100 sm:text-3xl"
+                />
+
+                {request.status === "approved" && (
                   <button
-                    onClick={() => { setIsVerifyingModalOpen(false); setOtpValue(""); }}
-                    className="flex-1 py-4 font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                    type="button"
+                    onClick={handleResendOTP}
+                    disabled={isResending}
+                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all duration-300 hover:bg-emerald-100 focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isResending ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <CheckCircle size={14} />
+                    )}
+                    Resend OTP
+                  </button>
+                )}
+
+                <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsVerifyingModalOpen(false);
+                      setOtpValue("");
+                    }}
+                    className="inline-flex min-h-[48px] flex-1 cursor-pointer items-center justify-center rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-600 transition-all duration-300 hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
                   >
                     Cancel
                   </button>
+
                   <Button
                     onClick={handleVerifyOTP}
                     isLoading={isVerifying}
-                    className="flex-[2] py-4 rounded-2xl shadow-xl shadow-blue-100 bg-blue-600 hover:bg-blue-700"
+                    className="min-h-[48px] flex-[1.2] rounded-2xl bg-green-800 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-100 transition-all duration-300 hover:bg-green-900 focus:ring-4 focus:ring-green-200"
                   >
                     Complete Delivery
                   </Button>
@@ -243,192 +440,400 @@ const RequestRow = ({ request, onUpdateStatus }) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
-};
+});
 
-// ── Page ───────────────────────────────────────────────────────────────────
+RequestRow.displayName = "RequestRow";
+StatusBadge.displayName = "StatusBadge";
+StatCard.displayName = "StatCard";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
 const SingleDonationRequestsPage = () => {
-  const { donationId } = useParams();  // ✅ donationId comes from URL /donation-requests/:donationId
+  const { donationId } = useParams();
   const { user } = useAuth();
 
   const [donation, setDonation] = useState(null);
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!donationId) return;
+
     setIsLoading(true);
     try {
-      // Fetch donation and requests independently
       const [donationRes, requestsRes] = await Promise.allSettled([
         getSingleDonation(donationId),
         getRequestsForDonation(donationId),
       ]);
 
-      // Handle donation result
-      if (donationRes.status === 'fulfilled') {
+      if (donationRes.status === "fulfilled") {
         setDonation(donationRes.value);
       } else {
-        console.error('Donation fetch failed:', donationRes.reason);
-        // Don't block — still try to show requests
+        console.error("Donation fetch failed:", donationRes.reason);
       }
 
-      // Handle requests result
-      if (requestsRes.status === 'fulfilled') {
+      if (requestsRes.status === "fulfilled") {
         const reqs = Array.isArray(requestsRes.value)
           ? requestsRes.value
-          : (requestsRes.value?.requests || []);
+          : requestsRes.value?.requests || [];
         setRequests(reqs);
       } else {
-        console.error('Requests fetch failed:', requestsRes.reason);
-        toast.error('Failed to load requests');
+        console.error("Requests fetch failed:", requestsRes.reason);
+        toast.error("Failed to load requests");
       }
-
     } catch (error) {
-      toast.error('Failed to load data');
+      toast.error("Failed to load data");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [donationId]);
 
   useEffect(() => {
-    if (donationId) fetchData();
-  }, [donationId]);  // ✅ depends on donationId, not restaurantId
+    fetchData();
+  }, [fetchData]);
 
-  const handleUpdateRequestStatus = (requestId, newStatus) => {
-    setRequests(prev =>
-      prev.map(r => r._id === requestId ? { ...r, status: newStatus } : r)
-    );
-    if (newStatus === 'approved') fetchData();
-  };
+  const handleUpdateRequestStatus = useCallback(
+    (requestId, newStatus) => {
+      setRequests((prev) =>
+        prev.map((r) =>
+          r._id === requestId ? { ...r, status: newStatus } : r,
+        ),
+      );
 
-  // ── Loading ──────────────────────────────────────────────────────────────
-  if (isLoading) return (
-    <div className="flex justify-center items-center h-[60vh]">
-      <Loader2 className="animate-spin text-emerald-600" size={40} />
-    </div>
+      if (newStatus === "approved") {
+        fetchData();
+      }
+    },
+    [fetchData],
   );
 
-  // ── Not found ────────────────────────────────────────────────────────────
-  if (!donation) return (
-    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-      <AlertCircle className="text-slate-300" size={48} />
-      <p className="text-slate-500 text-lg font-medium">Donation not found.</p>
-      <Link to="/restaurant/donate" className="text-emerald-600 font-bold hover:underline">
-        ← Back to Donations
-      </Link>
-    </div>
+  const imageBase = useMemo(
+    () =>
+      import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") ||
+      "http://localhost:5000",
+    [],
   );
 
-  const imageBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:5000';
-  const imageUrl = donation.imageUrl
-    ? (donation.imageUrl.startsWith('/') ? imageBase + donation.imageUrl : donation.imageUrl)
-    : null;
+  const imageUrl = useMemo(() => {
+    if (!donation?.imageUrl) return null;
+    return donation.imageUrl.startsWith("/")
+      ? imageBase + donation.imageUrl
+      : donation.imageUrl;
+  }, [donation?.imageUrl, imageBase]);
 
-  const pendingCount = requests.filter(r => r.status === 'pending').length;
-  const approvedCount = requests.filter(r => r.status === 'approved').length;
-  const rejectedCount = requests.filter(r => r.status === 'rejected').length;
+  const stats = useMemo(() => {
+    const pending = requests.filter((r) => r.status === "pending").length;
+    const approved = requests.filter((r) => r.status === "approved").length;
+    const rejected = requests.filter((r) => r.status === "rejected").length;
 
-  // ── Render ───────────────────────────────────────────────────────────────
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">
+    return {
+      total: requests.length,
+      pending,
+      approved,
+      rejected,
+    };
+  }, [requests]);
 
-      {/* Header */}
-      <div className="flex items-center gap-5 mb-10">
-        <Link
-          to="/restaurant/donate"
-          className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
-        >
-          <ChevronLeft size={24} />
-        </Link>
-        <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Donation Requests</h1>
-          <p className="text-slate-500 font-medium mt-1 flex items-center gap-2">
-            Manage requests for this donation
-            <Heart size={16} className="text-emerald-500 fill-emerald-500" />
-          </p>
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[65vh] items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-4 text-center animate-pulse">
+          <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-50 shadow-lg shadow-emerald-100">
+            <Loader2 className="animate-spin text-emerald-600" size={34} />
+          </div>
+          <div>
+            <p className="text-lg  text-slate-900">
+              Loading donation requests
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              Please wait while we fetch the latest request data.
+            </p>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Donation Summary Card */}
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 mb-8">
-        <div className="flex items-center gap-5">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={donation.foodName}
-              className="w-20 h-20 rounded-2xl object-cover flex-shrink-0"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center flex-shrink-0">
-              <PackageOpen className="text-slate-400" size={28} />
-            </div>
-          )}
+  if (!donation) {
+    return (
+      <div className="flex min-h-[65vh] items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+            <AlertCircle size={30} />
+          </div>
+          <h2 className="mt-5 text-2xl  text-slate-900">
+            Donation not found
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            The donation may have been removed or the link is invalid.
+          </p>
+          <Link
+            to="/restaurant/donate"
+            className="mt-6 inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-100 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+          >
+            Back to Donations
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="sm:col-span-2">
-              <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Food Item</span>
-              <h2 className="text-lg font-bold text-slate-800 line-clamp-1">{donation.foodName}</h2>
-              <span className={`inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md mt-1 ${donation.foodType === 'veg'
-                ? 'bg-emerald-50 text-emerald-600'
-                : 'bg-orange-50 text-orange-600'
-                }`}>
-                {donation.foodType}
-              </span>
-            </div>
-            <div>
-              <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Remaining</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-emerald-600">{donation.remainingQuantity}</span>
-                <span className="text-sm font-bold text-slate-400">/ {donation.totalQuantity}</span>
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/40 via-white to-white">
+      <div className="mx-auto max-w-6xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="relative mb-8 overflow-hidden rounded-[28px] border border-emerald-100 bg-gradient-to-br from-white via-emerald-50/70 to-green-100/60 shadow-[0_10px_40px_rgba(16,185,129,0.08)]">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-green-200/30 blur-2xl" />
+          </div>
+
+          <div className="relative p-5 sm:p-7 lg:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-start gap-4 sm:gap-5">
+                <Link
+                  to="/restaurant/donate"
+                  className="group inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-emerald-100 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:-translate-x-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:h-12 sm:w-12"
+                  aria-label="Back to donations"
+                >
+                  <ChevronLeft
+                    size={22}
+                    className="transition-transform duration-300 group-hover:-translate-x-0.5"
+                  />
+                </Link>
+
+                <div className="min-w-0">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800 sm:text-sm">
+                    <Sparkles size={14} />
+                    Donation Requests
+                  </div>
+                  <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+                    Manage Incoming Requests
+                  </h1>
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
+                    Review food bank requests, approve or reject them, and
+                    verify pickups using OTP before marking delivery as
+                    completed.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+                <div className="group rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition-transform duration-300 group-hover:scale-105">
+                      <Bell size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        Request Queue
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Approvals and OTP tracking
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-6 text-slate-600">
+                    Process incoming requests with clearer status visibility and
+                    delivery verification.
+                  </p>
+                </div>
+
+                <Link
+                  to="/restaurant/donate"
+                  className="group cursor-pointer rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                >
+                  <div className="flex h-full flex-col justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                        <HandHeart size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Back to Donate</p>
+                        <p className="text-xs text-emerald-100">
+                          Review all your donation listings
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-emerald-50">
+                        Open donation page
+                      </span>
+                      <ArrowRight
+                        size={18}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
+                    </div>
+                  </div>
+                </Link>
               </div>
             </div>
-            <div>
-              <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Status</span>
-              <span className={`inline-flex text-xs font-black uppercase px-2 py-1 rounded ${donation.status === 'available'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-100 text-slate-500'
-                }`}>
-                {donation.status}
-              </span>
+          </div>
+        </div>
+
+        {/* Donation Summary */}
+        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+          <div className="bg-gradient-to-r from-green-800 via-emerald-700 to-emerald-600 p-6 sm:p-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-100">
+                  Donation Overview
+                </p>
+                <h2 className="mt-2 text-2xl  tracking-tight text-white sm:text-3xl">
+                  {donation.foodName}
+                </h2>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white ring-1 ring-white/20">
+                    {donation.foodType}
+                  </span>
+                  <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white ring-1 ring-white/20">
+                    {donation.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 rounded-[1.5rem] bg-white/10 px-4 py-4 backdrop-blur-sm ring-1 ring-white/15">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={donation.foodName}
+                    className="h-20 w-20 rounded-2xl object-cover ring-2 ring-white/20"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-white/20">
+                    <PackageOpen size={30} />
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-100">
+                    Remaining Quantity
+                  </p>
+                  <div className="mt-1 flex items-end gap-2">
+                    <span className="text-3xl  text-white">
+                      {donation.remainingQuantity}
+                    </span>
+                    <span className="pb-1 text-sm font-semibold text-emerald-100">
+                      / {donation.totalQuantity}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total', value: requests.length, color: 'text-slate-700', bg: 'bg-slate-50  border-slate-100' },
-          { label: 'Pending', value: pendingCount, color: 'text-amber-600', bg: 'bg-amber-50  border-amber-100' },
-          { label: 'Approved', value: approvedCount, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100' },
-          { label: 'Rejected', value: rejectedCount, color: 'text-red-500', bg: 'bg-red-50    border-red-100' },
-        ].map(({ label, value, color, bg }) => (
-          <div key={label} className={`rounded-2xl border p-4 text-center ${bg}`}>
-            <span className="text-xs uppercase font-bold text-slate-400 block mb-1">{label}</span>
-            <span className={`text-3xl font-black ${color}`}>{value}</span>
+          <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4 sm:p-8">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Food Item
+              </p>
+              <p className="mt-2 text-base font-semibold text-slate-900">
+                {donation.foodName}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Food Type
+              </p>
+              <p className="mt-2 text-base font-semibold capitalize text-slate-900">
+                {donation.foodType}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Availability
+              </p>
+              <div className="mt-2">
+                <StatusBadge status={donation.status} />
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Requested By
+              </p>
+              <p className="mt-2 text-base font-semibold text-slate-900">
+                {requests.length} food banks
+              </p>
+            </div>
           </div>
-        ))}
-      </div>
+        </section>
 
-      {/* Requests List */}
-      <h2 className="font-bold text-slate-700 mb-4">All Requests</h2>
-
-      {requests.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200">
-          <AlertCircle className="mx-auto text-slate-300 mb-3" size={36} />
-          <p className="text-slate-500 font-medium">No food banks have requested this item yet.</p>
-        </div>
-      ) : (
-        requests.map(request => (
-          <RequestRow
-            key={request._id}
-            request={request}
-            onUpdateStatus={handleUpdateRequestStatus}
+        {/* Stats */}
+        <section className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatCard
+            label="Total"
+            value={stats.total}
+            icon={PackageOpen}
+            tone="neutral"
           />
-        ))
-      )}
+          <StatCard
+            label="Pending"
+            value={stats.pending}
+            icon={Clock3}
+            tone="pending"
+          />
+          <StatCard
+            label="Approved"
+            value={stats.approved}
+            icon={CheckCircle}
+            tone="approved"
+          />
+          <StatCard
+            label="Rejected"
+            value={stats.rejected}
+            icon={CircleSlash}
+            tone="rejected"
+          />
+        </section>
+
+        {/* Requests */}
+        <section className="mt-10">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl  tracking-tight text-slate-900">
+                All Requests
+              </h2>
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                Approve valid requests and complete delivery only after OTP
+                verification.
+              </p>
+            </div>
+          </div>
+
+          {requests.length === 0 ? (
+            <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                <AlertCircle size={28} />
+              </div>
+              <h3 className="mt-5 text-xl  text-slate-900">
+                No requests yet
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                No food banks have requested this donation yet. Once a request
+                is submitted, it will appear here for review.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {requests.map((request) => (
+                <RequestRow
+                  key={request._id}
+                  request={request}
+                  onUpdateStatus={handleUpdateRequestStatus}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

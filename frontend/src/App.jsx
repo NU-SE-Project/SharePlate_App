@@ -27,6 +27,8 @@ import DonatedFoodPage from "./features/foodbank/donatedFood/pages/DonatedFoodPa
 import PostRequestPage from "./features/foodbank/proactiveRequests/pages/PostRequestPage";
 import MyProactiveRequestsPage from "./features/foodbank/proactiveRequests/pages/MyProactiveRequestsPage";
 import FoodBankProfilePage from "./features/foodbank/profile/pages/FoodBankProfilePage";
+import AdminLayout from "./features/admin/common/AdminLayout";
+import AdminUsersPage from "./features/admin/users/pages/AdminUsersPage";
 
 function App() {
   return (
@@ -100,6 +102,18 @@ function App() {
                   </div>
                 }
               />
+            </Route>
+
+            <Route
+              path="/admin"
+              element={
+                <RequireAuth roles={["admin"]}>
+                  <AdminLayout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<Navigate to="users" />} />
+              <Route path="users" element={<AdminUsersPage />} />
             </Route>
 
             <Route
