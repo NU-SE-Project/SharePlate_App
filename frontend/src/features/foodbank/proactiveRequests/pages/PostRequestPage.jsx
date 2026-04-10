@@ -127,7 +127,7 @@ const PostRequestPage = () => {
 
               <Link
                 to="/foodbank/my-proactive-requests"
-                className="group rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                className="group cursor-pointer rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 <div className="flex h-full flex-col justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -204,7 +204,7 @@ const PostRequestPage = () => {
                               onClick={() =>
                                 setFormData({ ...formData, foodType: type })
                               }
-                              className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold capitalize transition-all duration-300 ${
+                              className={`flex-1 cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold capitalize transition-all duration-300 ${
                                 isActive
                                   ? "bg-gradient-to-r from-emerald-600 to-green-800 text-white shadow-lg shadow-emerald-100"
                                   : "text-slate-600 hover:bg-white hover:text-emerald-700"

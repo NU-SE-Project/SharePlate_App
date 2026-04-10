@@ -145,7 +145,7 @@ const MyProactiveRequestsPage = () => {
             You have not broadcasted any food needs yet. Start now to request
             support from nearby restaurants.
           </p>
-          <Link to="/foodbank/post-request" className="mt-6 inline-flex">
+          <Link to="/foodbank/post-request" className="mt-6 inline-flex cursor-pointer">
             <Button className="rounded-2xl px-6 py-4 text-sm font-bold shadow-xl shadow-emerald-200">
               Broadcast My First Need
             </Button>
@@ -210,7 +210,7 @@ const MyProactiveRequestsPage = () => {
 
               <Link
                 to="/foodbank/post-request"
-                className="group rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                className="group cursor-pointer rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 <div className="flex h-full flex-col justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -293,7 +293,7 @@ const MyProactiveRequestsPage = () => {
                         e.stopPropagation();
                         handleDelete(request._id);
                       }}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all duration-300 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-100"
+                      className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all duration-300 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-100"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -462,7 +462,7 @@ const MyProactiveRequestsPage = () => {
                                 title: `Route to ${acc.restaurant_id.name}`,
                               });
                             }}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all duration-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition-all duration-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <MapIcon size={14} />
                             {acc.restaurant_id?.location?.coordinates
