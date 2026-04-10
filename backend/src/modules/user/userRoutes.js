@@ -21,6 +21,10 @@ import {
   geoSchema,
 } from "../../utils/validations.js";
 
+import User from "./User.js";
+import Donation from "../donation/shop/Donation.js";
+import Request from "../donation/foodbank/Request.js";
+
 const router = Router();
 
 // Profile update validation
@@ -52,6 +56,33 @@ const adminPatchSchema = z.object({
  */
 router.get("/me", requireAuth, me);
 router.patch("/me", requireAuth, validate(updateMeSchema), updateMe);
+router.get("/stats", requireAuth, allowRoles("admin"), async (req, res) => {
+  try {
+    const [
+      totalUsers, 
+      totalFoodBanks, 
+      totalRestaurants,
+      totalDonations,
+      activeRequests
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: "foodbank" }),
+      User.countDocuments({ role: "restaurant" }),
+      Donation.countDocuments(),
+      Request.countDocuments({ status: "pending" })
+    ]);
+    res.json({ 
+      totalUsers, 
+      totalFoodBanks, 
+      totalRestaurants, 
+      totalDonations, 
+      activeRequests 
+    });
+  } catch (error) {
+    console.error("Stats fetching failed:", error);
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+});
 router.get("/", requireAuth, allowRoles("admin"), adminList);
 router.patch(
   "/:id",
