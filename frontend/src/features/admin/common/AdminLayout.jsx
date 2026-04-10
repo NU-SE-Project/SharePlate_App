@@ -1,14 +1,18 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import AdminHeader from "./AdminHeader";
+import Sidebar from "./Sidebar";
 
 const AdminLayout = () => {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.07),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.1),_transparent_24%),linear-gradient(180deg,_#f8fafc_0%,_#ffffff_34%,_#f0fdf4_100%)] text-slate-900">
-      <AdminHeader />
+    <div className="flex min-h-screen bg-slate-50/50 text-slate-900">
+      {/* Sidebar - Fixed on desktop, collapsible on mobile */}
+      <Sidebar />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <Outlet />
+      {/* Main Content Area */}
+      <main className="flex-1 transition-all duration-300 lg:pl-72">
+        <div className="mx-auto max-w-[1600px] px-4 pt-24 pb-8 sm:px-8 lg:pt-12">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
