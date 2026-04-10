@@ -366,7 +366,7 @@ const ProfileForm = () => {
                       onClick={handleGeocode}
                       disabled={isGeocoding}
                       title="Find on Map"
-                      className="absolute bottom-2 right-2 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md transition duration-200 hover:scale-[1.03] hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                      className="absolute bottom-2 right-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md transition duration-200 hover:scale-[1.03] hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                     >
                       {isGeocoding ? (
                         <Loader2 size={18} className="animate-spin" />

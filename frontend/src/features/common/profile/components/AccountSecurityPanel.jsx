@@ -155,7 +155,7 @@ const AccountSecurityPanel = () => {
                     type="button"
                     onClick={handleSendVerification}
                     disabled={isSendingVerification}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 sm:w-auto"
+                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 sm:w-auto"
                   >
                     {isSendingVerification ? (
                       <>
@@ -203,7 +203,7 @@ const AccountSecurityPanel = () => {
                   variant="outline"
                   onClick={handleLogoutAll}
                   disabled={isLoggingOutAll}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 sm:w-auto"
+                  className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 sm:w-auto"
                 >
                   {isLoggingOutAll ? (
                     <>

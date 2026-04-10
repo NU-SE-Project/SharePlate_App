@@ -28,7 +28,7 @@ const NavItem = memo(({ to, label, Icon, isActive }) => {
   return (
     <Link
       to={to}
-      className={`group inline-flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
+      className={`group inline-flex cursor-pointer items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
         isActive
           ? "bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -52,7 +52,7 @@ const MobileNavItem = memo(({ to, label, Icon, isActive }) => {
   return (
     <Link
       to={to}
-      className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
+      className={`group flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
         isActive
           ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
@@ -112,7 +112,7 @@ const AdminHeader = () => {
             {/* Brand */}
             <Link
               to="/admin/users"
-              className="group inline-flex min-w-0 items-center gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              className="group inline-flex min-w-0 cursor-pointer items-center gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-green-100 shadow-lg shadow-emerald-600/15 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl group-hover:shadow-emerald-600/20">
                 <img
@@ -159,7 +159,7 @@ const AdminHeader = () => {
               <div className="flex items-center gap-2 lg:hidden">
                 <Link
                   to="/admin/users"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                  className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                   aria-label="Open user management"
                 >
                   <Users size={18} />
@@ -167,7 +167,7 @@ const AdminHeader = () => {
 
                 <Link
                   to="/dashboard"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                  className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                   aria-label="Open dashboard"
                 >
                   <Menu size={18} />
