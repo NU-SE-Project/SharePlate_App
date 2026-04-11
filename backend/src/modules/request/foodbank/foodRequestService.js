@@ -193,7 +193,7 @@ export async function getRequestsByFoodbankService(foodbankId) {
   // For each request, find its acceptances and populate restaurant info
   const requestsWithAcceptances = await Promise.all(requests.map(async (req) => {
     const acceptances = await Acceptance.find({ request_id: req._id })
-      .populate("restaurant_id", "name email address phone location")
+      .populate("restaurant_id", "name email address contactNumber location")
       .populate("pickup_id", "otp status")
       .lean();
     return { ...req, acceptances };
@@ -240,7 +240,7 @@ export async function getAllOpenRequestsService(user) {
   // Attach acceptances for each request to provide breakdown per restaurant
   const requestsWithAcceptances = await Promise.all(requests.map(async (req) => {
     const acceptances = await Acceptance.find({ request_id: req._id })
-      .populate('restaurant_id', 'name address location')
+      .populate('restaurant_id', 'name contactNumber address location')
       .populate("pickup_id", "otp status")
       .lean();
     const acceptedTotal = acceptances.reduce((s, a) => s + (Number(a.acceptedQuantity) || 0), 0);
