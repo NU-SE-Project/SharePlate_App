@@ -35,7 +35,10 @@ export async function getMyComplaints(req, res, next) {
  */
 export async function getComplaintTargets(req, res, next) {
     try {
-        const targets = await complainService.getComplaintTargets(req.user.role);
+        const targets = await complainService.getComplaintTargets(
+            req.user.userId,
+            req.user.role
+        );
         res.status(200).json(targets);
     } catch (err) {
         next(err);
@@ -77,6 +80,42 @@ export async function replyToComplaint(req, res, next) {
         );
         res.status(200).json({
             message: "Complaint replied and resolved",
+            complaint,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Handle DELETE /api/complaints/:id
+ */
+export async function deleteComplaint(req, res, next) {
+    try {
+        await complainService.deleteComplaint(
+            req.params.id,
+            req.user.userId,
+            req.user.role
+        );
+        res.status(200).json({ message: "Complaint deleted successfully" });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Handle PATCH /api/complaints/:id
+ */
+export async function updateComplaint(req, res, next) {
+    try {
+        const complaint = await complainService.updateComplaint(
+            req.params.id,
+            req.user.userId,
+            req.user.role,
+            req.body
+        );
+        res.status(200).json({
+            message: "Complaint updated successfully",
             complaint,
         });
     } catch (err) {

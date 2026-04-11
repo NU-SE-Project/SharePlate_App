@@ -271,20 +271,9 @@ Only variable names and purposes should be documented in submissions. Do not inc
 
 ### Screenshots of the Deployed Application
 
-Replace the placeholders below with real screenshots before final submission:
+Inside docs/screenshots folder
 
-- Placeholder: Landing page screenshot
-- Placeholder: Login or signup page screenshot
-- Placeholder: Restaurant dashboard screenshot
-- Placeholder: Food bank dashboard screenshot
-- Placeholder: Admin dashboard screenshot
-
-Suggested format:
-
-```md
-![Landing Page](docs/screenshots/landing-page.png)
-![Restaurant Dashboard](docs/screenshots/restaurant-dashboard.png)
-```
+````
 
 ## Testing Instructions
 
@@ -296,7 +285,7 @@ Unit tests are located in:
 
 ```text
 frontend/src/testing/unitTesting/
-```
+````
 
 To run them:
 
@@ -431,20 +420,3 @@ The included Artillery scenario performs:
 - Steady-state traffic
 - Spike traffic
 - Mixed read and authentication requests
-
-### Test Evidence for Submission
-
-For academic evaluation, it is recommended to include:
-
-- Screenshot of successful unit/integration test execution
-- Screenshot of manual Postman API verification
-- Screenshot or exported summary of performance test results
-
-## Academic Submission Notes
-
-Before submission, verify the following:
-
-- Replace the deployment URL placeholders with the actual live links.
-- Add deployed application screenshots to the README or a `docs/screenshots/` folder.
-- Remove any sensitive values from `.env` files before sharing the project.
-- Confirm both frontend and backend commands run successfully on a clean machine.
