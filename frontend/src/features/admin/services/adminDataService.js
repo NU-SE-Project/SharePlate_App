@@ -33,6 +33,29 @@ export const fetchAdminStats = async () => {
       totalRestaurants: 0,
       totalDonations: 0,
       activeRequests: 0
-    };
-  }
+    }
+  };
+}
+/**
+ * Fetch all proactive requests from a specific food bank.
+ */
+export const fetchFoodBankRequests = async (foodbankId) => {
+  const response = await api.get(`/foodbank-request/foodbank/${foodbankId}`);
+  return response.data?.requests || [];
+};
+
+/**
+ * Fetch all donations from a specific restaurant.
+ */
+export const fetchRestaurantDonations = async (restaurantId) => {
+  const response = await api.get(`/foodsdonate/restaurant/${restaurantId}`);
+  return response.data || [];
+};
+
+/**
+ * Fetch all specific food bank requests (acceptances) for a specific donation.
+ */
+export const fetchDonationRequests = async (donationId) => {
+  const response = await api.get(`/request/donation/${donationId}`);
+  return response.data?.requests || [];
 };

@@ -88,10 +88,10 @@ const ManageDonationsPage = () => {
                   <div className="flex h-full flex-col justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-                        <HandHeart size={20} />
+                         <Plus size={20} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">New Donation</p>
+                        <p className="text-sm font-semibold uppercase tracking-wider">ADD Donation</p>
                         <p className="text-xs text-emerald-100">
                           Start a fresh donation flow
                         </p>

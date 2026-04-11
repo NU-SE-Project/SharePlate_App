@@ -120,10 +120,10 @@ const DonateFoodPage = () => {
                   <div className="flex h-full flex-col justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-                        <HandHeart size={20} />
+                         <Plus size={20} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">New Donation</p>
+                        <p className="text-sm font-semibold uppercase tracking-wider">ADD Donation</p>
                         <p className="text-xs text-emerald-100">
                           Start a fresh donation flow
                         </p>
@@ -217,9 +217,20 @@ const DonateFoodPage = () => {
               </p>
             </div>
 
-            <div className="inline-flex items-center gap-2 self-start rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
-              <ShoppingBag size={16} />
-              Donation Inventory
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleAddClick}
+                className="rounded-2xl border border-emerald-600 bg-emerald-600 px-4 py-2 font-bold uppercase tracking-wider text-white shadow-md hover:bg-emerald-700"
+              >
+                <Plus size={18} className="mr-2" />
+                ADD Donation
+              </Button>
+              <div className="inline-flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
+                <ShoppingBag size={16} />
+                Donation Inventory
+              </div>
             </div>
           </div>
 
@@ -285,7 +296,7 @@ const DonateFoodPage = () => {
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          title={editingDonation ? "Edit Donation" : "New Food Donation"}
+          title={editingDonation ? "Edit Donation" : "ADD Donation"}
         >
           <DirectDonationForm
             initialData={editingDonation}

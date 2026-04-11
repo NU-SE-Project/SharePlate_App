@@ -1,4 +1,5 @@
 import Donation from "./Donation.js";
+import Request from "../foodbank/Request.js";
 import mongoose from "mongoose";
 import { getIO } from "../../../socket.js";
 import path from 'path';
@@ -114,8 +115,17 @@ export async function getAllDonationsService(query) {
     filter.restaurant_id = restaurant_id;
   }
 
-  const donations = await Donation.find(filter).populate("restaurant_id", "name address location").sort({ expiryTime: 1 });
-  return donations;
+  const donations = await Donation.find(filter).populate("restaurant_id", "name address location").sort({ expiryTime: 1 }).lean();
+  
+  // Attach requests (food bank acceptances) for each donation
+  const donationsWithRequests = await Promise.all(donations.map(async (don) => {
+    const requests = await Request.find({ food_id: don._id })
+      .populate("foodBank_id", "name address email contactNumber location")
+      .lean();
+    return { ...don, requests };
+  }));
+
+  return donationsWithRequests;
 }
 
 export async function getSingleDonationService(id) {

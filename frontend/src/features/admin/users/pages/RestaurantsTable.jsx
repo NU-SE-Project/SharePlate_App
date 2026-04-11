@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import BeautifulTable from "../../../../components/common/BeautifulTable";
 import { fetchRestaurants } from "../../services/adminDataService";
 import { MapPin, Mail, Phone, Calendar, UtensilsCrossed } from "lucide-react";
 
 const RestaurantsTable = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -91,6 +93,18 @@ const RestaurantsTable = () => {
           <Calendar size={14} />
           {new Date(row.createdAt).toLocaleDateString()}
         </div>
+      )
+    },
+    {
+      header: "Actions",
+      key: "actions",
+      render: (row) => (
+        <button 
+          onClick={() => navigate(`/admin/restaurant/${row._id}/donations`)}
+          className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700 transition-colors shadow-sm"
+        >
+          View Donations
+        </button>
       )
     }
   ];
