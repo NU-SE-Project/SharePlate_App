@@ -10,7 +10,7 @@ const RestaurantProfilePage = () => {
       <div className="flex items-center gap-6 mb-12">
         <Link 
           to="/restaurant/dashboard" 
-          className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-300 shadow-sm"
+          className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border border-slate-100 bg-white text-slate-400 shadow-sm transition-all duration-300 hover:bg-emerald-50 hover:text-emerald-600"
         >
           <ChevronLeft size={24} />
         </Link>

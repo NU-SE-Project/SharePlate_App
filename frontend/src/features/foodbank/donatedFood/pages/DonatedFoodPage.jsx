@@ -1,35 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, ChevronLeft, Heart, Search, Filter, Loader2, Info, ArrowUpRight } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
-import AvailableFoodTab from '../components/AvailableFoodTab';
-import MyRequestsTab from '../components/MyRequestsTab';
-import Modal from '../../../../components/common/Modal';
-import Input from '../../../../components/common/Input';
-import Button from '../../../../components/common/Button';
-import { requestFoodDonation } from '../../services/foodbankService';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../../../context/AuthContext';
-import { displayImage } from '../../../../utils/displayImage';
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  ShoppingBag,
+  Heart,
+  Loader2,
+  Info,
+  ArrowUpRight,
+  Bell,
+  HandHeart,
+  ClipboardList,
+  Sparkles,
+} from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import AvailableFoodTab from "../components/AvailableFoodTab";
+import MyRequestsTab from "../components/MyRequestsTab";
+import Modal from "../../../../components/common/Modal";
+import Input from "../../../../components/common/Input";
+import Button from "../../../../components/common/Button";
+import { requestFoodDonation } from "../../services/foodbankService";
+import toast from "react-hot-toast";
+import { useAuth } from "../../../../context/AuthContext";
+import { displayImage } from "../../../../utils/displayImage";
+
+const TABS = [
+  {
+    key: "available",
+    label: "Available Donations",
+    shortLabel: "Available",
+    title: "Browse food shared by restaurants",
+    description:
+      "Review available donations, filter quickly, and request what your community can use right now.",
+    icon: ShoppingBag,
+  },
+  {
+    key: "requested",
+    label: "My Requests",
+    shortLabel: "Requests",
+    title: "Track requests you have already submitted",
+    description:
+      "Monitor pending approvals, accepted pickups, and recent request activity in one place.",
+    icon: ClipboardList,
+  },
+];
 
 const DonatedFoodPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'available';
-  
+  const activeTab = searchParams.get("tab") || "available";
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
-  const [requestQuantity, setRequestQuantity] = useState('');
+  const [requestQuantity, setRequestQuantity] = useState("");
   const [isRequesting, setIsRequesting] = useState(false);
-  
-  // Get FoodBank ID from AuthContext
+
   const auth = useAuth();
   const userFromCtx = auth?.user;
   const foodBankId = userFromCtx?.id || userFromCtx?._id || null;
 
   useEffect(() => {
     if (!foodBankId) {
-      toast.error('Please login as a food bank to request donations');
+      toast.error("Please login as a food bank to request donations");
     }
   }, [foodBankId]);
+
+  const activeTabData = useMemo(
+    () => TABS.find((tab) => tab.key === activeTab) || TABS[0],
+    [activeTab],
+  );
 
   const handleTabChange = (tab) => {
     setSearchParams({ tab });
@@ -37,142 +71,278 @@ const DonatedFoodPage = () => {
 
   const handleOpenRequest = (donation) => {
     setSelectedDonation(donation);
-    setRequestQuantity(donation.remainingQuantity.toString()); // Default to max available
+    setRequestQuantity(donation.remainingQuantity.toString());
     setIsModalOpen(true);
   };
 
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
     if (!requestQuantity || requestQuantity <= 0) {
-      toast.error('Please enter a valid quantity');
+      toast.error("Please enter a valid quantity");
       return;
     }
     if (Number(requestQuantity) > selectedDonation.remainingQuantity) {
-      toast.error(`Only ${selectedDonation.remainingQuantity} servings available`);
+      toast.error(
+        `Only ${selectedDonation.remainingQuantity} servings available`,
+      );
       return;
     }
 
     setIsRequesting(true);
     try {
-      if (!foodBankId) throw new Error('Missing food bank identity');
-      if (!selectedDonation?.restaurant_id) throw new Error('Missing restaurant id on donation');
+      if (!foodBankId) throw new Error("Missing food bank identity");
+      if (!selectedDonation?.restaurant_id) {
+        throw new Error("Missing restaurant id on donation");
+      }
       const payload = {
-        restaurant_id: selectedDonation.restaurant_id?._id || selectedDonation.restaurant_id,
+        restaurant_id:
+          selectedDonation.restaurant_id?._id || selectedDonation.restaurant_id,
         foodBank_id: foodBankId,
         requestedQuantity: Number(requestQuantity),
       };
-      console.debug('Submitting food request', { food_id: selectedDonation._id, payload });
       await requestFoodDonation(selectedDonation._id, payload);
-      toast.success('Your request has been submitted to the restaurant!');
+      toast.success("Your request has been submitted to the restaurant!");
       setIsModalOpen(false);
-      handleTabChange('requested'); // Switch to requested tab
+      handleTabChange("requested");
     } catch (error) {
-      console.error('Request submission failed', error.response?.data || error.message || error);
-      toast.error(error.response?.data?.message || 'Failed to submit request');
+      console.error(
+        "Request submission failed",
+        error.response?.data || error.message || error,
+      );
+      toast.error(error.response?.data?.message || "Failed to submit request");
     } finally {
       setIsRequesting(false);
     }
   };
 
+  const ActiveIcon = activeTabData.icon;
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
-      {/* Hero Section */}
-      <div className="relative rounded-[3.5rem] bg-emerald-900 overflow-hidden mb-12 shadow-2xl shadow-emerald-900/10">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-800 to-transparent opacity-50" />
-        <div className="absolute -right-20 -top-20 w-96 h-96 bg-emerald-700/30 rounded-full blur-[80px]" />
-        
-        <div className="relative z-10 p-12 lg:p-20 flex flex-col lg:flex-row items-center justify-between gap-12 text-center lg:text-left">
-           <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-800/50 border border-emerald-700/50 text-emerald-300 text-xs font-black uppercase tracking-widest mb-6">
-                 <Heart size={14} className="fill-emerald-400 text-emerald-400" />
-                 Community Support Hub
-              </div>
-              <h1 className="text-5xl lg:text-6xl font-black text-white leading-tight mb-6 tracking-tight">
-                 Empowering Your <br /><span className="text-emerald-400">Mission</span> to Feed.
-              </h1>
-              <p className="text-emerald-100/80 text-lg font-medium max-w-lg mb-10 leading-relaxed">
-                 Browse real-time food donations from local restaurants and secure meals for your community members in just a few clicks.
-              </p>
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                 <Button 
-                   onClick={() => handleTabChange('available')}
-                   className={`px-8 py-4 rounded-2xl font-bold transition-all border-none ${activeTab === 'available' ? 'bg-white text-emerald-900 shadow-xl' : 'bg-emerald-800 text-white hover:bg-emerald-700'}`}
-                 >
-                    Browse Collections
-                 </Button>
-                 <Button 
-                   onClick={() => handleTabChange('requested')}
-                   className={`px-8 py-4 rounded-2xl font-bold transition-all border-none ${activeTab === 'requested' ? 'bg-white text-emerald-900 shadow-xl' : 'bg-emerald-800 text-white hover:bg-emerald-700'}`}
-                 >
-                    Manage Requests
-                 </Button>
-              </div>
-           </div>
-           
-           <div className="flex-shrink-0 animate-bounce-slow">
-              <div className="w-64 h-64 bg-white/10 rounded-[4rem] backdrop-blur-3xl border border-white/10 p-10 shadow-2xl shadow-emerald-950/20 relative rotate-6">
-                 <ShoppingBag size={176} className="text-emerald-400 opacity-80" />
-                 <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-xl rotate-12">
-                    <Heart size={48} className="text-emerald-600 fill-emerald-600" />
-                 </div>
-              </div>
-           </div>
+      <section className="relative overflow-hidden rounded-[28px] border border-emerald-100 bg-gradient-to-br from-white via-emerald-50/70 to-green-100/60 shadow-[0_10px_40px_rgba(16,185,129,0.08)]">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-200/30 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-green-200/30 blur-2xl" />
         </div>
-      </div>
 
-      {/* Stats Quickbar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-         {[
-           { label: 'Meals Available', value: '450+', color: 'text-emerald-600' },
-           { label: 'Active Restaurants', value: '24', color: 'text-emerald-600' },
-           { label: 'Your Active Requests', value: '08', color: 'text-blue-600' },
-           { label: 'Community Partners', value: '12', color: 'text-emerald-600' }
-         ].map((stat, i) => (
-           <div key={i} className="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm flex flex-col items-center">
-              <span className="text-10px font-extrabold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</span>
-              <span className={`text-3xl font-black ${stat.color}`}>{stat.value}</span>
-           </div>
-         ))}
-      </div>
+        <div className="relative p-5 sm:p-7 lg:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-4 sm:gap-5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 shadow-sm sm:h-14 sm:w-14">
+                <Heart size={24} className="fill-emerald-600 text-emerald-600" />
+              </div>
 
-      {/* Tab Content */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-        {activeTab === 'available' ? (
-          <AvailableFoodTab onRequest={handleOpenRequest} />
-        ) : (
-          <MyRequestsTab foodBankId={foodBankId} />
-        )}
-      </div>
+              <div className="min-w-0">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800 sm:text-sm">
+                  <Sparkles size={14} />
+                  Community Support Hub
+                </div>
 
-      {/* Request Modal */}
-      <Modal 
-        isOpen={isModalOpen} 
+                <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+                  Food Donations
+                </h1>
+
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
+                  Browse real-time donations from nearby restaurants and manage
+                  your food requests with the same workflow and visual language
+                  used across the platform.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+              <div className="group rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition-transform duration-300 group-hover:scale-105">
+                    <Bell size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      Live Donation Feed
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Updated restaurant listings
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm leading-6 text-slate-600">
+                  Keep track of available meals, accepted requests, and pickup
+                  progress without switching contexts.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleTabChange(
+                    activeTab === "available" ? "requested" : "available",
+                  )
+                }
+                className="group cursor-pointer rounded-2xl border border-emerald-700 bg-gradient-to-r from-emerald-600 to-green-800 p-4 text-left text-white shadow-[0_12px_30px_rgba(22,163,74,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(22,163,74,0.34)] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              >
+                <div className="flex h-full flex-col justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                      <HandHeart size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">
+                        {activeTab === "available"
+                          ? "View My Requests"
+                          : "Browse Donations"}
+                      </p>
+                      <p className="text-xs text-emerald-100">
+                        Switch the current workspace
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-emerald-50">
+                      {activeTab === "available"
+                        ? "Open request tracker"
+                        : "Open donation feed"}
+                    </span>
+                    <ShoppingBag
+                      size={18}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-8 overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+                Donation Workspace
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Switch between live restaurant donations and the requests you
+                have already submitted.
+              </p>
+            </div>
+
+            <div
+              className="inline-flex w-full flex-col gap-2 rounded-2xl bg-slate-50 p-2 sm:w-auto sm:flex-row"
+              role="tablist"
+              aria-label="Food donation tabs"
+            >
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.key;
+                const Icon = tab.icon;
+
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`${tab.key}-panel`}
+                    id={`${tab.key}-tab`}
+                    onClick={() => handleTabChange(tab.key)}
+                    className={`group inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:min-w-[200px] ${
+                      isActive
+                        ? "bg-gradient-to-r from-emerald-600 to-green-800 text-white shadow-lg shadow-emerald-100"
+                        : "bg-transparent text-slate-600 hover:bg-white hover:text-emerald-700"
+                    }`}
+                  >
+                    <Icon
+                      size={18}
+                      className={`transition-transform duration-300 ${
+                        isActive ? "scale-100" : "group-hover:scale-105"
+                      }`}
+                    />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50/70 via-white to-green-50/70 px-4 py-5 sm:px-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 shadow-sm">
+                <ActiveIcon size={22} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
+                  {activeTabData.title}
+                </h3>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+                  {activeTabData.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+              Updated and ready for action
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 py-5 sm:px-6 sm:py-6">
+          <div
+            id={`${activeTab}-panel`}
+            role="tabpanel"
+            aria-labelledby={`${activeTab}-tab`}
+            className="animate-in fade-in zoom-in-95 duration-300"
+          >
+            {activeTab === "available" ? (
+              <AvailableFoodTab onRequest={handleOpenRequest} />
+            ) : (
+              <MyRequestsTab foodBankId={foodBankId} />
+            )}
+          </div>
+        </div>
+      </section>
+
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Secure Food Donation"
       >
         {selectedDonation && (
           <form onSubmit={handleSubmitRequest} className="space-y-8">
-            <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 flex items-center gap-6">
-              {/* <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-md">
-                 <ShoppingBag size={32} />
-              </div> */}
+            <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 via-white to-white p-6 shadow-sm">
+              <div className="flex items-center gap-5">
+                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-white shadow-md">
+                  <img
+                    src={displayImage(selectedDonation)}
+                    alt={selectedDonation.foodName}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
 
-              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-md">
-                <img
-                  src={displayImage(selectedDonation)}
-                  alt={selectedDonation.foodName}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-              </div>
-             
-              <div>
-                <h4 className="text-xl font-black text-slate-900">{selectedDonation.foodName}</h4>
-                <p className="text-slate-500 font-medium">Available: <span className="text-emerald-600">{selectedDonation.remainingQuantity}</span> servings</p>
+                <div>
+                  <h4 className="text-xl font-bold text-slate-900">
+                    {selectedDonation.foodName}
+                  </h4>
+                  <p className="font-medium text-slate-500">
+                    Available:{" "}
+                    <span className="text-emerald-600">
+                      {selectedDonation.remainingQuantity}
+                    </span>{" "}
+                    servings
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <Input 
+              <Input
                 label="How many servings do you need?"
                 type="number"
                 placeholder="Enter quantity"
@@ -182,27 +352,31 @@ const DonatedFoodPage = () => {
                 max={selectedDonation.remainingQuantity}
                 icon={<Info size={18} />}
               />
-              <p className="text-xs text-slate-400 px-2 font-medium flex items-center gap-2">
+              <p className="flex items-center gap-2 px-2 text-xs font-medium text-slate-400">
                 <ArrowUpRight size={14} className="text-emerald-500" />
-                Wait for restaurant approval to finalize the pickup.
+                Wait for restaurant approval to finalize pickup.
               </p>
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button 
-                variant="outline" 
-                className="flex-1 py-4 font-bold border-slate-200" 
+              <Button
+                variant="outline"
+                className="flex-1 border-slate-200 py-4 font-bold"
                 onClick={() => setIsModalOpen(false)}
                 type="button"
               >
                 Cancel
               </Button>
-              <Button 
-                className="flex-2 py-4 font-bold shadow-xl shadow-emerald-200" 
+              <Button
+                className="flex-[1.4] py-4 font-bold shadow-xl shadow-emerald-200"
                 disabled={isRequesting}
                 type="submit"
               >
-                {isRequesting ? <Loader2 className="animate-spin" /> : 'Confirm Request'}
+                {isRequesting ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  "Confirm Request"
+                )}
               </Button>
             </div>
           </form>

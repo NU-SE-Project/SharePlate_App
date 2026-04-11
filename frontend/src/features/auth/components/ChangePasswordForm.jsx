@@ -55,6 +55,11 @@ const ChangePasswordForm = () => {
       return;
     }
 
+    if (formData.currentPassword === formData.newPassword) {
+      setError("New password must be different from your current password.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError("");
     setSuccessMessage("");

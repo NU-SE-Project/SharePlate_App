@@ -85,7 +85,7 @@ const VerifyEmailPage = () => {
   return (
     <AuthLayout
       title="Verify Your Email"
-      subtitle="We are confirming your email address with the backend verification flow."
+      subtitle="We are confirming your email address."
     >
       <div className="rounded-[2rem] border border-slate-100 bg-white p-8 text-center shadow-sm">
         {status === "verifying" ? (
@@ -109,7 +109,7 @@ const VerifyEmailPage = () => {
             <p className="mt-3 text-sm text-slate-600">{message}</p>
             <Link
               to="/auth/login"
-              className="mt-6 inline-flex rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
+              className="mt-6 inline-flex cursor-pointer rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
             >
               Continue to login
             </Link>
@@ -126,13 +126,13 @@ const VerifyEmailPage = () => {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 to="/auth/resend-verification"
-                className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
+                className="inline-flex cursor-pointer rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white"
               >
                 Resend verification
               </Link>
               <Link
                 to="/auth/login"
-                className="inline-flex rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-600"
+                className="inline-flex cursor-pointer rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-600"
               >
                 Back to login
               </Link>

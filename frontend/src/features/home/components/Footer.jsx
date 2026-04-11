@@ -43,14 +43,14 @@ const FooterLinkGroup = memo(({ title, links }) => (
           {link.type === "anchor" ? (
             <a
               href={link.href}
-              className="text-sm text-slate-600 transition hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 rounded"
+              className="cursor-pointer rounded text-sm text-slate-600 transition hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               {link.label}
             </a>
           ) : (
             <Link
               to={link.href}
-              className="text-sm text-slate-600 transition hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 rounded"
+              className="cursor-pointer rounded text-sm text-slate-600 transition hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               {link.label}
             </Link>

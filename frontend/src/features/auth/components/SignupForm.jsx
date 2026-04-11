@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Mail,
@@ -58,6 +58,12 @@ const SRI_LANKA_PLACE_FALLBACKS = [
   { label: "Kegalle, Sri Lanka", lat: 7.2527, lon: 80.3464 },
 ];
 
+const ACCOUNT_ROLES = [
+  { value: "restaurant", label: "Restaurant / Hotel" },
+  { value: "foodbank", label: "Food Bank / NGO" },
+  { value: "admin", label: "Administrator" },
+];
+
 const SignupForm = () => {
   const nominatimBaseUrl =
     import.meta.env.VITE_NOMINATIM_BASE_URL ||
@@ -70,7 +76,7 @@ const SignupForm = () => {
   const googleOnboarding =
     location.state?.googleOnboarding || getStoredGoogleOnboarding() || null;
   const isGoogleOnboarding = Boolean(googleOnboarding?.onboardingToken);
-  const [step, setStep] = useState(isGoogleOnboarding ? 1 : 1);
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -89,15 +95,6 @@ const SignupForm = () => {
   const [isAddressLoading, setIsAddressLoading] = useState(false);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [addressSearchMessage, setAddressSearchMessage] = useState("");
-
-  const roles = useMemo(
-    () => [
-      { value: "restaurant", label: "Restaurant / Hotel" },
-      { value: "foodbank", label: "Food Bank / NGO" },
-      { value: "admin", label: "Administrator" },
-    ],
-    [],
-  );
 
   useEffect(() => {
     if (!isGoogleOnboarding) return;
@@ -180,6 +177,7 @@ const SignupForm = () => {
     const role = nextUser?.role || "";
     if (role === "restaurant") navigate("/restaurant/dashboard");
     else if (role === "foodbank") navigate("/foodbank/donated-food");
+    else if (role === "admin") navigate("/admin/users");
     else navigate("/dashboard");
   };
 
@@ -387,7 +385,10 @@ const SignupForm = () => {
       } else {
         await register(submitData);
         navigate("/auth/login", {
-          state: { message: "Account created! Please log in." },
+          state: {
+            message:
+              "Account created successfully. We've sent a verification link to your email—please verify before logging in",
+          },
         });
       }
     } catch (error) {
@@ -480,7 +481,7 @@ const SignupForm = () => {
             <Select
               label="Account Type"
               name="role"
-              options={roles}
+              options={ACCOUNT_ROLES}
               value={formData.role}
               onChange={handleChange}
               error={errors.role}
@@ -564,7 +565,7 @@ const SignupForm = () => {
                 type="button"
                 onClick={handleGeocode}
                 disabled={isGeocoding}
-                className="absolute right-2 bottom-2 p-2 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:bg-slate-300"
+                className="absolute right-2 bottom-2 cursor-pointer rounded-xl bg-emerald-600 p-2 text-white shadow-lg shadow-emerald-200 transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 title="Find on Map"
               >
                 {isGeocoding ? (
@@ -594,7 +595,7 @@ const SignupForm = () => {
                             onClick={() =>
                               handleAddressSuggestionSelect(suggestion)
                             }
-                            className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50"
+                            className="flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50"
                           >
                             <MapPin
                               size={16}
@@ -671,7 +672,7 @@ const SignupForm = () => {
         Already part of SharePlate?{" "}
         <Link
           to="/auth/login"
-          className="font-bold text-emerald-600 hover:text-emerald-700"
+          className="cursor-pointer font-bold text-emerald-600 hover:text-emerald-700"
         >
           Sign in to continue
         </Link>

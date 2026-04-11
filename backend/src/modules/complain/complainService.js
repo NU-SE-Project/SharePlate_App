@@ -34,13 +34,46 @@ export async function getMyComplaints(userId) {
 }
 
 /**
- * Get all complaints (Admin only)
+ * Get all complaints (Admin only) with optional filters
  */
-export async function getAllComplaints() {
-    return await Complaint.find()
+export async function getAllComplaints(filters = {}) {
+    const query = {};
+
+    if (filters.status) {
+        query.status = filters.status;
+    }
+
+    // Filter by complainer role or complainee role
+    // This requires populating first or using a more complex aggregation,
+    // but for simplicity with typical volume, we can filter after population 
+    // or use $lookup if using aggregation.
+    // However, Mongoose allows filtering on nested fields if we use aggregation,
+    // or we can just filter by IDs if we find users first.
+    
+    // Better approach: If role filters are provided, find those users first.
+    if (filters.complainerRole || filters.complaineeRole) {
+        const userQuery = {};
+        if (filters.complainerRole) userQuery.role = filters.complainerRole;
+        
+        const users = await User.find(userQuery).select("_id role");
+        const userIds = users.map(u => u._id);
+
+        if (filters.complainerRole) {
+            query.complainer = { $in: userIds };
+        }
+    }
+
+    if (filters.complaineeRole) {
+        const userQuery = { role: filters.complaineeRole };
+        const users = await User.find(userQuery).select("_id role");
+        const userIds = users.map(u => u._id);
+        query.complainee = { $in: userIds };
+    }
+
+    return await Complaint.find(query)
         .populate("complainer", "name email role")
         .populate("complainee", "name email role")
-        .sort({ createdAt: -1 });
+        .sort({ status: 1, createdAt: -1 });
 }
 
 /**

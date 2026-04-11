@@ -7,7 +7,7 @@ const router = express.Router();
 
 // ── GET routes ─────────────────────────────────────────────────────────────
 router.get("/restaurant/:restaurant_id", requireAuth, allowRoles("restaurant"), getRequestsForRestaurant);
-router.get("/donation/:donationId",      requireAuth, allowRoles("restaurant"), getRequestsByDonation);
+router.get("/donation/:donationId",      requireAuth, allowRoles("restaurant", "admin"), getRequestsByDonation);
 router.get("/:foodBank_id",              requireAuth, allowRoles("foodbank"),   getAllRequests);
 
 // ── POST routes ────────────────────────────────────────────────────────────

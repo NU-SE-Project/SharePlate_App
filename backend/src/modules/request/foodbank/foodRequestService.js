@@ -4,8 +4,7 @@ import Acceptance from "../shop/Acceptance.js";
 import User from "../../user/User.js";
 import { sendSms } from "../../../services/notifyService.js";
 import { getIO } from "../../../socket.js";
-
-const NOTIFICATION_RADIUS_KM = 10;
+import { getMaxDistanceSetting } from "../../../services/distanceService.js";
 
 function getCoordinates(location) {
   const coordinates = location?.coordinates;
@@ -41,6 +40,8 @@ async function notifyNearbyRestaurantsForRequest(request) {
     .select("name address location")
     .lean();
 
+  const maxDistanceKm = await getMaxDistanceSetting();
+
   const foodbankCoordinates = getCoordinates(foodbank?.location);
   if (!foodbankCoordinates) {
     return {
@@ -68,7 +69,7 @@ async function notifyNearbyRestaurantsForRequest(request) {
       };
     })
     .filter((restaurant) =>
-      Number.isFinite(restaurant._distanceKm) && restaurant._distanceKm <= NOTIFICATION_RADIUS_KM,
+      Number.isFinite(restaurant._distanceKm) && restaurant._distanceKm <= maxDistanceKm,
     );
 
   let io = null;
@@ -85,7 +86,7 @@ async function notifyNearbyRestaurantsForRequest(request) {
     foodName: request.foodName,
     foodType: request.foodType,
     requestedQuantity: request.requestedQuantity,
-    radiusKm: NOTIFICATION_RADIUS_KM,
+    radiusKm: maxDistanceKm,
   };
 
   const smsResults = await Promise.allSettled(
@@ -201,9 +202,37 @@ export async function getRequestsByFoodbankService(foodbankId) {
   return { message: "Requests retrieved successfully", requests: requestsWithAcceptances };
 }
 
-export async function getAllOpenRequestsService() {
-  // Return all requests (including fulfilled/closed) so frontend can display accepted/fulfilled entries
-  const requests = await FoodRequest.find({})
+export async function getAllOpenRequestsService(user) {
+  let filter = {};
+
+  // Distance filtering for Restaurants viewing open requests from foodbanks
+  if (user && user.role === "restaurant") {
+    const currentUser = await User.findById(user.userId);
+    if (currentUser && currentUser.location && currentUser.location.coordinates) {
+      const maxDistanceKm = await getMaxDistanceSetting();
+      const maxDistanceMeters = maxDistanceKm * 1000;
+
+      // Find nearby foodbanks
+      const nearbyFoodbanks = await User.find({
+        role: "foodbank",
+        location: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: currentUser.location.coordinates,
+            },
+            $maxDistance: maxDistanceMeters,
+          },
+        },
+      }).select("_id");
+
+      const foodbankIds = nearbyFoodbanks.map(fb => fb._id);
+      filter.foodbank_id = { $in: foodbankIds };
+    }
+  }
+
+  // Return all requests matching filters
+  const requests = await FoodRequest.find(filter)
     .populate("foodbank_id", "name email address location")
     .sort({ createdAt: -1 })
     .lean();

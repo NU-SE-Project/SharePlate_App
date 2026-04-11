@@ -79,6 +79,31 @@ export const roleSchema = z
     message: "Role must be one of: restaurant, foodbank, admin",
   });
 
+export const verificationStatusSchema = z
+  .string({
+    error: (issue) =>
+      issue.input === undefined
+        ? "Verification status is required"
+        : "Verification status must be a text value",
+  })
+  .refine(
+    (val) => ["unverified", "pending", "verified", "rejected"].includes(val),
+    {
+      message:
+        "Verification status must be one of: unverified, pending, verified, rejected",
+    },
+  );
+
+export const verifiedAtSchema = z.union([
+  z
+    .string({
+      error: "Verified at must be an ISO datetime string or null",
+    })
+    .datetime("Verified at must be a valid ISO datetime")
+    .transform((value) => new Date(value)),
+  z.null(),
+]);
+
 export const geoSchema = z
   .object(
     {
@@ -136,5 +161,7 @@ export default {
   addressSchema,
   contactNumberSchema,
   roleSchema,
+  verificationStatusSchema,
+  verifiedAtSchema,
   geoSchema,
 };
