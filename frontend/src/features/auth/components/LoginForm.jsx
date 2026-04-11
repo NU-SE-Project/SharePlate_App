@@ -112,7 +112,7 @@ const LoginForm = () => {
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-[38px] text-slate-400 hover:text-emerald-600 transition-colors"
+          className="absolute right-4 top-[38px] cursor-pointer text-slate-400 transition-colors hover:text-emerald-600"
         >
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
@@ -130,7 +130,7 @@ const LoginForm = () => {
           to="/auth/forgot-password"
           name="forgot-password"
           id="forgot-password"
-          className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+          className="cursor-pointer text-sm font-medium text-emerald-600 hover:text-emerald-700"
         >
           Forgot password?
         </Link>
@@ -181,7 +181,7 @@ const LoginForm = () => {
         Don't have an account?{" "}
         <Link
           to="/auth/signup"
-          className="font-semibold text-emerald-600 hover:text-emerald-700"
+          className="cursor-pointer font-semibold text-emerald-600 hover:text-emerald-700"
         >
           Join SharePlate today
         </Link>

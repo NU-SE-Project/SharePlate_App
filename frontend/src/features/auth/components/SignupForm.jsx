@@ -565,7 +565,7 @@ const SignupForm = () => {
                 type="button"
                 onClick={handleGeocode}
                 disabled={isGeocoding}
-                className="absolute right-2 bottom-2 p-2 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:bg-slate-300"
+                className="absolute right-2 bottom-2 cursor-pointer rounded-xl bg-emerald-600 p-2 text-white shadow-lg shadow-emerald-200 transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 title="Find on Map"
               >
                 {isGeocoding ? (
@@ -595,7 +595,7 @@ const SignupForm = () => {
                             onClick={() =>
                               handleAddressSuggestionSelect(suggestion)
                             }
-                            className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50"
+                            className="flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-emerald-50"
                           >
                             <MapPin
                               size={16}
@@ -672,7 +672,7 @@ const SignupForm = () => {
         Already part of SharePlate?{" "}
         <Link
           to="/auth/login"
-          className="font-bold text-emerald-600 hover:text-emerald-700"
+          className="cursor-pointer font-bold text-emerald-600 hover:text-emerald-700"
         >
           Sign in to continue
         </Link>

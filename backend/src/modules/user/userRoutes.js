@@ -59,24 +59,24 @@ router.patch("/me", requireAuth, validate(updateMeSchema), updateMe);
 router.get("/stats", requireAuth, allowRoles("admin"), async (req, res) => {
   try {
     const [
-      totalUsers, 
-      totalFoodBanks, 
+      totalUsers,
+      totalFoodBanks,
       totalRestaurants,
       totalDonations,
-      activeRequests
+      activeRequests,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: "foodbank" }),
       User.countDocuments({ role: "restaurant" }),
       Donation.countDocuments(),
-      Request.countDocuments({ status: "pending" })
+      Request.countDocuments({ status: "pending" }),
     ]);
-    res.json({ 
-      totalUsers, 
-      totalFoodBanks, 
-      totalRestaurants, 
-      totalDonations, 
-      activeRequests 
+    res.json({
+      totalUsers,
+      totalFoodBanks,
+      totalRestaurants,
+      totalDonations,
+      activeRequests,
     });
   } catch (error) {
     console.error("Stats fetching failed:", error);
