@@ -27,6 +27,7 @@ import DonatedFoodPage from "./features/foodbank/donatedFood/pages/DonatedFoodPa
 import PostRequestPage from "./features/foodbank/proactiveRequests/pages/PostRequestPage";
 import MyProactiveRequestsPage from "./features/foodbank/proactiveRequests/pages/MyProactiveRequestsPage";
 import FoodBankProfilePage from "./features/foodbank/profile/pages/FoodBankProfilePage";
+import ApiEndpoints from "./components/ApiEndpoints";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
 
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/endpoints" element={<ApiEndpoints />} />
 
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
