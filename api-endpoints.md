@@ -1,5 +1,7 @@
 # SharePlate API Endpoint Documentation
 
+https://shareplate-eight.vercel.app/endpoints
+
 ## Overview
 
 Base URL: `http://localhost:5000`
@@ -17,6 +19,7 @@ Role checks are enforced by middleware. When a route says `restaurant`, `foodban
 Request bodies are JSON unless the endpoint is marked `multipart/form-data`.
 
 ## How to Read This File Quickly
+
 1. Check **Quick Navigation** to jump to a module.
 
 ## Quick Navigation
@@ -34,9 +37,8 @@ Request bodies are JSON unless the endpoint is marked `multipart/form-data`.
 - [Nearby / Distance Test](#nearby--distance-test)
 - [Notification Test](#notification-test)
 
-
-
 ## Standard Auth User Shape
+
 Several auth endpoints return the same user shape:
 
 ```json
@@ -612,18 +614,18 @@ Request: `multipart/form-data`
 
 Fields:
 
-| Field | Required | Notes |
-| --- | --- | --- |
-| restaurant_id | yes | Must be a valid user id |
-| foodName | yes | Donation title |
-| description | no | Free text |
-| foodType | no | Example: `veg`, `non-veg` |
-| totalQuantity | yes | Must be greater than 0 |
-| expiryTime | yes | ISO datetime |
-| pickupWindowStart | yes | ISO datetime |
-| pickupWindowEnd | yes | ISO datetime, must be after start and before expiry |
-| image | no | Uploaded file field; stored in Cloudinary |
-| imageUrl | no | Optional direct URL, overridden by uploaded file |
+| Field             | Required | Notes                                               |
+| ----------------- | -------- | --------------------------------------------------- |
+| restaurant_id     | yes      | Must be a valid user id                             |
+| foodName          | yes      | Donation title                                      |
+| description       | no       | Free text                                           |
+| foodType          | no       | Example: `veg`, `non-veg`                           |
+| totalQuantity     | yes      | Must be greater than 0                              |
+| expiryTime        | yes      | ISO datetime                                        |
+| pickupWindowStart | yes      | ISO datetime                                        |
+| pickupWindowEnd   | yes      | ISO datetime, must be after start and before expiry |
+| image             | no       | Uploaded file field; stored in Cloudinary           |
+| imageUrl          | no       | Optional direct URL, overridden by uploaded file    |
 
 Response: `201 Created`
 
@@ -1292,8 +1294,8 @@ Request body:
 {
   "originLat": 6.9271,
   "originLng": 79.8612,
-  "destLat": 6.9340,
-  "destLng": 79.8420
+  "destLat": 6.934,
+  "destLng": 79.842
 }
 ```
 

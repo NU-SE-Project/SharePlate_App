@@ -11,7 +11,7 @@ import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import VerifyEmailPage from "./features/auth/pages/VerifyEmailPage";
 import ChangePasswordPage from "./features/auth/pages/ChangePasswordPage";
 import HomePage from "./features/home/pages/HomePage";
-
+import ApiEndpoints from "./components/common/ApiEndpoints";
 import RestaurantLayout from "./features/restaurants/common/RestaurantLayout";
 import FoodBankLayout from "./features/foodbank/common/FoodBankLayout";
 import RequireAuth from "./components/common/RequireAuth";
@@ -48,6 +48,8 @@ function App() {
 
           <Routes>
             <Route path="/" element={<HomePage />} />
+
+            <Route path="/endpoints" element={<ApiEndpoints />} />
 
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
