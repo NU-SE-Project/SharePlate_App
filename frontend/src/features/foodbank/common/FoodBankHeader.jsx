@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import sharePlateLogo from "../../../assets/SharePlate_OffcialLogo.png";
@@ -41,6 +42,11 @@ const FoodBankHeader = () => {
         icon: Inbox,
       },
       {
+        name: "Complaints",
+        path: "/foodbank/complaints",
+        icon: MessageSquare,
+      },
+      {
         name: "Profile",
         path: "/foodbank/profile",
         icon: UserCircle,
@@ -62,7 +68,8 @@ const FoodBankHeader = () => {
     } catch (error) {
       console.error("Logout failed:", error);
       toast.error(
-        error?.response?.data?.message || "Failed to log out. Please try again.",
+        error?.response?.data?.message ||
+          "Failed to log out. Please try again.",
       );
     }
   }, [auth, navigate]);

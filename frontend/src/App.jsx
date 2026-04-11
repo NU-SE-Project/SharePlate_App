@@ -22,11 +22,13 @@ import AvailableRequestsPage from "./features/restaurants/donateFood/pages/Avail
 import RestaurantProfilePage from "./features/restaurants/profile/pages/RestaurantProfilePage";
 import RestaurantDashboard from "./features/restaurants/common/pages/Restaurantdashboard";
 import SingleDonationRequestsPage from "./features/restaurants/donateFood/pages/SingleDonationRequestsPage";
+import RestaurantComplaintsPage from "./features/restaurants/complaints/pages/ComplaintsPage";
 
 import DonatedFoodPage from "./features/foodbank/donatedFood/pages/DonatedFoodPage";
 import PostRequestPage from "./features/foodbank/proactiveRequests/pages/PostRequestPage";
 import MyProactiveRequestsPage from "./features/foodbank/proactiveRequests/pages/MyProactiveRequestsPage";
 import FoodBankProfilePage from "./features/foodbank/profile/pages/FoodBankProfilePage";
+import FoodBankComplaintsPage from "./features/foodbank/complaints/pages/ComplaintsPage";
 import AdminLayout from "./features/admin/common/AdminLayout";
 import AdminUsersPage from "./features/admin/users/pages/AdminUsersPage";
 import Dashboard from "./features/admin/dashboard/pages/Dashboard";
@@ -35,6 +37,7 @@ import RestaurantsTable from "./features/admin/users/pages/RestaurantsTable";
 import FoodBankRequestsPage from "./features/admin/users/pages/FoodBankRequestsPage";
 import RestaurantDonationsPage from "./features/admin/users/pages/RestaurantDonationsPage";
 import Settings from "./features/admin/settings/pages/Settings";
+import AdminComplaintsPage from "./features/admin/complaints/pages/AdminComplaintsPage";
 
 function App() {
   return (
@@ -48,7 +51,10 @@ function App() {
 
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
-            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/auth/forgot-password"
+              element={<ForgotPasswordPage />}
+            />
             <Route
               path="/auth/resend-verification"
               element={<ResendVerificationPage />}
@@ -82,6 +88,7 @@ function App() {
                 element={<SingleDonationRequestsPage />}
               />
               <Route path="profile" element={<RestaurantProfilePage />} />
+              <Route path="complaints" element={<RestaurantComplaintsPage />} />
             </Route>
 
             <Route
@@ -100,6 +107,7 @@ function App() {
                 element={<MyProactiveRequestsPage />}
               />
               <Route path="profile" element={<FoodBankProfilePage />} />
+              <Route path="complaints" element={<FoodBankComplaintsPage />} />
               <Route
                 path="leaderboard"
                 element={
@@ -121,11 +129,18 @@ function App() {
               <Route index element={<Navigate to="dashboard" />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="foodbanks" element={<FoodBanksTable />} />
-              <Route path="foodbank/:id/requests" element={<FoodBankRequestsPage />} />
+              <Route
+                path="foodbank/:id/requests"
+                element={<FoodBankRequestsPage />}
+              />
               <Route path="restaurants" element={<RestaurantsTable />} />
-              <Route path="restaurant/:id/donations" element={<RestaurantDonationsPage />} />
+              <Route
+                path="restaurant/:id/donations"
+                element={<RestaurantDonationsPage />}
+              />
               <Route path="settings" element={<Settings />} />
               <Route path="users" element={<AdminUsersPage />} />
+              <Route path="complaints" element={<AdminComplaintsPage />} />
             </Route>
 
             <Route
