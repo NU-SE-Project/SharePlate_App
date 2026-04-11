@@ -271,20 +271,9 @@ Only variable names and purposes should be documented in submissions. Do not inc
 
 ### Screenshots of the Deployed Application
 
-Replace the placeholders below with real screenshots before final submission:
+Inside docs/screenshots folder
 
-- Placeholder: Landing page screenshot
-- Placeholder: Login or signup page screenshot
-- Placeholder: Restaurant dashboard screenshot
-- Placeholder: Food bank dashboard screenshot
-- Placeholder: Admin dashboard screenshot
-
-Suggested format:
-
-```md
-![Landing Page](docs/screenshots/landing-page.png)
-![Restaurant Dashboard](docs/screenshots/restaurant-dashboard.png)
-```
+````
 
 ## Testing Instructions
 
@@ -296,7 +285,7 @@ Unit tests are located in:
 
 ```text
 frontend/src/testing/unitTesting/
-```
+````
 
 To run them:
 
