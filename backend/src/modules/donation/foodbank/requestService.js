@@ -5,6 +5,7 @@ import User from "../../user/User.js";
 import { sendSms } from "../../../services/notifyService.js";
 import { getIO } from "../../../socket.js";
 import { createPickupOTPService } from "../../pickup/pickupService.js";
+import { getMaxDistanceSetting } from "../../../services/distanceService.js";
 
 
 // Get all requests of a particular food bank
@@ -30,8 +31,34 @@ export async function getRequestsByRestaurant({ restaurant_id }) {
     err.statusCode = 400;
     throw err;
   }
+
+  const currentUser = await User.findById(restaurant_id);
+  let filter = { restaurant_id };
+
+  if (currentUser && currentUser.location && currentUser.location.coordinates) {
+    const maxDistanceKm = await getMaxDistanceSetting();
+    const maxDistanceMeters = maxDistanceKm * 1000;
+
+    // Find nearby foodbanks
+    const nearbyFoodbanks = await User.find({
+      role: "foodbank",
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: currentUser.location.coordinates,
+          },
+          $maxDistance: maxDistanceMeters,
+        },
+      },
+    }).select("_id");
+
+    const foodbankIds = nearbyFoodbanks.map(fb => fb._id);
+    filter.foodBank_id = { $in: foodbankIds };
+  }
+
   // Populate food and foodbank information for clarity
-  const requests = await Request.find({ restaurant_id })
+  const requests = await Request.find(filter)
     .populate('food_id')
     .populate('foodBank_id', 'name address location')
     .populate('pickup_id', 'otp status')

@@ -20,7 +20,9 @@ export async function getAllDonations(req, res, next) {
     const { restaurant_id } = req.params || {};
     const query = { ...(req.query || {}) };
     if (restaurant_id) query.restaurant_id = restaurant_id;
-    const donations = await getAllDonationsService(query);
+    
+    // Pass user context for distance filtering
+    const donations = await getAllDonationsService(query, req.user);
     return res.status(200).json(donations);
   } catch (error) {
     return next(error);

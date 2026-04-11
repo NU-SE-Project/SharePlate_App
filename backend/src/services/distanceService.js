@@ -1,14 +1,28 @@
 import User from "../modules/user/User.js";
+import Setting from "../modules/settings/Setting.js";
+
+export const getMaxDistanceSetting = async () => {
+  let distanceKm = 20;
+  try {
+    const setting = await Setting.findOne({ key: "max_distance" });
+    if (setting) {
+      distanceKm = parseFloat(setting.value);
+    } else if (process.env.DISTANCE_KM) {
+      distanceKm = parseFloat(process.env.DISTANCE_KM);
+    }
+  } catch (err) {
+    console.error("Error fetching distance setting, using default:", err.message);
+    if (process.env.DISTANCE_KM) distanceKm = parseFloat(process.env.DISTANCE_KM);
+  }
+  return distanceKm;
+};
 
 export const getNearbyUsers = async ({ latitude, longitude, role }) => {
-  // EMERGENCY RELOAD: If for some reason variables aren't loaded, try to default safely
-  const rawDistance = process.env.DISTANCE_KM;
-  const distanceKm = parseFloat(rawDistance) || 10;
+  const distanceKm = await getMaxDistanceSetting();
   const distanceInMeters = distanceKm * 1000;
 
   console.log("---------- NEARBY QUERY DIAGNOSTICS ----------");
-  console.log("RAW DISTANCE_KM FROM ENV:", rawDistance);
-  console.log("PARSED distanceKm:", distanceKm);
+  console.log("EFFECTIVE distanceKm:", distanceKm);
   console.log("FINAL distanceInMeters:", distanceInMeters);
   console.log("INPUT latitude:", latitude, "(type:", typeof latitude, ")");
   console.log("INPUT longitude:", longitude, "(type:", typeof longitude, ")");
