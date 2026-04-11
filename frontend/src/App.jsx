@@ -32,6 +32,8 @@ import AdminUsersPage from "./features/admin/users/pages/AdminUsersPage";
 import Dashboard from "./features/admin/dashboard/pages/Dashboard";
 import FoodBanksTable from "./features/admin/users/pages/FoodBanksTable";
 import RestaurantsTable from "./features/admin/users/pages/RestaurantsTable";
+import FoodBankRequestsPage from "./features/admin/users/pages/FoodBankRequestsPage";
+import RestaurantDonationsPage from "./features/admin/users/pages/RestaurantDonationsPage";
 import Settings from "./features/admin/settings/pages/Settings";
 
 function App() {
@@ -119,7 +121,9 @@ function App() {
               <Route index element={<Navigate to="dashboard" />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="foodbanks" element={<FoodBanksTable />} />
+              <Route path="foodbank/:id/requests" element={<FoodBankRequestsPage />} />
               <Route path="restaurants" element={<RestaurantsTable />} />
+              <Route path="restaurant/:id/donations" element={<RestaurantDonationsPage />} />
               <Route path="settings" element={<Settings />} />
               <Route path="users" element={<AdminUsersPage />} />
             </Route>

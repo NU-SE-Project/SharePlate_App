@@ -7,7 +7,7 @@ import {
   HandHeart,
   ClipboardList,
   ArrowRight,
-  Sparkles,
+  Sparkles, Plus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -110,10 +110,10 @@ const AvailableRequestsPage = () => {
                   <div className="flex h-full flex-col justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-                        <HandHeart size={20} />
+                        <Plus size={20} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">New Donation</p>
+                        <p className="text-sm font-semibold uppercase tracking-wider">ADD Donation</p>
                         <p className="text-xs text-emerald-100">
                           Start a fresh donation flow
                         </p>
@@ -168,17 +168,15 @@ const AvailableRequestsPage = () => {
                       aria-controls={`${tab.key}-panel`}
                       id={`${tab.key}-tab`}
                       onClick={() => setActiveTab(tab.key)}
-                      className={`group inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:min-w-[220px] ${
-                        isActive
+                      className={`group inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 sm:min-w-[220px] ${isActive
                           ? "bg-gradient-to-r from-emerald-600 to-green-800 text-white shadow-lg shadow-emerald-100"
                           : "bg-transparent text-slate-600 hover:bg-white hover:text-emerald-700"
-                      }`}
+                        }`}
                     >
                       <Icon
                         size={18}
-                        className={`transition-transform duration-300 ${
-                          isActive ? "scale-100" : "group-hover:scale-105"
-                        }`}
+                        className={`transition-transform duration-300 ${isActive ? "scale-100" : "group-hover:scale-105"
+                          }`}
                       />
                       <span className="hidden sm:inline">{tab.label}</span>
                       <span className="sm:hidden">{tab.shortLabel}</span>
