@@ -18,6 +18,7 @@ import acceptsfoodrequestRoutes from './modules/request/shop/acceptsfoodrequestR
 import distancetestRoutes from './modules/testing/distancetestRoute.js';
 import complainRoutes from "./modules/complain/complainRoutes.js";
 import dashboardRoutes from "./modules/dashboard/dashboardRoutes.js";
+import settingsRoutes from "./modules/settings/settingsRoutes.js";
 import { buildPublicAppUrl } from "./utils/publicAppUrl.js";
 
 const app = express();
@@ -99,6 +100,9 @@ app.use("/api/complaints", complainRoutes);
 
 // Dashboard Routes
 app.use("/api/dashboard", dashboardRoutes);
+
+// Settings Routes
+app.use("/api/settings", settingsRoutes);
 
 // Global error handler
 app.use(notFound);

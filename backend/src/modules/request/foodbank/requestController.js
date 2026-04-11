@@ -28,7 +28,7 @@ export async function getRequestsByFoodbank(req, res, next) {
 
 export async function getAllOpenRequests(req, res, next) {
   try {
-    const requests = await getAllOpenRequestsService();
+    const requests = await getAllOpenRequestsService(req.user);
     return res.json(requests);
   } catch (err) {
     return next(err);

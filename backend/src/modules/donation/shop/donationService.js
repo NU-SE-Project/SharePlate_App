@@ -1,4 +1,5 @@
 import Donation from "./Donation.js";
+import Request from "../foodbank/Request.js";
 import mongoose from "mongoose";
 import { getIO } from "../../../socket.js";
 import path from 'path';
@@ -100,7 +101,10 @@ export async function createDonationService(data, file) {
   return donation;
 }
 
-export async function getAllDonationsService(query) {
+import User from "../../user/User.js";
+import { getMaxDistanceSetting } from "../../../services/distanceService.js";
+
+export async function getAllDonationsService(query, user) {
   const { status, foodType, restaurant_id } = query || {};
   let filter = {};
   if (status) filter.status = status;
@@ -114,8 +118,47 @@ export async function getAllDonationsService(query) {
     filter.restaurant_id = restaurant_id;
   }
 
-  const donations = await Donation.find(filter).populate("restaurant_id", "name address location").sort({ expiryTime: 1 });
-  return donations;
+  // Distance filtering for Foodbanks viewing available food
+  if (user && user.role === "foodbank" && !restaurant_id) {
+    const currentUser = await User.findById(user.userId);
+    if (currentUser && currentUser.location && currentUser.location.coordinates) {
+      const maxDistanceKm = await getMaxDistanceSetting();
+      const maxDistanceMeters = maxDistanceKm * 1000;
+
+      // Filter donations based on the restaurant's location being near the foodbank
+      // First, get restaurants within the range
+      const nearbyRestaurants = await User.find({
+        role: "restaurant",
+        location: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: currentUser.location.coordinates,
+            },
+            $maxDistance: maxDistanceMeters,
+          },
+        },
+      }).select("_id");
+
+      const restaurantIds = nearbyRestaurants.map(r => r._id);
+      filter.restaurant_id = { $in: restaurantIds };
+    }
+  }
+
+  const donations = await Donation.find(filter)
+    .populate("restaurant_id", "name address location")
+    .sort({ expiryTime: 1 })
+    .lean();
+  
+  // Attach requests (food bank acceptances) for each donation
+  const donationsWithRequests = await Promise.all(donations.map(async (don) => {
+    const requests = await Request.find({ food_id: don._id })
+      .populate("foodBank_id", "name address email contactNumber location")
+      .lean();
+    return { ...don, requests };
+  }));
+
+  return donationsWithRequests;
 }
 
 export async function getSingleDonationService(id) {

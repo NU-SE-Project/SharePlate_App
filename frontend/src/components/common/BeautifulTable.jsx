@@ -19,8 +19,20 @@ const BeautifulTable = ({
   title, 
   description,
   onSearch,
-  searchValue
+  searchValue,
+  expandableRowRender
 }) => {
+  const [expandedRows, setExpandedRows] = React.useState(new Set());
+
+  const toggleRow = (rowId) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(rowId)) {
+      newExpandedRows.delete(rowId);
+    } else {
+      newExpandedRows.add(rowId);
+    }
+    setExpandedRows(newExpandedRows);
+  };
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-rose-100 bg-rose-50/50 p-12 text-center animate-fade-in">
@@ -91,14 +103,17 @@ const BeautifulTable = ({
                 </tr>
               ) : data.length > 0 ? (
                 data.map((row, rIdx) => (
-                  <tr 
-                    key={rIdx} 
-                    className="group transition-colors duration-200 hover:bg-emerald-50/30"
-                  >
+                  <React.Fragment key={row._id || rIdx}>
+                    <tr 
+                      className="group transition-colors duration-200 hover:bg-emerald-50/30"
+                    >
                     {columns.map((col, cIdx) => (
                       <td key={cIdx} className="px-6 py-4.5">
                         {col.render ? (
-                          col.render(row)
+                          col.render(row, { 
+                            isExpanded: expandedRows.has(row._id || rIdx),
+                            toggleExpand: () => toggleRow(row._id || rIdx)
+                          })
                         ) : (
                           <span className="text-[15px] font-medium text-slate-700">
                             {row[col.key] || "-"}
@@ -107,7 +122,17 @@ const BeautifulTable = ({
                       </td>
                     ))}
                   </tr>
-                ))
+                  {expandableRowRender && expandedRows.has(row._id || rIdx) && (
+                    <tr className="bg-slate-50/30">
+                      <td colSpan={columns.length} className="px-6 py-0">
+                        <div className="overflow-hidden animate-fade-in">
+                          {expandableRowRender(row)}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))
               ) : (
                 <tr>
                   <td colSpan={columns.length} className="px-6 py-20 text-center">
