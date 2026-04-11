@@ -13,8 +13,10 @@ const AvailableFoodTab = ({ onRequest }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const [routeModalData, setRouteModalData] = useState(null);
   const { user } = useAuth();
+  const ITEMS_PER_PAGE = 5;
 
   const fetchDonations = async () => {
     setIsLoading(true);
@@ -52,6 +54,16 @@ const AvailableFoodTab = ({ onRequest }) => {
     const matchesFilter = filterType === 'all' || d.foodType === filterType;
     return matchesSearch && matchesFilter && d.remainingQuantity > 0 && d.status === 'available';
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterType, donations.length]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredDonations.length / ITEMS_PER_PAGE));
+  const paginatedDonations = filteredDonations.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   if (isLoading) {
     return (
@@ -101,7 +113,7 @@ const AvailableFoodTab = ({ onRequest }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredDonations.map((donation) => (
+          {paginatedDonations.map((donation) => (
             <div key={donation._id} className="group flex flex-col bg-white rounded-[2.5rem] border border-emerald-50 shadow-sm hover:shadow-2xl hover:shadow-emerald-900/5 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
               <div className="h-56 relative overflow-hidden">
                 {donation.imageUrl ? (
@@ -199,6 +211,32 @@ const AvailableFoodTab = ({ onRequest }) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {filteredDonations.length > ITEMS_PER_PAGE && (
+        <div className="flex items-center justify-between gap-4 bg-white border border-emerald-50 rounded-2xl p-4">
+          <p className="text-sm font-semibold text-slate-500">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              className="px-4 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-bold text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 

@@ -10,9 +10,11 @@ import { Map as MapIcon } from 'lucide-react';
 const MyRequestsTab = ({ foodBankId }) => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [routeModalData, setRouteModalData] = useState(null);
   const { user } = useAuth();
   const currentFoodBankId = foodBankId || user?.id || user?._id || null;
+  const ITEMS_PER_PAGE = 5;
 
   const fetchRequests = async () => {
     if (!currentFoodBankId) {
@@ -53,6 +55,16 @@ const MyRequestsTab = ({ foodBankId }) => {
       socket.off('request_rejected', onRejected);
     };
   }, [socket]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [requests.length]);
+
+  const totalPages = Math.max(1, Math.ceil(requests.length / ITEMS_PER_PAGE));
+  const paginatedRequests = requests.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   if (isLoading) {
     return (
@@ -115,7 +127,7 @@ const MyRequestsTab = ({ foodBankId }) => {
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      {requests.map((request) => {
+      {paginatedRequests.map((request) => {
         const statusInfo = getStatusInfo(request.status);
         return (
           <div key={request._id} className="group bg-white rounded-[2.5rem] border border-emerald-50 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-500 p-8 flex flex-col md:flex-row gap-8 items-center border-l-8 border-l-emerald-600">
@@ -197,6 +209,32 @@ const MyRequestsTab = ({ foodBankId }) => {
           </div>
         );
       })}
+
+      {requests.length > ITEMS_PER_PAGE && (
+        <div className="flex items-center justify-between gap-4 bg-white border border-emerald-50 rounded-2xl p-4">
+          <p className="text-sm font-semibold text-slate-500">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              className="px-4 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-bold text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {routeModalData && (
         <RouteMapModal 
