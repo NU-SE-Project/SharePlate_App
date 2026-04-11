@@ -47,7 +47,12 @@ export async function getComplaintTargets(req, res, next) {
  */
 export async function getAllComplaints(req, res, next) {
     try {
-        const complaints = await complainService.getAllComplaints();
+        const { status, complainerRole, complaineeRole } = req.query;
+        const complaints = await complainService.getAllComplaints({
+            status,
+            complainerRole,
+            complaineeRole,
+        });
         res.status(200).json(complaints);
     } catch (err) {
         next(err);
