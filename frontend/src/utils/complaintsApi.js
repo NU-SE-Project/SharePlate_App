@@ -31,4 +31,14 @@ export const complaintsApi = {
     });
     return response.data;
   },
+  
+  deleteComplaint: async (complaintId) => {
+    const response = await api.delete(`/complaints/${complaintId}`);
+    return response.data;
+  },
+
+  updateComplaint: async (complaintId, data) => {
+    const response = await api.patch(`/complaints/${complaintId}`, data);
+    return response.data;
+  },
 };

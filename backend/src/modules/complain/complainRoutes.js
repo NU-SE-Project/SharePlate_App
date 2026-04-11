@@ -7,6 +7,8 @@ import {
     getComplaintTargets,
     getAllComplaints,
     replyToComplaint,
+    deleteComplaint,
+    updateComplaint,
 } from "./complainController.js";
 
 const router = Router();
@@ -50,6 +52,20 @@ router.patch(
     requireAuth,
     allowRoles("admin"),
     replyToComplaint
+);
+
+router.delete(
+    "/:id",
+    requireAuth,
+    allowRoles("admin", "restaurant", "foodbank"),
+    deleteComplaint
+);
+
+router.patch(
+    "/:id",
+    requireAuth,
+    allowRoles("admin", "restaurant", "foodbank"),
+    updateComplaint
 );
 
 export default router;
