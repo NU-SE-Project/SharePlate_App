@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { 
   User, 
-  Lock, 
-  Bell, 
-  Shield, 
-  Database, 
   Globe,
   Save,
   MapPin,
-  Loader2
+  Loader2,
+  Phone,
+  Mail
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getDistanceSetting, updateDistanceSetting } from "../../services/settingsService";
+import { getMyProfile, updateMyProfile } from "../../services/adminProfileService";
+import ChangePasswordModal from "../components/ChangePasswordModal";
 
 const SettingsSection = ({ title, description, children, icon: Icon }) => (
   <div className="rounded-[2.5rem] border border-slate-200/60 bg-white p-8 shadow-sm">
@@ -44,37 +44,82 @@ const SettingItem = ({ label, description, children }) => (
 
 const Settings = () => {
   const [distance, setDistance] = useState(20);
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    contactNumber: "",
+    address: "",
+    location: { type: "Point", coordinates: [0, 0] }
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchSettings();
+    loadAllSettings();
   }, []);
 
-  const fetchSettings = async () => {
+  const loadAllSettings = async () => {
     try {
       setIsLoading(true);
-      const data = await getDistanceSetting();
-      setDistance(data.value);
+      const [distData, profileData] = await Promise.all([
+        getDistanceSetting(),
+        getMyProfile()
+      ]);
+      
+      setDistance(distData.value);
+      
+      const admin = profileData.user;
+      setProfile({
+        name: admin.name || "",
+        email: admin.email || "",
+        contactNumber: admin.contactNumber || "",
+        address: admin.address || "",
+        location: admin.location || { type: "Point", coordinates: [0, 0] }
+      });
     } catch (error) {
-      console.error("Failed to fetch settings:", error);
-      toast.error("Failed to load platform settings");
+      console.error("Failed to load settings:", error);
+      toast.error("Failed to load some settings");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfile(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSave = async () => {
+    // Validation
+    if (distance < 5 || distance > 100) {
+      toast.error("Distance must be between 5km and 100km");
+      return;
+    }
+
+    if (!profile.name.trim()) return toast.error("Name is required");
+    if (!profile.address.includes(",")) return toast.error("Address must contain a comma (e.g. Street, City)");
+    if (!/^\+947[0-9]{8}$/.test(profile.contactNumber)) {
+      return toast.error("Contact must be +947XXXXXXXX");
+    }
+
     try {
       setIsSaving(true);
-      if (distance < 5 || distance > 100) {
-        toast.error("Distance must be between 5km and 100km");
-        return;
-      }
-      await updateDistanceSetting(distance);
-      toast.success("Settings updated successfully");
+      
+      // Submit both distance and profile
+      await Promise.all([
+        updateDistanceSetting(distance),
+        updateMyProfile({
+          name: profile.name,
+          contactNumber: profile.contactNumber,
+          address: profile.address,
+          location: profile.location // Preserve existing location
+        })
+      ]);
+
+      toast.success("Settings saved successfully");
     } catch (error) {
-      console.error("Failed to update settings:", error);
+      console.error("Save failed:", error);
       toast.error(error.response?.data?.message || "Failed to update settings");
     } finally {
       setIsSaving(false);
@@ -102,33 +147,71 @@ const Settings = () => {
           description="Update your account details and public identity."
           icon={User}
         >
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Full Name</label>
-              <input type="text" defaultValue="Admin User" className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  <User size={14} className="text-indigo-500" />
+                  Full Name
+                </label>
+                <input 
+                  type="text" 
+                  name="name"
+                  value={profile.name}
+                  onChange={handleProfileChange}
+                  placeholder="Admin Name"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 transition-all font-medium" 
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  <Mail size={14} className="text-indigo-500" />
+                  Email Address
+                </label>
+                <input 
+                  type="email" 
+                  value={profile.email}
+                  disabled
+                  title="Email cannot be changed for security reasons"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-5 py-4 outline-none text-slate-500 cursor-not-allowed font-medium" 
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  <Phone size={14} className="text-indigo-500" />
+                  Contact Number
+                </label>
+                <input 
+                  type="text" 
+                  name="contactNumber"
+                  value={profile.contactNumber}
+                  onChange={handleProfileChange}
+                  placeholder="+947XXXXXXXX"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 transition-all font-medium" 
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  <MapPin size={14} className="text-indigo-500" />
+                  Office Address
+                </label>
+                <input 
+                  type="text" 
+                  name="address"
+                  value={profile.address}
+                  onChange={handleProfileChange}
+                  placeholder="123 Admin Lane, City"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 transition-all font-medium" 
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Email Address</label>
-              <input type="email" defaultValue="admin@shareplate.com" className="mt-0.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/20" />
-            </div>
+            
           </div>
         </SettingsSection>
 
-        {/* Security Settings */}
-        <SettingsSection 
-          title="Security & Access" 
-          description="Manage your password and dual-factor authentication."
-          icon={Lock}
-        >
-          <SettingItem label="Two-Factor Auth" description="Enable SMS or App based verification.">
-            <div className="flex justify-end">
-               <button className="rounded-lg bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-100 transition-colors">Enable</button>
-            </div>
-          </SettingItem>
-          <SettingItem label="Password Last Changed" description="Last updated 3 months ago.">
-             <button className="text-xs font-bold text-emerald-600 hover:underline">Change Password</button>
-          </SettingItem>
-        </SettingsSection>
 
         {/* Platform Config */}
         <SettingsSection 
@@ -152,34 +235,24 @@ const Settings = () => {
               <span className="text-sm font-bold text-slate-400">KM</span>
             </div>
           </SettingItem>
+
+          <div className="pt-4 border-t border-slate-100">
+            <SettingItem label="Account Security" description="Update your password to keep your account safe.">
+               <button 
+                 onClick={() => setIsPasswordModalOpen(true)}
+                 className="text-xs font-black text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg transition-all"
+               >
+                 Change Password
+               </button>
+            </SettingItem>
+          </div>
           {/* <SettingItem label="Maintenance Mode" description="Disable public access for maintenance.">
              <div className="h-6 w-11 rounded-full bg-slate-200 relative cursor-not-allowed">
                 <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm" />
              </div>
           </SettingItem> */}
-          <SettingItem label="Default Language" description="Primary language for the interface.">
-             <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20">
-                <option>English (US)</option>
-                <option>Spanish</option>
-             </select>
-          </SettingItem>
         </SettingsSection>
 
-        {/* Data Management */}
-        <SettingsSection 
-          title="Data Management" 
-          description="Manage logs and database backups."
-          icon={Database}
-        >
-          <div className="flex flex-wrap gap-3 mt-2">
-            <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
-               Audit Logs
-            </button>
-            <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
-               Export Database
-            </button>
-          </div>
-        </SettingsSection>
       </div>
 
       <div className="flex justify-end pt-6">
@@ -196,6 +269,10 @@ const Settings = () => {
           {isSaving ? "Saving..." : "Save Changes"}
         </button>
       </div>
+      <ChangePasswordModal 
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
     </div>
   );
 };
