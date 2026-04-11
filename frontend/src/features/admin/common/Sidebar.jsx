@@ -1,36 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
-  ChevronDown, 
-  ChevronRight, 
-  LogOut, 
-  Menu, 
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  LogOut,
+  Menu,
   X,
   Store,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import toast from "react-hot-toast";
 import sharePlateLogo from "../../../assets/SharePlate_OffcialLogo.png";
 
-const SidebarItem = ({ icon: Icon, label, to, isActive, onClick, children, hasDropdown, isOpen }) => {
+const SidebarItem = ({
+  icon: Icon,
+  label,
+  to,
+  isActive,
+  onClick,
+  children,
+  hasDropdown,
+  isOpen,
+}) => {
   return (
     <div className="w-full">
       <Link
         to={to || "#"}
         onClick={onClick}
         className={`group flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-          isActive 
-            ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" 
+          isActive
+            ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
             : "text-slate-600 hover:bg-slate-100 hover:text-emerald-600"
         }`}
       >
         <div className="flex items-center gap-3">
-          <Icon size={20} className={`${isActive ? "text-white" : "group-hover:text-emerald-600"}`} />
+          <Icon
+            size={20}
+            className={`${isActive ? "text-white" : "group-hover:text-emerald-600"}`}
+          />
           <span>{label}</span>
         </div>
         {hasDropdown && (
@@ -52,8 +65,8 @@ const SubItem = ({ label, to, isActive }) => (
   <Link
     to={to}
     className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
-      isActive 
-        ? "text-emerald-600 bg-emerald-50 font-bold" 
+      isActive
+        ? "text-emerald-600 bg-emerald-50 font-bold"
         : "text-slate-500 hover:text-emerald-600 hover:bg-slate-50"
     }`}
   >
@@ -71,7 +84,7 @@ const Sidebar = () => {
   useEffect(() => {
     // Keep dropdown open if we are on a sub-route
     if (
-      location.pathname.includes("/admin/foodbanks") || 
+      location.pathname.includes("/admin/foodbanks") ||
       location.pathname.includes("/admin/restaurants") ||
       location.pathname.includes("/admin/users")
     ) {
@@ -94,7 +107,7 @@ const Sidebar = () => {
       icon: LayoutDashboard,
       label: "Dashboard",
       to: "/admin/dashboard",
-      isActive: location.pathname === "/admin/dashboard"
+      isActive: location.pathname === "/admin/dashboard",
     },
     {
       icon: Users,
@@ -107,30 +120,36 @@ const Sidebar = () => {
       },
       children: (
         <>
-          <SubItem 
-            label="All Users" 
-            to="/admin/users" 
-            isActive={location.pathname === "/admin/users"} 
+          <SubItem
+            label="All Users"
+            to="/admin/users"
+            isActive={location.pathname === "/admin/users"}
           />
-          <SubItem 
-            label="Food Banks" 
-            to="/admin/foodbanks" 
-            isActive={location.pathname === "/admin/foodbanks"} 
+          <SubItem
+            label="Food Banks"
+            to="/admin/foodbanks"
+            isActive={location.pathname === "/admin/foodbanks"}
           />
-          <SubItem 
-            label="Restaurants" 
-            to="/admin/restaurants" 
-            isActive={location.pathname === "/admin/restaurants"} 
+          <SubItem
+            label="Restaurants"
+            to="/admin/restaurants"
+            isActive={location.pathname === "/admin/restaurants"}
           />
         </>
-      )
+      ),
+    },
+    {
+      icon: MessageSquare,
+      label: "Complaints",
+      to: "/admin/complaints",
+      isActive: location.pathname === "/admin/complaints",
     },
     {
       icon: Settings,
       label: "Admin Settings",
       to: "/admin/settings",
-      isActive: location.pathname === "/admin/settings"
-    }
+      isActive: location.pathname === "/admin/settings",
+    },
   ];
 
   return (
@@ -145,25 +164,33 @@ const Sidebar = () => {
 
       {/* Backdrop for mobile */}
       {isMobileOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[50] bg-slate-900/40 backdrop-blur-sm lg:hidden transition-opacity duration-300"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* Sidebar Container */}
-      <aside className={`fixed left-0 top-0 z-[55] h-screen w-72 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        isMobileOpen ? "translate-x-0" : "-translate-x-full"
-      }`}>
+      <aside
+        className={`fixed left-0 top-0 z-[55] h-screen w-72 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex h-full flex-col p-6">
           {/* Brand */}
           <Link to="/admin/dashboard" className="mb-10 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-100 text-emerald-600 shadow-sm overflow-hidden">
-               <img src={sharePlateLogo} alt="Logo" className="h-full w-full object-cover" />
+              <img
+                src={sharePlateLogo}
+                alt="Logo"
+                className="h-full w-full object-cover"
+              />
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-900">SharePlate</h1>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Admin Panel</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                Admin Panel
+              </span>
             </div>
           </Link>
 
@@ -181,11 +208,13 @@ const Sidebar = () => {
                 <ShieldCheck size={20} />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-slate-900">{user?.name || "Admin"}</p>
+                <p className="truncate text-sm font-bold text-slate-900">
+                  {user?.name || "Admin"}
+                </p>
                 <p className="truncate text-xs text-slate-500">{user?.email}</p>
               </div>
             </div>
-            
+
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-600 transition-all duration-200 hover:bg-rose-50"
