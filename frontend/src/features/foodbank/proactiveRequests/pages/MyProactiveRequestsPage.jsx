@@ -401,11 +401,11 @@ const MyProactiveRequestsPage = () => {
                         <div className="mt-4 grid gap-2 text-sm text-slate-600">
                           <div className="flex items-center gap-2">
                             <Phone size={14} className="text-emerald-600" />
-                            <span>{acc.restaurant_id?.phone || "Hidden Contact"}</span>
+                            <span>{acc.restaurant_id?.contactNumber || "Hidden Contact"}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin size={14} className="text-emerald-600" />
-                            <span className="truncate">
+                          <div className="flex items-start gap-2">
+                            <MapPin size={14} className="mt-1 shrink-0 text-emerald-600" />
+                            <span className="text-slate-600">
                               {acc.restaurant_id?.address || "Local Pickup"}
                             </span>
                           </div>
