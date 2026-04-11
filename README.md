@@ -176,13 +176,9 @@ API Endpoints
 
 Once running, you can access:
 
-- **Auth:** `POST /api/auth/register`, `POST /api/auth/login`
-- **Donations:** `GET /api/donations`, `POST /api/donations`
-- **Requests:** `GET /api/requests`, `POST /api/requests`
-- **Users:** `GET /api/users` (admin only)
-- **Notifications:** `GET /api/notifications`
+- Complete endpoint reference: [docs/api-endpoints.md](docs/api-endpoints.md)
 
-For complete API documentation, refer to the respective route files in `src/modules/`.
+The old short list below is intentionally omitted to avoid conflicting with the full reference.
 
 �📚 Academic Context
 Developed for:
