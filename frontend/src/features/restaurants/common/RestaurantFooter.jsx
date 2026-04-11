@@ -47,21 +47,6 @@ const InstagramIcon = ({ size = 18 }) => (
   </svg>
 );
 
-const GithubIcon = ({ size = 18 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M12 .5a12 12 0 0 0-3.79 23.4c.6.11.82-.26.82-.58v-2.02c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.74.08-.74 1.22.09 1.86 1.26 1.86 1.26 1.08 1.85 2.84 1.32 3.53 1.01.11-.78.42-1.32.76-1.62-2.67-.3-5.48-1.34-5.48-5.96 0-1.32.47-2.4 1.25-3.25-.13-.3-.54-1.5.12-3.13 0 0 1.02-.33 3.34 1.24a11.5 11.5 0 0 1 6.08 0c2.32-1.57 3.34-1.24 3.34-1.24.66 1.63.25 2.83.12 3.13.78.85 1.25 1.93 1.25 3.25 0 4.63-2.82 5.66-5.5 5.96.43.37.82 1.1.82 2.22v3.29c0 .32.21.7.83.58A12 12 0 0 0 12 .5z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
 const LinkedInIcon = ({ size = 18 }) => (
   <svg
     width={size}
@@ -93,7 +78,6 @@ const footerLinks = {
   social: [
     { label: "Facebook", href: "#", icon: FacebookIcon },
     { label: "Instagram", href: "#", icon: InstagramIcon },
-    { label: "GitHub", href: "#", icon: GithubIcon },
     { label: "LinkedIn", href: "#", icon: LinkedInIcon },
   ],
 };
