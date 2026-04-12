@@ -22,6 +22,7 @@ import {
 import toast from "react-hot-toast";
 import AcceptRequestModal from "./AcceptRequestModal";
 import { useSocket } from "../../../../context/SocketContext";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const statusConfig = {
   pending: {
@@ -205,27 +206,12 @@ const RequestCard = React.memo(
 
 RequestCard.displayName = "RequestCard";
 
-const LoadingState = () => {
+const RequestLoadingState = () => {
   return (
-    <div className="grid gap-5">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div
-          key={index}
-          className="animate-pulse rounded-[2rem] border border-emerald-100 bg-white p-5 shadow-sm sm:p-6"
-        >
-          <div className="mb-4 h-5 w-32 rounded-full bg-emerald-100" />
-          <div className="mb-3 h-7 w-2/3 rounded-xl bg-slate-200" />
-          <div className="mb-6 h-4 w-1/2 rounded-lg bg-slate-100" />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
-            <div className="h-24 rounded-2xl bg-slate-100" />
-            <div className="h-24 rounded-2xl bg-emerald-100/60" />
-          </div>
-
-          <div className="mt-6 h-14 w-full rounded-2xl bg-slate-100 xl:ml-auto xl:w-60" />
-        </div>
-      ))}
-    </div>
+    <LoadingState
+      title="Loading donation requests"
+      message="Please wait while we fetch the latest request activity for your donations."
+    />
   );
 };
 
@@ -395,7 +381,7 @@ const DonationRequestList = () => {
     try {
       const data = await getDonationRequests(restaurantId);
       setRequests(data.requests || data || []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load donation requests");
     } finally {
       setIsLoading(false);
@@ -449,7 +435,7 @@ const DonationRequestList = () => {
       );
       toast.success("New OTP generated! Please contact the food bank.");
       setOtpValue("");
-    } catch (error) {
+    } catch {
       toast.error("Failed to resend OTP. Please try again.");
     } finally {
       setIsResending(false);
@@ -487,7 +473,7 @@ const DonationRequestList = () => {
   }, [otpValue, verifyingRequest, fetchRequests]);
 
   if (isLoading) {
-    return <LoadingState />;
+    return <RequestLoadingState />;
   }
 
   if (requests.length === 0) {

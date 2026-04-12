@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Leaf,
-  Loader2,
   ShieldCheck,
   Sparkles,
   TrendingUp,
@@ -11,6 +10,7 @@ import {
 import { useAuth } from "../../../context/AuthContext";
 import Button from "../../../components/common/Button";
 import Card from "../../../components/common/Card";
+import LoadingState from "../../../components/common/LoadingState";
 import HomeHeader from "../components/Header";
 import Footer from "../components/Footer";
 import SharePlateLandingSections from "../components/SharePlateLandingSections";
@@ -89,24 +89,12 @@ const FeatureCard = memo(({ title, description, icon }) => {
 
 const AuthLoadingScreen = memo(() => (
   <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-    <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-      <div className="space-y-8">
-        <div className="flex items-center gap-3 text-slate-500">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="text-sm font-medium">Preparing homepage...</span>
-        </div>
-        <div className="h-14 w-3/4 animate-pulse rounded-xl bg-slate-200" />
-        <div className="h-72 animate-pulse rounded-[2rem] bg-slate-100" />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((item) => (
-            <div
-              key={item}
-              className="h-40 animate-pulse rounded-3xl bg-slate-100"
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+    <LoadingState
+      title="Loading homepage"
+      message="Please wait while we prepare your SharePlate workspace."
+      minHeightClassName="min-h-screen"
+      panelClassName="border-0 bg-transparent shadow-none"
+    />
   </div>
 ));
 

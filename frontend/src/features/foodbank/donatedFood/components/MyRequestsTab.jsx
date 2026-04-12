@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   ShoppingBag,
   Calendar,
-  Loader2,
   AlertCircle,
   CheckCircle2,
   XCircle,
@@ -16,6 +15,7 @@ import toast from "react-hot-toast";
 import { useSocket } from "../../../../context/SocketContext";
 import { useAuth } from "../../../../context/AuthContext";
 import RouteMapModal from "../../../../components/common/RouteMapModal";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const MyRequestsTab = ({ foodBankId }) => {
   const [requests, setRequests] = useState([]);
@@ -33,7 +33,7 @@ const MyRequestsTab = ({ foodBankId }) => {
     try {
       const data = await getMyFoodRequests(currentFoodBankId);
       setRequests(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load your requests");
     } finally {
       setIsLoading(false);
@@ -65,21 +65,10 @@ const MyRequestsTab = ({ foodBankId }) => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-[2rem] border border-emerald-100 bg-white/80 px-6 py-16 shadow-sm">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 shadow-lg shadow-emerald-100/60">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Syncing your requests
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Pulling the latest status updates from restaurants.
-            </p>
-          </div>
-        </div>
-      </div>
+      <LoadingState
+        title="Loading your requests"
+        message="Please wait while we fetch the latest request status updates."
+      />
     );
   }
 

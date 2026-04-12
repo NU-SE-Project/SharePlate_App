@@ -9,7 +9,6 @@ import React, {
 import toast from "react-hot-toast";
 import {
   AlertTriangle,
-  Loader2,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -23,6 +22,7 @@ import AdminUsersFilterBar from "../../common/AdminUsersFilterBar";
 import AdminUsersList from "../../common/AdminUsersList";
 import AdminUsersPaginationFooter from "../../common/AdminUsersPaginationFooter";
 import { useAuth } from "../../../../context/AuthContext";
+import SharedLoadingState from "../../../../components/common/LoadingState";
 import {
   deactivateAdminUser,
   listAdminUsers,
@@ -146,17 +146,13 @@ const ErrorState = memo(({ error, onRetry }) => (
   </div>
 ));
 
-const LoadingState = memo(() => (
-  <div className="flex min-h-72 items-center justify-center px-6 py-14">
-    <div className="text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 shadow-sm">
-        <Loader2 size={28} className="animate-spin text-emerald-600" />
-      </div>
-      <p className="mt-4 text-sm font-medium text-slate-500">
-        Loading users...
-      </p>
-    </div>
-  </div>
+const UsersLoadingState = memo(() => (
+  <SharedLoadingState
+    title="Loading users"
+    message="Please wait while we fetch the latest user records."
+    minHeightClassName="min-h-72"
+    panelClassName="border-0 bg-transparent shadow-none"
+  />
 ));
 
 
@@ -512,7 +508,7 @@ const AdminUsersPage = () => {
         </div>
 
         {loading ? (
-          <LoadingState />
+          <UsersLoadingState />
         ) : error ? (
           <ErrorState error={error} onRetry={handleRefresh} />
         ) : users.length === 0 ? (

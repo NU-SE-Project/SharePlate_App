@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ShoppingBag,
-  Clock,
   AlertCircle,
   CheckCircle2,
   Info,
@@ -23,6 +22,7 @@ import { useAuth } from "../../../../context/AuthContext";
 import { useSocket } from "../../../../context/SocketContext";
 import Button from "../../../../components/common/Button";
 import RouteMapModal from "../../../../components/common/RouteMapModal";
+import LoadingState from "../../../../components/common/LoadingState";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 
@@ -52,7 +52,7 @@ const MyProactiveRequestsPage = () => {
       if (!selectedRequestId && data.length > 0) {
         setSelectedRequestId(data[0]._id);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load your proactive requests");
     } finally {
       setIsLoading(false);
@@ -106,28 +106,19 @@ const MyProactiveRequestsPage = () => {
       toast.success("Request cancelled");
       setRequests((prev) => prev.filter((r) => r._id !== id));
       if (selectedRequestId === id) setSelectedRequestId(null);
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete request");
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-4">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-800 to-emerald-600 text-white shadow-lg">
-            <Clock className="h-8 w-8 animate-spin" />
-          </div>
-          <div>
-            <p className="text-base font-medium text-slate-800">
-              Syncing broadcasts
-            </p>
-            <p className="text-sm text-slate-500">
-              Pulling the latest request fulfillment activity.
-            </p>
-          </div>
-        </div>
-      </div>
+      <LoadingState
+        title="Loading broadcasts"
+        message="Please wait while we fetch the latest fulfillment activity."
+        minHeightClassName="min-h-[70vh]"
+        panelClassName="border-0 bg-transparent shadow-none"
+      />
     );
   }
 

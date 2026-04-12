@@ -23,6 +23,7 @@ import AcceptRequestModal from "./AcceptRequestModal";
 import { useSocket } from "../../../../context/SocketContext";
 import { useAuth } from "../../../../context/AuthContext";
 import { calculateDistance } from "../../../../utils/distance";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const DISTANCE_OPTIONS = [
   { label: "All", value: "all" },
@@ -52,7 +53,7 @@ const RequestList = () => {
     try {
       const data = await getAllOpenRequests();
       setRequests(data?.requests || []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load food bank requests");
     } finally {
       setIsLoading(false);
@@ -93,7 +94,7 @@ const RequestList = () => {
       );
       toast.success("New OTP generated! Please contact the food bank.");
       setOtpValue("");
-    } catch (error) {
+    } catch {
       toast.error("Failed to resend OTP. Please try again.");
     } finally {
       setIsResending(false);
@@ -175,21 +176,10 @@ const RequestList = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-[2rem] border border-emerald-100 bg-white/80 px-6 py-16 shadow-sm">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 shadow-lg shadow-emerald-100/60">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Loading donation requests
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Fetching the latest requests from nearby food banks.
-            </p>
-          </div>
-        </div>
-      </div>
+      <LoadingState
+        title="Loading donation requests"
+        message="Please wait while we fetch the latest requests from nearby food banks."
+      />
     );
   }
 

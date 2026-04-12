@@ -21,12 +21,13 @@ import {
   Cell
 } from "recharts";
 import { fetchAdminStats } from "../../services/adminDataService";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const StatCard = ({ title, value, icon: Icon, trend, trendValue, color }) => (
   <div className="group relative overflow-hidden rounded-[2rem] border border-slate-200/60 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-600/5">
     <div className="flex items-start justify-between">
       <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${color} shadow-lg shadow-current/10 transition-transform duration-300 group-hover:scale-110`}>
-        <Icon size={28} />
+        {React.createElement(Icon, { size: 28 })}
       </div>
       {trend && (
         <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
@@ -71,9 +72,12 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Activity className="h-10 w-10 animate-spin text-emerald-500" />
-      </div>
+      <LoadingState
+        title="Loading dashboard"
+        message="Please wait while we fetch the latest admin insights."
+        minHeightClassName="min-h-[60vh]"
+        panelClassName="border-0 bg-transparent shadow-none"
+      />
     );
   }
 
