@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   HandPlatter,
   ShieldCheck,
@@ -8,6 +9,10 @@ import {
 } from "lucide-react";
 import sharePlateLogo from "../../../assets/SharePlate_OffcialLogo.png";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  socialLinks,
+  supportRoutes,
+} from "../../common/support/supportLinks";
 
 const FacebookIcon = ({ size = 18 }) => (
   <svg
@@ -64,30 +69,30 @@ const LinkedInIcon = ({ size = 18 }) => (
 
 const footerLinks = {
   features: [
-    { label: "Direct Donation", href: "#" },
-    { label: "Manage Donated Foods", href: "#" },
-    { label: "Food Bank Requests", href: "#" },
-    { label: "Analytics Dashboard", href: "#" },
+    { label: "Direct Donation" },
+    { label: "Manage Donated Foods" },
+    { label: "Food Bank Requests" },
+    { label: "Analytics Dashboard" },
   ],
   support: [
-    { label: "Help Center", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Privacy Policy", href: "#" },
-    { label: "Contact Us", href: "#" },
+    { label: "Help Center", to: supportRoutes.helpCenter },
+    { label: "Terms of Service", to: supportRoutes.termsOfService },
+    { label: "Privacy Policy", to: supportRoutes.privacyPolicy },
+    { label: "Contact Us", to: supportRoutes.contact },
   ],
   social: [
-    { label: "Facebook", href: "#", icon: FacebookIcon },
-    { label: "Instagram", href: "#", icon: InstagramIcon },
-    { label: "LinkedIn", href: "#", icon: LinkedInIcon },
+    { label: "Facebook", href: socialLinks.facebook, icon: FacebookIcon },
+    { label: "Instagram", href: socialLinks.instagram, icon: InstagramIcon },
+    { label: "LinkedIn", href: socialLinks.linkedIn, icon: LinkedInIcon },
   ],
 };
 
-const FooterSection = ({ title, icon: Icon, links }) => {
+const FooterSection = ({ title, icon, links }) => {
   return (
     <div>
       <div className="mb-6 flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-700/30 bg-emerald-600/10 text-emerald-400">
-          <Icon size={18} />
+          {React.createElement(icon, { size: 18 })}
         </div>
         <h4 className="text-base font-semibold tracking-wide text-white">
           {title}
@@ -97,16 +102,22 @@ const FooterSection = ({ title, icon: Icon, links }) => {
       <ul className="space-y-3">
         {links.map((link) => (
           <li key={link.label}>
-            <a
-              href={link.href}
-              className="group inline-flex cursor-pointer items-center gap-2 text-sm text-slate-400 transition-all duration-300 hover:translate-x-1 hover:text-emerald-400 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-            >
-              <ArrowRight
-                size={14}
-                className="opacity-0 transition-all duration-300 group-hover:opacity-100"
-              />
-              <span>{link.label}</span>
-            </a>
+            {link.to ? (
+              <Link
+                to={link.to}
+                className="group inline-flex cursor-pointer items-center gap-2 text-sm text-slate-400 transition-all duration-300 hover:translate-x-1 hover:text-emerald-400 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              >
+                <ArrowRight
+                  size={14}
+                  className="opacity-0 transition-all duration-300 group-hover:opacity-100"
+                />
+                <span>{link.label}</span>
+              </Link>
+            ) : (
+              <span className="inline-flex text-sm text-slate-400">
+                {link.label}
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -114,17 +125,19 @@ const FooterSection = ({ title, icon: Icon, links }) => {
   );
 };
 
-const SocialLink = ({ href, label, icon: Icon }) => {
+const SocialLink = ({ href, label, icon }) => {
   return (
     <a
       href={href}
       aria-label={label}
+      target="_blank"
+      rel="noreferrer"
       className="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/80 text-slate-300 shadow-md transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-emerald-500/40 hover:bg-emerald-600 hover:text-white hover:shadow-emerald-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
     >
-      <Icon
-        size={18}
-        className="transition-transform duration-300 group-hover:scale-110"
-      />
+      {React.createElement(icon, {
+        size: 18,
+        className: "transition-transform duration-300 group-hover:scale-110",
+      })}
     </a>
   );
 };
@@ -143,8 +156,8 @@ const RestaurantFooter = () => {
       <div className="relative mx-auto max-w-7xl px-6 py-14 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 gap-12 border-b border-slate-800/80 pb-12 md:grid-cols-2 xl:grid-cols-5 xl:gap-10">
           <div className="xl:col-span-2">
-            <a
-              href="#"
+            <Link
+              to="/restaurant/dashboard"
               className="group inline-flex cursor-pointer items-center gap-3 focus-visible:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-emerald-700/30 bg-gradient-to-br from-emerald-600/20 to-green-800/20 shadow-lg shadow-emerald-900/30 transition-all duration-300 group-hover:scale-105 group-hover:rotate-1">
@@ -162,7 +175,7 @@ const RestaurantFooter = () => {
                   Restaurant Donation Platform
                 </span>
               </div>
-            </a>
+            </Link>
 
             <p className="mt-6 max-w-md text-sm leading-7 text-slate-400 sm:text-[15px]">
               Empowering restaurants to reduce food waste, manage donations
@@ -245,26 +258,26 @@ const RestaurantFooter = () => {
         </div>
 
         <div className="flex flex-col gap-4 pt-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 SharePlate. All rights reserved.</p>
+          <p>&copy; 2026 SharePlate. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-4">
-            <a
-              href="#"
+            <Link
+              to={supportRoutes.privacyPolicy}
               className="cursor-pointer transition-colors duration-300 hover:text-emerald-400 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               Privacy
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to={supportRoutes.termsOfService}
               className="cursor-pointer transition-colors duration-300 hover:text-emerald-400 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               Terms
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to={supportRoutes.accessibility}
               className="cursor-pointer transition-colors duration-300 hover:text-emerald-400 focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               Accessibility
-            </a>
+            </Link>
           </div>
         </div>
       </div>
