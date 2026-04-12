@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { SocketProvider } from "./context/SocketContext";
 import { AuthProvider } from "./context/AuthContext";
+import { motion } from "framer-motion";
+import ScrollToTop from "./components/common/ScrollToTop";
 
 import LoginPage from "./features/auth/pages/LoginPage";
 import SignupPage from "./features/auth/pages/SignupPage";
@@ -38,16 +41,57 @@ import FoodBankRequestsPage from "./features/admin/users/pages/FoodBankRequestsP
 import RestaurantDonationsPage from "./features/admin/users/pages/RestaurantDonationsPage";
 import Settings from "./features/admin/settings/pages/Settings";
 import AdminComplaintsPage from "./features/admin/complaints/pages/AdminComplaintsPage";
+import HelpCenterPage from "./features/common/support/pages/HelpCenterPage";
+import ContactPage from "./features/common/support/pages/ContactPage";
+import PrivacyPolicyPage from "./features/common/support/pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./features/common/support/pages/TermsOfServicePage";
+import SafetyGuidelinesPage from "./features/common/support/pages/SafetyGuidelinesPage";
+import AccessibilityPage from "./features/common/support/pages/AccessibilityPage";
 
 function App() {
+  const [showScrollUp, setShowScrollUp] = useState(false);
+  const [showScrollDown, setShowScrollDown] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop =
+        window.scrollY || document.documentElement.scrollTop || 0;
+      const windowHeight = window.innerHeight || 0;
+      const docHeight = document.documentElement.scrollHeight || 0;
+
+      const threshold = 40;
+
+      const atTop = scrollTop <= threshold;
+      const atBottom = windowHeight + scrollTop >= docHeight - threshold;
+
+      setShowScrollDown(!atBottom);
+      setShowScrollUp(!atTop);
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <AuthProvider>
       <SocketProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Toaster position="top-right" reverseOrder={false} />
 
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/help-center" element={<HelpCenterPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+            <Route
+              path="/safety-guidelines"
+              element={<SafetyGuidelinesPage />}
+            />
+            <Route path="/accessibility" element={<AccessibilityPage />} />
 
             <Route path="/endpoints" element={<ApiEndpoints />} />
 
@@ -113,7 +157,7 @@ function App() {
               <Route
                 path="leaderboard"
                 element={
-                  <div className="p-10 font-bold text-2xl bg-white rounded-3xl shadow-sm">
+                  <div className="rounded-3xl bg-white p-10 text-2xl font-bold shadow-sm">
                     Community Leaderboard (Coming Soon)
                   </div>
                 }
@@ -156,6 +200,65 @@ function App() {
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+
+          {showScrollUp && (
+            <motion.button
+              type="button"
+              aria-label="Scroll to top"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              initial={{ opacity: 0, y: 40, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.9 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="fixed right-5 bottom-28 z-50 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-green-800 text-white shadow-lg transition-all duration-200 hover:bg-emerald-600 hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            >
+              <svg
+                className="h-5 w-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 15l7-7 7 7"
+                />
+              </svg>
+            </motion.button>
+          )}
+
+          {showScrollDown && (
+            <motion.button
+              type="button"
+              aria-label="Scroll to bottom"
+              onClick={() =>
+                window.scrollTo({
+                  top: document.documentElement.scrollHeight,
+                  behavior: "smooth",
+                })
+              }
+              initial={{ opacity: 0, y: 40, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.9 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="fixed right-5 bottom-6 z-50 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-green-800 text-white shadow-lg transition-all duration-200 hover:bg-emerald-600 hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            >
+              <svg
+                className="h-5 w-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </motion.button>
+          )}
         </BrowserRouter>
       </SocketProvider>
     </AuthProvider>

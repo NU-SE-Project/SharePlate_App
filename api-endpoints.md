@@ -1175,6 +1175,52 @@ Response:
 }
 ```
 
+### PATCH /api/complaints/:id
+
+Auth: required
+
+Roles: admin, restaurant, or foodbank
+
+Purpose: updates an existing complaint. The controller passes the request body through to the complaint service, so the allowed fields depend on service-side validation and ownership checks.
+
+Example request body:
+
+```json
+{
+  "subject": "Pickup delayed again",
+  "description": "Updating the complaint with clearer timing details."
+}
+```
+
+Response:
+
+```json
+{
+  "message": "Complaint updated successfully",
+  "complaint": {
+    "_id": "66f1f2b7f2f2f2f2f2f2f2f2",
+    "subject": "Pickup delayed again",
+    "description": "Updating the complaint with clearer timing details."
+  }
+}
+```
+
+### DELETE /api/complaints/:id
+
+Auth: required
+
+Roles: admin, restaurant, or foodbank
+
+Purpose: deletes a complaint. Access is still subject to service-side permission checks.
+
+Response:
+
+```json
+{
+  "message": "Complaint deleted successfully"
+}
+```
+
 ## Dashboard
 
 Base path: `/api/dashboard`
