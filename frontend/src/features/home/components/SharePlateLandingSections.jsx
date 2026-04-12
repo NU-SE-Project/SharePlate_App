@@ -19,6 +19,7 @@ import {
 import ScrollReveal from "./ScrollReveal";
 import Button from "../../../components/common/Button";
 import Card from "../../../components/common/Card";
+import LoadingState from "../../../components/common/LoadingState";
 import { getLandingOverview } from "../services/homeService";
 
 const sectionShell =
@@ -212,28 +213,6 @@ const ActivityPill = memo(function ActivityPill({ icon, label, value }) {
         </div>
       </div>
     </Card>
-  );
-});
-
-const ActivitySkeleton = memo(function ActivitySkeleton() {
-  return (
-    <div className="grid gap-4">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div
-          key={index}
-          className="animate-pulse rounded-3xl border border-slate-200 bg-white p-5"
-        >
-          <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-slate-200" />
-            <div className="flex-1 space-y-3">
-              <div className="h-4 w-40 rounded bg-slate-200" />
-              <div className="h-3 w-64 rounded bg-slate-200" />
-              <div className="h-3 w-32 rounded bg-slate-200" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
   );
 });
 
@@ -511,7 +490,16 @@ const ActivitySection = memo(function ActivitySection() {
   );
 
   const visibleContent = useMemo(() => {
-    if (state.loading) return <ActivitySkeleton />;
+    if (state.loading) {
+      return (
+        <LoadingState
+          title="Loading activity"
+          message="Please wait while we fetch the latest platform updates."
+          minHeightClassName="min-h-[280px]"
+          panelClassName="border border-slate-200 bg-white shadow-none"
+        />
+      );
+    }
     if (state.error) return <ErrorState onRetry={loadActivity} />;
     if (state.items.length === 0) return <EmptyState />;
 

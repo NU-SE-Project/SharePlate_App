@@ -12,12 +12,13 @@ import toast from "react-hot-toast";
 import { getDistanceSetting, updateDistanceSetting } from "../../services/settingsService";
 import { getMyProfile, updateMyProfile } from "../../services/adminProfileService";
 import ChangePasswordModal from "../components/ChangePasswordModal";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const SettingsSection = ({ title, description, children, icon: Icon }) => (
   <div className="rounded-[2.5rem] border border-slate-200/60 bg-white p-8 shadow-sm">
     <div className="mb-6 flex items-start gap-4">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-600">
-        <Icon size={24} />
+        {React.createElement(Icon, { size: 24 })}
       </div>
       <div>
         <h3 className="text-xl font-bold text-slate-900">{title}</h3>
@@ -128,9 +129,12 @@ const Settings = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-      </div>
+      <LoadingState
+        title="Loading settings"
+        message="Please wait while we fetch your profile and platform preferences."
+        minHeightClassName="min-h-[60vh]"
+        panelClassName="border-0 bg-transparent shadow-none"
+      />
     );
   }
   return (

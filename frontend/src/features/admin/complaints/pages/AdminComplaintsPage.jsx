@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 import { complaintsApi } from "../../../../utils/complaintsApi";
 import AdminComplaintList from "../components/AdminComplaintList";
 import Select from "../../../../components/common/Select";
-import Input from "../../../../components/common/Input";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const AdminComplaintsPage = () => {
   const [complaints, setComplaints] = useState([]);
@@ -268,13 +268,11 @@ const AdminComplaintsPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex flex-col justify-center items-center h-96 gap-4 bg-white rounded-[2rem] border border-slate-50 shadow-sm">
-            <div className="relative w-16 h-16">
-              <div className="absolute top-0 left-0 w-full h-full border-4 border-slate-100 rounded-full"></div>
-              <div className="absolute top-0 left-0 w-full h-full border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
-            </div>
-            <p className="text-slate-400 font-bold animate-pulse">Syncing with database...</p>
-          </div>
+          <LoadingState
+            title="Loading complaints"
+            message="Please wait while we fetch the latest complaint records."
+            minHeightClassName="min-h-96"
+          />
         ) : filteredComplaints.length > 0 ? (
           <AdminComplaintList 
             complaints={filteredComplaints} 

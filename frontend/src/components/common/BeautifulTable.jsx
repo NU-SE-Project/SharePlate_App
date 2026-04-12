@@ -1,5 +1,6 @@
 import React from "react";
-import { Loader2, AlertCircle, Search, Filter } from "lucide-react";
+import { AlertCircle, Search, Filter } from "lucide-react";
+import LoadingState from "./LoadingState";
 
 /**
  * A beautiful, responsive, and reusable table component.
@@ -95,10 +96,12 @@ const BeautifulTable = ({
               {isLoading ? (
                 <tr>
                   <td colSpan={columns.length} className="px-6 py-24 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-                      <p className="text-sm font-medium text-slate-500">Fetching data...</p>
-                    </div>
+                    <LoadingState
+                      title="Loading data"
+                      message="Please wait while we fetch the latest records."
+                      minHeightClassName="min-h-0"
+                      panelClassName="border-0 bg-transparent px-0 py-0 shadow-none"
+                    />
                   </td>
                 </tr>
               ) : data.length > 0 ? (

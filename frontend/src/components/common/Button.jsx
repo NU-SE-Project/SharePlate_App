@@ -1,13 +1,18 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 
 const Button = ({
   children,
-  as: Component = "button",
+  as = "button",
   variant = "primary",
   size = "md",
+  isLoading = false,
+  loadingText,
   className = "",
+  disabled,
   ...props
 }) => {
+  const componentTag = as;
   const baseStyles =
     "inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -28,13 +33,22 @@ const Button = ({
     lg: "px-6 py-3.2 text-lg rounded-xl",
   };
 
-  return (
-    <Component
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-      {...props}
-    >
-      {children}
-    </Component>
+  return React.createElement(
+    componentTag,
+    {
+      className: `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`,
+      disabled: disabled || isLoading,
+      "aria-busy": isLoading,
+      ...props,
+    },
+    isLoading ? (
+      <span className="inline-flex items-center justify-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {loadingText || children}
+      </span>
+    ) : (
+      children
+    ),
   );
 };
 

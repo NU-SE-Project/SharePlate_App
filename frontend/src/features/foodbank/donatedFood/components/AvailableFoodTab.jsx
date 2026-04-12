@@ -4,7 +4,6 @@ import {
   Calendar,
   Clock,
   Search,
-  Loader2,
   AlertCircle,
   PlusCircle,
   Filter,
@@ -16,6 +15,7 @@ import toast from "react-hot-toast";
 import { useSocket } from "../../../../context/SocketContext";
 import { useAuth } from "../../../../context/AuthContext";
 import RouteMapModal from "../../../../components/common/RouteMapModal";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const AvailableFoodTab = ({ onRequest }) => {
   const [donations, setDonations] = useState([]);
@@ -30,7 +30,7 @@ const AvailableFoodTab = ({ onRequest }) => {
     try {
       const data = await getAvailableDonatedFood();
       setDonations(Array.isArray(data) ? data : []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load available food");
     } finally {
       setIsLoading(false);
@@ -70,21 +70,10 @@ const AvailableFoodTab = ({ onRequest }) => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-[2rem] border border-emerald-100 bg-white/80 px-6 py-16 shadow-sm">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 shadow-lg shadow-emerald-100/60">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Loading available donations
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Fetching the latest meals shared by restaurants.
-            </p>
-          </div>
-        </div>
-      </div>
+      <LoadingState
+        title="Loading available donations"
+        message="Please wait while we fetch the latest meals shared by restaurants."
+      />
     );
   }
 

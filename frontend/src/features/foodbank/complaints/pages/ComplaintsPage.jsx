@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { complaintsApi } from "../../../../utils/complaintsApi";
 import ComplaintForm from "../components/ComplaintForm";
 import ComplaintList from "../components/ComplaintList";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const ComplaintsPage = () => {
   const [complaints, setComplaints] = useState([]);
@@ -93,13 +94,11 @@ const ComplaintsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-96 gap-4">
-        <div className="relative w-16 h-16">
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-slate-100 rounded-full"></div>
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
-        </div>
-        <p className="text-slate-400 font-bold animate-pulse">Loading records...</p>
-      </div>
+      <LoadingState
+        title="Loading complaints"
+        message="Please wait while we fetch your latest complaint records."
+        minHeightClassName="min-h-96"
+      />
     );
   }
 

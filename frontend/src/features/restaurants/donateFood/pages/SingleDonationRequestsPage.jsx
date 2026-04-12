@@ -28,6 +28,7 @@ import {
 import toast from "react-hot-toast";
 import Modal from "../../../../components/common/Modal";
 import Button from "../../../../components/common/Button";
+import LoadingState from "../../../../components/common/LoadingState";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Small UI Helpers
@@ -93,7 +94,7 @@ const StatCard = memo(({ label, value, icon: Icon, tone }) => {
         <div
           className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${toneStyles[tone].icon}`}
         >
-          <Icon size={20} />
+          {React.createElement(Icon, { size: 20 })}
         </div>
       </div>
     </div>
@@ -159,7 +160,7 @@ const RequestRow = memo(({ request, onUpdateStatus }) => {
       await resendPickupOTP(pickupId);
       toast.success("New OTP generated! Please contact the food bank.");
       setOtpValue("");
-    } catch (error) {
+    } catch {
       toast.error("Failed to resend OTP. Please try again.");
     } finally {
       setIsResending(false);
@@ -453,7 +454,7 @@ StatCard.displayName = "StatCard";
 // ─────────────────────────────────────────────────────────────────────────────
 const SingleDonationRequestsPage = () => {
   const { donationId } = useParams();
-  const { user } = useAuth();
+  useAuth();
 
   const [donation, setDonation] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -484,9 +485,8 @@ const SingleDonationRequestsPage = () => {
         console.error("Requests fetch failed:", requestsRes.reason);
         toast.error("Failed to load requests");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load data");
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -540,21 +540,12 @@ const SingleDonationRequestsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[65vh] items-center justify-center px-4">
-        <div className="flex flex-col items-center gap-4 text-center animate-pulse">
-          <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-50 shadow-lg shadow-emerald-100">
-            <Loader2 className="animate-spin text-emerald-600" size={34} />
-          </div>
-          <div>
-            <p className="text-lg  text-slate-900">
-              Loading donation requests
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-500">
-              Please wait while we fetch the latest request data.
-            </p>
-          </div>
-        </div>
-      </div>
+      <LoadingState
+        title="Loading donation requests"
+        message="Please wait while we fetch the latest request data for this donation."
+        minHeightClassName="min-h-[65vh]"
+        panelClassName="border-0 bg-transparent shadow-none"
+      />
     );
   }
 

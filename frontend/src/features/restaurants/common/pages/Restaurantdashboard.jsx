@@ -42,6 +42,7 @@ import api from "../../../../utils/api";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
+import LoadingState from "../../../../components/common/LoadingState";
 
 const CHART_COLORS = ["#059669", "#10b981", "#34d399", "#f59e0b"];
 
@@ -723,24 +724,12 @@ const NotificationsPanel = memo(({ notifications }) => {
 
 const DashboardLoadingState = () => {
   return (
-    <div className="flex min-h-[75vh] items-center justify-center px-4">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl" />
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-800 to-emerald-600 text-white shadow-lg">
-            <Activity className="h-8 w-8 animate-spin" />
-          </div>
-        </div>
-        <div>
-          <p className="text-base font-medium text-gray-800 dark:text-white">
-            Loading dashboard
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Pulling the latest restaurant activity.
-          </p>
-        </div>
-      </div>
-    </div>
+    <LoadingState
+      title="Loading dashboard"
+      message="Please wait while we fetch the latest restaurant activity."
+      minHeightClassName="min-h-[75vh]"
+      panelClassName="border-0 bg-transparent shadow-none"
+    />
   );
 };
 
